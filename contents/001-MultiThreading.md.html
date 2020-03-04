@@ -1,0 +1,341 @@
+<meta charset="utf-8">
+**05MVID - 001 - Programación Multihilo**
+    <small>©2020 VIU - 05MVID Programación II - Iván Fuertes</small>
+
+Introducción
+==============================================================
+
+Concurrencia es la acción de dos o más actividades sucediendo al mismo tiempo. Cuando se habla de concurrencia en relación a la informática, se habla de un solo sistema realizando múltiples actividades independientes en paralelo, no de manera secuencial (una tras otra).
+
+Históricamente, la mayoría de ordenadores tenían un solo procesador, con una sola unidad de procesamiento o núcleo. Una máquina de ese tipo solo podía realizar una tarea a la vez, pero podía cambiar de tarea muchas veces por segundo. Haciendo un poco de cada tarea y cambiando a otra, se simulaba que las tareas se ejecutaban concurrentemente. Eso se llama *task switching*, y se considera concurrencia, puesto que los cambios de tarea son muy rápidos. Este sistema da la ilusión de concurrencia tanto al usuario como a la aplicación, pero puesto que es solo una ilusión, el comportamiento de las aplicaciones puede ser distinto cuando se ejecutan en un solo procesador a cuando lo hacen en un entorno de concurrencia real.
+
+Los ordenadores con procesadores con múltiples núcleos son ahora comunes, en máquinas de escritorio como en dispositivos móviles. Tanto si tienen múltiples procesadores, como múltiples núcleos dentro de un procesador, o ambos, estos ordenadores son capaces de ejecutar realmente más de una tarea en paralelo. Esto se llama concurrencia por hardware.
+
+![Figure [Res/001_001]: Escenario Ideal](Res/001_001.png)
+
+En un escenario ideal con dos tareas a procesar, como el de la figura 1, en una maquina con dos núcleos cada tarea se puede ejecutar en su propio núcleo. En una maquina con un solo núcleo haciendo *task switching*, los trozos de ejecución de cada tarea están intercalados, pero también están un poco espaciados entre sí. Para realizar la intercalación, el sistema tiene que realizar un cambio de contexto cada vez que cambia de una tarea a otra, y esto lleva tiempo. Este cambio de contexto supone que el sistema operativo debe guardar el estado de la CPU y el puntero de instrucción para la tarea que se está ejecutando, averiguar a qué tarea se debe cambiar, y recargar el estado de la CPU para la nueva tarea, la CPU entonces debe cargar la memoria para las instrucciones y los datos para la nueva tarea en la cache, lo que causa un retraso aún mayor.
+
+El factor más importante a considerar es el número real de hilos de hardware, la medida de cuantas tareas independientes el hardware puede realmente ejecutar de manera concurrente. Incluso en un sistema con concurrencia real, es muy habitual tener más tareas en ejecución de las que el hardware puede ejecutar en paralelo, así que el *task switching* es usado incluso en estos casos.
+
+![Figure [Res/001_002]: *Task Switching* en Dos Nucleos](Res/001_002.png)
+
+En la figura 2 se puede ver el uso de *task switching* para cuatro tareas en dos núcleos, donde se ejecutan cada uno de los trozos de ejecución en cualquiera de los dos núcleos en cualquier orden. Incluso en la realidad es todo más caótico puesto que los trozos de ejecución suelen ser de tamaños distintos haciendo la planificación mucho más irregular.
+
+Tipos de Concurrencia
+--------------------------------------------------------------
+
+Existen dos aproximaciones para trabajar concurrentemente, tener varios procesos de un solo hilo, o tener un solo proceso con múltiples hilos. Se pueden combinar de cualquier manera y tener varios procesos, algunos de los cuales pueden tener múltiples hilos, los principios son los mismos.
+
+### Concurrencia con Múltiples Procesos
+
+La primera forma de usar concurrencia en una aplicación es dividir la aplicación en múltiples, separados, procesos mono-hilados que se ejecutan a la vez. Estos procesos separados se pueden pasar mensajes entre ellos a través de los canales habituales (señales, *sockets*, ficheros, …). El problema es que esta comunicación suele ser complicada o lenta, otro problema es que existe un sobrecoste inherente, lleva tiempo arrancar un proceso, el sistema operativo debe dedicar recursos internos para gestionar el proceso, …
+
+Un punto a favor es la protección que los sistemas operativos suelen aplicar a los procesos y la comunicación a través de mecanismos de alto nivel hacer que sea más sencillo escribir código seguro concurrente. Otra ventaja añadida es que se pueden ejecutar procesos separados en distintos equipos conectados a través de una red.
+
+![Figure [Res/001_003]: Comunicación entre dos procesos concurrentes](Res/001_003.png)
+
+### Concurrencia con múltiples hilos
+
+La otra forma de concurrencia es ejecutar múltiples hilos dentro de un solo proceso. Los hilos son como procesos muy ligeros, cada hilo se ejecuta de manera independiente de los otros, y cada hilo puede ejecutar una secuencia diferencia de instrucciones. Pero todos los hilos dentro de un proceso comparten el mismo espacio de direcciones, y la mayoría de los datos se pueden acceder directamente desde todos los hilos.
+
+El espacio de direcciones compartido y la falta de protección de los datos entre hilos hace que el sobrecoste asociado al uso de múltiples hilos sea mucho menor que usando múltiples procesos, puesto que el sistema operativo tiene mucho menos trabajo. Pero la flexibilidad de la memoria compartida viene con un precio, si se accede a los datos desde múltiples hilos el programador de la aplicación debe asegurar que los datos que ve cada hilo son consistentes cada vez que se acceden. Los problemas alrededor de los datos compartidos entre hilos no son insalvables, pero hay que tener un cuidado especial al escribir código.
+
+El bajo sobrecoste de lanzar y comunicar múltiples hilos en un solo proceso comparado con lanzar y comunicar varios procesos mono-hilados significa que es la opción preferida a la concurrencia en la mayoría de los lenguajes, incluido C++.
+
+![Figure [Res/001_004]: Comunicación entre dos hilos en un proceso](Res/001_004.png)
+
+¿Por qué Usar Concurrencia?
+--------------------------------------------------------------
+
+Hay dos razones principales para usar concurrencia en una aplicación, separación de intereses y rendimiento. De hecho, deberían ser las únicas razones para usar concurrencia.
+
+### Separación de intereses
+
+Esta es siempre una buena idea al desarrollar software, agrupar trozos de código relacionados y mantener alejados los trozos que no tienen relación. Se hacen los programas más fáciles de entender y probar, y menos propensos a bugs. Se puede usar la concurrencia para separar distintas áreas de funcionalidad, incluso cuando operaciones en distintas áreas necesita suceder a la vez.
+
+Una aplicación de procesamiento intensivo con una interface de usuario tiene fundamentalmente dos grupos de responsabilidades, por un lado, procesar y por otro coger el input del usuario. Si se hiciera en un solo hilo, entonces la aplicación tendría que estar verificando el estado de la interface de usuario continuamente a intervalos dejando de procesar sus datos, incluso el usuario podría hacer uso de algún botón y la aplicación tardaría un tiempo en llegar al código de interface para responder a él. En cambio, usando multihilo para separar las dos partes el código de procesamiento y el de la interface no tiene por qué estar mezclado, un hilo se puede dedicar al procesamiento de los datos, y el otro a atender a la interfaz de usuario, mejorando la respuesta a los comandos del usuario que se atienden inmediatamente.
+
+De manera similar, hilos separados se suelen usar para ejecutar tareas que deben correr de manera continua en background, de esta manera la lógica de cada hilo se hace mucho más simple, puesto que las interacciones entre ellos se limitan a puntos fácilmente identificables, en lugar de tener la lógica dispersa.
+
+En este caso, el número de hilos es independiente del número de núcleos disponibles, puesto que la división en hilos está basada en un diseño conceptual.
+
+### Rendimiento
+
+En los equipos modernos es cada vez más frecuente la adopción de arquitecturas multi-núcleo para mejorar el rendimiento. El aumento de potencia de estos equipos no viene de ejecutar una sola tarea más rápido, sino de ser capaces de ejecutar varias tareas en paralelo.
+
+Hay dos maneras de usar la concurrencia para el rendimiento, la primera y más obvia es dividir una tarea en varias partes y ejecutarlas en paralelo, reduciendo así el tiempo de ejecución, a esto se le llama **paralelismo de tareas**. Aunque parezca sencillo, puede ser un proceso complejo, puesto que suelen haber muchas dependencias entre las distintas partes. Las divisiones pueden ser en términos de procesamiento (un hilo ejecuta una parte del algoritmo mientras otro hilo ejecuta otra parte), o en términos de datos (cada hilo ejecuta la misma operación en distintas partes de los datos), esto último se llama **paralelismo de datos**.
+
+La segunda manera es usar el paralelismo disponible para solucionar problemas más grandes, en lugar de procesar un fichero a la vez, procesar 2 o 10 o x… Esta es en realidad una aplicación del paralelismo de datos, ejecutando la misma operación en distintos conjuntos de datos concurrentemente hay un foco diferente. Cuesta el mismo tiempo procesar un bloque de datos, pero ahora más datos pueden ser procesados en el mismo periodo de tiempo. Hay ciertos límites, y esto no será beneficioso en todos los casos, pero el incremento en potencia que resulta de esto puede hacer nuevas cosas posibles.
+
+Cuando No Usar Concurrencia
+--------------------------------------------------------------
+
+Tan importante como saber cuándo usar concurrencia, es saber cuándo no usarla. Fundamentalmente, la única razón para no usarla es cuando el beneficio no compensa el coste. El código que usa concurrencia es difícil de entender, hay un coste intelectual en escribir y mantener código multihilo, y la complejidad adicional puede llevar a más bugs. A menos que la ganancia potencial de rendimiento sea la suficientemente grande o la separación de intereses lo suficientemente clara para justificar el tiempo de desarrollo adicional para hacerlo bien y los costes adiciones para mantener código multihilo, no se debe usar concurrencia.
+
+Además, la ganancia de rendimiento puede no ser tan grande como se esperaba, hay un sobrecoste inherente asociado a lanzar un hilo, el sistema operativo, tiene que reservar recursos del núcleo y de la pila y entonces añadir un nuevo hilo al *scheduler*, todo eso lleva tiempo. Si la tarea que se va a ejecutar en el hilo es rápida, el tiempo gastado por la tarea va a ser minimizado por el sobrecoste de lanzar el hilo, haciendo que el rendimiento global de la aplicación sea incluso peor que si la tarea se hubiera ejecutado directamente desde el hilo principal.
+
+Los hilos son un recurso limitado, si se tienen demasiados hilos ejecutándose a la vez, estos consumen recursos del sistema operativo y pueden hacer que el sistema funcione más lento. Incluso pueden comerse la memoria disponible o el espacio de direcciones para un proceso, puesto que cada hilo requiere un espacio de pila separado. En un sistema cliente/servidor, si el servidor lanza un hilo separado para cada conexión, puede funcionar para pocas conexiones, pero puede consumir todos los recursos si se usa en un servidor de alta demanda.
+
+Por último, cuantos más hilos haya en ejecución, más cambios de contexto tiene que realizar el sistema operativo. Y cada uno de esos cambios de contexto consume un tiempo que podría estar usándose para realizar trabajo significativo, así pues, en un punto añadir un hilo extra podría reducir el rendimiento global de la aplicación en lugar de incrementarlo. Por eso, para alcanzar el mejor rendimiento del sistema, es necesario ajustar el número de hilos ejecutándose y tener en cuenta el nivel de concurrencia hardware.
+
+El uso de la concurrencia para mejorar el rendimiento es como cualquier otra estrategia de optimización, tiene el potencial de mejora, pero puede complicar el código y hacerlo propenso a bugs. Por ello, suele valer la pena hacerlo solo para las partes de rendimiento crítico donde hay un potencial real de ganancia de rendimiento. Por supuesto, si esa ganancia de rendimiento es solo secundaria contra la claridad del diseño o la separación de intereses, entonces aún valdría la pena aplicarla.
+
+Concurrencia y Multihilo en C++
+--------------------------------------------------------------
+
+El soporte estándar para concurrencia a través del multihilo ha llegado a C++ a través del standard C++11. Ya no hay necesidad de usar extensiones o librerías específicas de plataforma, solo un compilador que soporte C++11.
+
+La única diferencia con el código mono-hilado es que algunas funciones pueden ejecutarse de manera concurrente, así que hay que asegurarse de que los datos compartidos sean seguros para el acceso concurrente. Para poder ejecutar funciones concurrentemente hay objetos específicos que deben ser usados para gestionar los distintos hilos.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ C++ linenumbers
+#include <thread>
+
+void function() {                 //Function to be executed in a separate thread
+    std::cout << "From Thread" << std::endl;
+}
+
+int main() {
+    std::thread thread(function);
+    std::cout << "From Main Thread" << std::endl;
+    thread.join();
+    return 0;
+}
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [thread]: Función Ejectuada en un Hilo Separado]
+
+Se incluye la cabecera `thread`, que es donde se incluyen las funciones y clases para gestionar los hilos en C++11. El código que se va a ejecutar en un hilo separado se ha puesto en la función `function`. Todo hilo tiene que tener una función inicial, que es donde empieza la ejecución del nuevo hilo. El hilo inicial en cualquier aplicación empieza en la función `main()`, pero para cualquier otro hilo se especifica en el constructor de un objeto `std::thread`. En el caso del ejemplo anterior, el objeto `thread`, de tipo `std::thread` se construye con la función `function`, y esa función se lanza de manera concurrente en otro hilo distinto del principal, llevando el número de hilos activos a 2. Una vez ese nuevo hilo se ha lanzado, el hilo principal sigue su ejecución, si este no esperara a que acabara el nuevo hilo, seguiría hasta el final de su ejecución, y al llegar al final del `main` cerraría la aplicación, probablemente antes de darle una oportunidad al nuevo hilo a ejecutarse. Por eso la llamada a `join`, que hace que el hilo que crea el nuevo hilo se espere a que este último acabe para seguir su ejecución.
+
+Gestión de Hilos
+==============================================================
+
+Gestión de Hilos Básica
+--------------------------------------------------------------
+Cada programa C++ tiene al menos un hilo, el cual es lanzado por el runtime de C++, el hilo que ejecuta el `main()`. Ese programa entonces puede lanzar hilos adicionales que tengan a otra función como punto entrada. Esos hilos entonces se ejecutan concurrentemente con el resto y con el hilo principal. Y al igual que el programa acaba cuando se acaba el `main()`, los hilos acaban cuando la función especificada en el punto de entrada del hilo acaba.
+
+### Lanzar un Hilo
+Los hilos se arrancan construyendo un objeto `std::thread` que especifica la tarea a ejecutar en ese hilo. El caso más simple es una función ordinaria que devuelve `void` y no recibe parámetros. Esta función se ejecuta en su propio hilo hasta que acaba y entonces el hilo se para. En el otro extremo, la tarea puede ser una función que reciba parámetros adicionales y realice una serie de operaciones independientes especificadas a través de algún sistema de mensajería mientras se está ejecutando, y el hilo acaba solo cuando se le ha señalado que lo haga. No importa lo que el hilo vaya a hacer o donde se lance, un hilo en C++ usando la *STL* se lanza construyendo un objeto `std::thread`.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ C++ linenumbers
+void function();
+std::thread thread(function);
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [thread]: Función Ejecutada en un Hilo Separado]
+
+Hay que asegurarse de incluir la cabecera `thread` para que el compilador pueda encontrar la definición de la clase `std::thread`. Esta clase trabaja con cualquier tipo *callable*, así que se le puede pasar una instancia de una clase con un operador de llamada a función al constructor.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ C++ linenumbers
+class Task {
+    public:
+      void operator() () const {
+        stsd::cout << "From Thread" << std::endl;
+      }
+  };
+  
+  Task f;
+  std::thread thread(f);
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [thread]: Método de Clase (operador ()) Ejecutado en un Hilo Separado]
+
+En este caso, el objeto función suministrado es copiado en el nuevo hilo creado e invocado desde ahí.
+
+Un caso muy habitual es usar las expresiones *lambda* para lanzar hilos. El cual permite escribir una función local anónima, posiblemente capturando algunas variables locales y evitando la necesidad de pasar argumentos adicionales.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ C++ linenumbers
+std::thread thread([] {
+    std::cout << "From Thread" << std::endl;
+});
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [thread]: Hilo Ejecutando una Función *Lambda*]
+
+Una vez ha arrancado el hilo, hay que decidir explícitamente si hay que esperar a que acabe (`join`) o abandonarlo a su suerte (`detach`). Si no se decide antes de que el objeto `std::thread` se destruya, entonces el programa acaba abruptamente. Con lo cual, es imperativo asegurarse que el hilo es correctamente tratado. Hay que tener en cuenta que hay que hacer esto antes de destruir el objeto `std::thread`, es posible que el mismo haya acabado su ejecución antes de tomar esa decisión.
+
+Si no se espera a la finalización del hilo, entonces hay que asegurarse que los datos a los que accede el hilo son válidos hasta que el hilo haya acabado con ellos. Este no es un problema nuevo, incluso con código mono-hilado es un problema acceder a un objeto después de haberlo destruido, pero el uso de hilos da una nueva oportunidad de encontrarse con estos problemas de tiempo de vida de los datos. Esto suele suceder cuando el hilo guarda punteros o referencias a variables locales y el hilo no ha finalizado cuando la función acaba. La solución a este problema es hacer a la función del hilo auto contenida y copiar los datos dentro del hilo en lugar de compartir los datos. Si se usa un objeto *callable* para la función del hilo, entonces el objeto es copiado dentro del hilo, con lo cual, el objeto original se puede destruir inmediatamente. Pero, aun así, suele ser mala idea crear un hilo dentro de una función que tiene acceso a las variables locales de esa función, a menos que esté garantizado que el hilo acabe antes de que la función lo haga.
+
+### Esperando a que un Hilo se Complete
+
+Si se necesita esperar a que un hilo se complete, se puede hacer llamando a `join()` en la instancia de `std::thread`.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ C++ linenumbers
+std::thread thread([] {
+    std::cout << "From Thread" << std::endl;
+});
+thread.join();
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [thread]: Join para Esperar que un Hilo Acabe su Ejecución]
+
+En este caso no tiene mucho sentido esperar, pero en código real el hilo original podría estar haciendo trabajo por sí mismo o podría haber lanzado varios hilos que hicieran algún trabajo significativo y debería esperar a que se completaran todos ellos.
+
+Es un mecanismo de fuerza bruta, o se espera a la finalización de un hilo o no. Si se necesita un control más fino, como verificar si un hilo ha finalizado, o esperar un periodo de tiempo, entonces hay que usar mecanismos más avanzados, como variables de condición o *futures*. El acto de llamar a `join()` también limpiar cualquier almacenamiento asociado con el hilo, así que el objeto `std::thread` ya no está asociado con el hilo ya finalizado, no está asociado con ningún hilo. Esto significa que solo se puede llamar una vez a `join()` para un hilo, una vez se llama a `join()` el objeto `std::thread` ya no es *joinable*, y la llamada a `joinable()` devolverá falso.
+
+### Ejecutando Hilos en *Background*
+
+Llamar a `detach()` sobre un objeto `std::thread` deja al hilo ejecutándose en el fondo, sin ningún medio de comunicarse con él. No es posible esperarse a que ese hilo se complete si un hilo se desconecta, no se puede obtener un objeto `std::thread` que haga referencia a él, y por tanto, no se puede llamar a `join()` sobre ese hilo. Los hilos que se han desconectado se ejecutan en *background*, la propiedad sobre ellos y su control se pasa al runtime de C++, lo cual asegura que los recursos asociados con el hilo son correctamente reclamados cuando el hilo acaba.
+
+Para desconectar un hilo se llama a `detach()` del objeto `std::thread`, y después de ello el objeto ya no está asociado con el hilo.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ C++ linenumbers
+std::thread thread([] {
+    std::cout << "From Thread" << std::endl;
+});
+thread.detach();
+assert(!thread.joinable());
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [thread]: Dejar un Hilo Ejecutandose en Background]
+
+Para desconectar un hilo de un objeto `std::thread` debe haber un hilo que desconectar, no se puede llamar a `detach()` sobre un objeto `std::thread` sin un hilo de ejecución asociado. Es el mismo requisito para `join()`, y se puede verificar de la misma manera, solo se puede llamar a `detach()` para un objeto `std::thread` si `joinable()` devuelve true.
+
+Pasar Argumentos a un Hilo
+--------------------------------------------------------------
+Pasar argumentos a un objeto *callable* o función es tan simple como pasar argumentos adicionales al constructor de `std::thread`. Pero es importante tener en mente que por defecto los argumentos se copian en el almacenamiento interno, donde pueden ser accedidos por el hilo de ejecución recientemente creado, incluso si el correspondiente parámetro en la función está esperando una referencia.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ C++ linenumbers
+void f(int i, const std::string& s) {
+  std::cout << s.c_str() << i << std::endl;
+}
+
+int main() {
+  std:thread thread(f, 3, "Something = ");
+  thread.detach();
+}
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [thread]: Envío de Argumentos a un Hilo]
+
+Número de Hilos en Tiempo de Ejecución
+--------------------------------------------------------------
+
+La función de la *STL* `std::thread::hardware_concurrency()` devuelve una indicación del número de hilos que se pueden ejecutar realmente de manera concurrente para una ejecución de un programa, en un sistema multi-núcleo puede ser el número de núcleos. Esto es solo una pista, y la función puede devolver 0 si esta información no está disponible, pero puede ser una guía útil para dividir una tarea entre hilos.
+
+Identificando Hilos
+--------------------------------------------------------------
+
+Los identificadores de los hilos son del tipo `std::thread::id`, y se pueden obtener de dos maneras. La primera es a través del objeto `std::thread` asociado al hilo, llamando a la función `get_id()`. Si ese objeto no tiene ningún hilo de ejecución asociado, entonces devolverá un valor por defecto que indica que no hay ningún hilo. La segunda es desde el propio hilo, se puede llamar a `std::this_thread::get_id()`, para conseguir el identificador del propio hilo.
+
+Si dos objetos de tipo `std::thread::id` son iguales, entonces representan al mismo hilo. Si dos objetos no son iguales entonces representan a hilos distintos.
+
+Compartir Datos entre Hilos
+==============================================================
+
+Uno de los beneficios clave de usar hilos para concurrencia es la facilidad e inmediatez de los datos compartidos entre ellos. Si se están compartiendo datos entre hilos, se necesitan establecer reglas para cada hilo que puede acceder a ellos, y como cualquier actualización de los mismos es comunicada al resto de hilos preocupados por los datos. La facilidad con que los datos se comparten entre diferentes hilos en un proceso no es solo una ventaja, también puede ser un gran inconveniente. El uso incorrecto de los datos compartidos es uno de las mayores causas de bugs relacionados con la concurrencia.
+
+Cuando tengo una discusión en la oficina, usamos un pollo de goma que guardamos para estas ocasiones. La persona que tiene el pollo en la mano es la única persona que tiene permitido hablar, si no se tiene el pollo no se puede hablar. Solo se puede indicar que quieres el pollo y esperar hasta que lo tienes para hablar. Una vez alguien ha acabado de hablar, se le devuelve el pollo al moderador, el cual se lo pasará a la siguiente persona para hablar. Esto asegura que las personas no hablen a la vez unas sobre otras, y todas tengan su propio espacio para hablar. Si se reemplaza la palabra pollo por *mutex*, y la palabra persona por hilo, este es el concepto básico de lo que es un *mutex*.
+
+Problemas Compartiendo Datos entre Hilos
+--------------------------------------------------------------
+
+Los problemas con los datos compartidos entre hilos siempre vienen por las consecuencias de modificar los datos. Si todos los datos compartidos son de solo lectura, entonces no hay problema, porque a los datos leídos por un hilo no les afecta si otro hilo los lee o no. En cambio, si uno o más hilos empiezan a modificar los datos, hay potencialmente un problema. En ese caso, hay que asegurarse de que todo funciona correctamente.
+
+Un concepto usado ampliamente es el de los invariantes, declaraciones que son siempre ciertas acerca de una estructura de datos, como, por ejemplo, esta variable contiene el número de unidades en la lista. Estos invariantes suelen romperse durante una actualización, especialmente si la estructura de datos es compleja o la actualización requiere la modificación de más de un valor.
+
+Por ejemplo, una lista doblemente enlazada, donde cada nodo tiene un puntero al siguiente nodo y al anterior. Uno de los invariantes es que, si se sigue un puntero ‘siguiente’ de un nodo A a un nodo B, el puntero ‘anterior’ del nodo B devuelve al nodo A. Para eliminar un nodo, los nodos en cada lado tienen que ser actualizados para apuntarse uno a otro. Una vez uno de ellos se ha actualizado el invariante se rompe, hasta que el nodo en la otra parte ha sido actualizado, una vez se ha completado toda la actualización, el invariante vuelve a ser válido.
+
+Los pasos para borrar un nodo de una lista son:
+
+- Identificar el nodo a borrar (N)
+- Actualizar el enlace del nodo anterior a N para apuntar al nodo posterior a N
+- Actualizar el enlace del nodo posterior a N para apuntar al nodo anterior a N
+- Eliminar el nodo N
+
+Entre los pasos 2 y 3, los enlaces en una dirección son inconsistentes con los enlaces en la otra dirección, y el invariante está roto.
+
+El problema potencial más simple por la modificación de datos compartidos entre hilos es el de los invariantes rotos. Si no se hace nada por asegurarlos por otro lado, entonces si un hilo está leyendo una lista mientras que otro está eliminando un nodo, es posible que el nodo que está leyendo vea la lista con un nodo parcialmente eliminado (entre los pasos 2 y 3), con el invariante roto. Las consecuencias de esto pueden ser variadas, si el hilo que lee lo está haciendo en una dirección puede que se salte el nodo que se está borrando, pero si el segundo hilo intenta borrar el nodo cuando se está leyendo puede acabar corrompiendo la estructura de datos y haciendo *crashear* la aplicación.
+
+Este es uno de los casos más típicos de la causa de bugs en código concurrente, las condiciones de carrera.
+
+### Condiciones de Carrera
+
+Un ejemplo típico es el de la compra de tickets, si hay varios puestos para comprar tickets, entonces varias personas pueden comprar tickets al mismo tiempo. Los asientos disponibles para elegir dependen de si otra persona ha comprado antes o no, si quedan pocos tickets disponibles, entonces es importante, puede ser literalmente una carrera por ver quien obtiene los últimos tickets. Es una condición de carrera, que tickets se consiguen (o incluso pueden no conseguirse) depende del orden relativo de dos compras.
+
+En concurrencia, una condición de carrera es cualquier cosa donde la salida depende del orden relativo de ejecución de operaciones en dos o más hilos, los hilos compiten para realizar sus respectivas operaciones. La mayoría de los casos no es un problema, puesto que cualquier salida posible es válida, incluso cuando puede cambiar con diferentes ordenaciones relativas. Si dos hilos están añadiendo elementos a una cola para procesarlos, generalmente no importa que elemento se añade antes, mientras que los invariantes del sistema se mantengan. Pero es cuando las condiciones de carrera llevan a invariantes rotos cuando hay un problema, como el de la lista anteriormente comentado. Cuando se habla de condición de carrera, se suele referir a una condición de carrera problemática, o a una que se presenta por una modificación concurrente a un único objeto. Las condiciones de carrera entonces causan un comportamiento indefinido y siempre acaban con el *crash* de la aplicación.
+
+Estas condiciones de carrera problemáticas suelen ocurrir completando una operación que requiere modificación de dos o más trozos distintos de datos, como los dos punteros de la lista del ejemplo. Porque la operación debe acceder a dos trozos separados de datos, estos deben ser modificados en instrucciones separadas, y otro hilo puede acceder potencialmente a la estructura de datos cuando solo uno de ellos se ha completado. Suelen ser complicadas de encontrar y reproducir porque la ventana de oportunidad es pequeña. Si las modificaciones se hacen como instrucciones de CPU consecutivas, la posibilidad de mostrar el problema es muy pequeña, incluso si se está accediendo a la estructura por otro hilo concurrentemente. Conforme la carga en el sistema se incrementa, y el número de veces que se realiza la operación aumenta, la probabilidad de que se ejecute la secuencia problemática también aumenta, es casi inevitable que estos problemas se muestren en el momento más inconveniente. Puesto que las condiciones de carrera suelen ser sensibles al tiempo, pueden desaparecer completamente cuando la aplicación se ejecuta bajo el debugger, puesto que este afecta al tempo del programa.
+
+Al escribir programas multi-hilo, evitar las condiciones de carrera son la causa de la mayor parte de la complejidad añadida.
+
+### Evitando Condiciones de Carrera Problemáticas
+
+Hay muchas maneras de tratar con dichas condiciones de carrera problemáticas. La opción más simple es envolver las estructuras de datos con mecanismos de protección, para asegurar que solo el hilo que está realizando la modificación pueda ver los estados intermedios donde los invariantes están rotos. Desde el punto de vista de los otros hilos accediendo a esos datos, dichas modificaciones o no han empezado o ya se han completado en su totalidad.
+
+Otra opción es modificar el diseño de las estructuras de datos y sus invariantes para que las modificaciones sean una serie de cambios indivisibles, cada uno de los cuales mantiene los invariantes. Esto se suele conocer como *lock-free programming*, y es realmente complicado.
+
+Una última manera de tratar las condiciones de carrera es manejar las actualizaciones de los datos como transacciones, tal como hacen las bases de datos. Las modificaciones de los datos y las lecturas son almacenadas en un registro de transacciones y consignadas en un solo paso. Si esta operación no puede producirse porque los datos han sido modificados por otro hilo, entonces la transacción se reinicia. Esto se llama memoria transaccional (*software transactional memory*).
+
+El mecanismo más básico para proteger datos compartidos que provee la *STL* de C++ son los *mutexes*.
+
+Protegiendo Datos Compartidos con *Mutexes*
+--------------------------------------------------------------
+
+Se tiene una estructura de datos compartida, como la lista enlazada del ejemplo anterior, y se quiere proteger de condiciones de carrera y los potenciales invariantes rotos que puedan suceder. Se pueden marcar todos los trozos de código que acceden a la estructura de datos como mutuamente exclusivos, así, si un hilo está ejecutándose en uno de esos trozos, cualquier otro hilo que quiera acceder a esa estructura de datos se tiene que esperar hasta que el primer hilo acabe. Así, sería imposible que un hilo pudiera ver un invariante roto excepto cuando sea él mismo el que hace la modificación.
+
+Esto es exactamente un *mutex*, una primitiva de sincronización, para exclusión mutua (*mutual exclusion*). Antes de acceder a los datos compartidos, se bloquea el *mutex* asociado con esos datos, y cuando se acaba el acceso se desbloquea el *mutex*. La librería de *threads* de C++ asegura que una vez un hilo ha bloqueado un *mutex*, todos los demás hilos que traten de bloquear el mismo *mutex* tienen que esperar hasta que el hilo que lo tiene bloqueado lo libere. Esto asegura que todos los hilos tengan una visión consistente de los datos compartidos, sin invariantes rotos.
+
+Los *mutexes* son el mecanismo más general de protección de datos en C++, pero no son una solución para todo, es importante estructurar el código para proteger los datos correctos y evitar condiciones de carrera inherentes en los interfaces. Los *mutexes* también vienen con sus propios problemas, en la forma de *deadlocks*.
+
+### Usando *Mutexes*
+
+En C++ se crea un *mutex* construyendo una instancia de `std::mutex`, se bloquean con una llamada a `lock()`, y se desbloquean con `unlock()`. Sin embargo, no se recomienda llamar directamente a esas funciones, puesto que eso significa que una vez se bloquea un *mutex*, hay que recordar llamar a `unlock()` en todos los caminos de ejecución de una función. La *STL* provee de la clase templatizada `std::lock_guard`, que implementa el *mutex* mediante *RAII* (*Resource Acquisition Is Initialization*), el cual bloquea el *mutex* en la construcción y lo desbloquea en la destrucción, asegurando que un *mutex* bloqueado siempre se desbloquea.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ C++ linenumbers
+std::list<int> list;
+std::mutex mutex;
+
+void addToList(int new_value) {
+  std::lock_guard<std::mutex> guard(mutex);
+  list.push_back(new_value);
+}
+
+bool contains(int value) {
+  std::lock_guard<std::mutex> guard(mutex);
+  return std::find(list.begin(), list.end(), value) != list.en();
+}
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [thread]: Protegiendo Datos con un *Mutex*]
+
+En el ejemplo hay una variable global, y está protegida con una instancia global de `std::mutex`. El uso de `lock_guard` en `addToList` y `contains` significa que los accesos en esas dos funciones son mutuamente exclusivos, `contains` nunca verá una lista a mitad de una actualización por `addToList`.
+
+Es común agrupar los *mutexes* y los datos protegidos juntos en una clase. Es una aplicación habitual de las reglas de diseño orientadas a objetos, poniéndolos en una clase, se están marcando como relacionados, y se puede encapsular la funcionalidad y reforzar la protección. Si todas las funciones miembro de la clase bloquean el *mutex* antes de acceder a los datos y lo desbloquean cuando acaban, los datos están protegidos siempre.
+
+A menos que alguna de las funciones miembro devuelva un puntero o una referencia a los datos protegidos el sistema funcionará. Pero si se hace eso no importa si todos los miembros trabajan con los *mutexes* correctamente, puesto que se ha abierto un agujero de seguridad, y cualquier código externo puede acceder potencialmente a los datos compartidos sin bloquear el *mutex*. Por lo tanto, proteger los datos con *mutexes* también requiere del diseño cuidadoso de los *interfaces*, para no dejar puertas traseras abiertas.
+
+### *Deadlocks*, Problema y Solución
+
+Si hay un código que necesita acceder a dos estructuras de datos distintas, cada una con su *mutex*, entonces hay un problema potencial. Hay dos estructuras de datos D1 y D1, cada una con su *mutex*, si un hilo A necesita acceder a ambas para trabajar, entonces bloqueará primero D1 y luego D2, hay otro hilo B que también necesita ambas estructuras, pero este bloquea primero D1 y luego D2. Si en el tiempo que transcurre entre que el hilo A ya ha bloqueado D1, pero aún no ha bloqueado D2, llega el hilo B y bloquea D2, entonces B ya no puede bloquear D1 porque lo tiene bloqueado A, pero A tampoco puede bloquear D2 porque lo tiene bloqueado A. Entonces se quedan los dos hilos bloqueados y se produce un *deadlock*, cada uno de ellos está esperando que el otro libere el *mutex* que necesita.
+
+El método habitual para solucionar *deadlocks* es siempre bloquear los dos *mutexes* en el mismo orden. Si siempre bloqueas el *mutex* D1 antes del D2, entonces nunca se producirá un *deadlock*. A veces, esto es sencillo, porque los *mutexes* sirven diferentes propósitos, pero otras veces no es tan sencillo, como cuando los *mutexes* están protegiendo cada uno a una instancia separada de la misma clase.
+
+En una operación que intercambia datos entre dos instancias de la misma clase, para asegurar que esos datos se intercambian correctamente, sin que se vean afectados por modificaciones concurrentes, los *mutexes* de ambas instancias deben estar bloqueados. Sin embargo, si un orden fijo es elegido (por ejemplo, el *mutex* de la instancia que se provee como primer parámetro, y el *mutex* de la otra como segundo parámetro), lo único que se necesita para producir un *deadlock* es que dos hilos intenten intercambiar datos entre las mismas dos instancias con los parámetros intercambiados.
+
+Afortunadamente la *STL* de C++ tiene una solución para esto, `std::lock` es una función que puede bloquear dos o más *mutexes* a la vez sin el riesgo de un *deadlock*.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ C++ linenumbers
+class SomeBigObject;
+void swap(SomeBigObject& lhs, SomeBigObject& rhs);
+
+class X {
+  private:
+    SomeBigObject some_detail;
+    std::mutex m;
+  public:
+    X(const SomeBigObject& sd) : some_detail(sd) {}
+
+    friend void swap(X& lhs, X& rhs) {
+      if (&lhs == &rhs) return;
+      std::lock(lhs.m, rhs.m);
+      std::lock_guard<std::mutex> lock_a(lhs.m, std::adopt_lock);
+      std::lock_guard<std::mutex> lock_b(rhs.m, std::adopt_lock);
+      swap(lhs.some_detail, rhs.some_detail);
+    }
+}
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [thread]: Protegiendo Datos en un Intercambio]
+
+Primero, los argumentos se verifican para asegurarse que son diferentes instancias, puesto que intentar bloquear un `std::mutex` cuando ya se tiene es comportamiento indefinido. Entonces se llama a `std::lock`, que bloquea ambos *mutexes*, y se construyen dos instancias de `std::lock_guard`, una para cada *mutex*. El parámetro `std::adopt_lock` se pasa además del *mutex* para indicar a los objetos `std::lock_guard` que los *mutexes* ya están bloqueados, y que deben adoptar la propiedad del bloqueo existente en el *mutex* en lugar de intentar bloquearlo en el constructor. Esto asegura que los *mutexes* se desbloqueen al acabar la función.
+
+Aunque `std::lock` puede ayudar a evitar *deadlocks* en los casos donde se necesitan bloquear dos o más *mutexes* juntos, no ayuda si se adquieren de manera separada. En ese caso hay que confiar en la disciplina del programador para asegurar que no haya *deadlocks*. Y no es fácil, los *deadlocks* son uno de los peores problemas en código multihilo y suelen ser impredecibles, donde todo funciona correctamente la mayor parte del tiempo. Sin embargo, hay algunas reglas que pueden ayudar a escribir código libre de *deadlocks*.
+
+### Guía para Evitar *Deadlocks*
+
+Los *deadlocks* suelen ocurrir con los bloqueos, pero se pueden producir también con dos hilos sin bloqueos simplemente haciendo que cada uno de ellos espere al otro, llamando cada uno al `join()` del otro. En ese caso, ninguno de los dos puede progresar porque cada uno está esperando a que el otro acabe. Eso puede ocurrir en cualquier punto donde un hilo puede esperar a otro hilo que realice alguna acción si el otro hilo puede estar simultáneamente esperando al primer hilo, y puede darse incluso entre tres o más hilos. La guía básica para evitar este tipo de *deadlocks* se resume en una idea, no esperar a otros hilos si hay una posibilidad de que el otro hilo esté esperándote.
+
+<link rel="stylesheet" href="res/md/viu.css">
+<style class="fallback">body{visibility:hidden}</style><script>markdeepOptions={tocStyle:'long'};</script>
+<!-- Markdeep: --><script src="res/md/markdeep.min.js?" charset="utf-8"></script>

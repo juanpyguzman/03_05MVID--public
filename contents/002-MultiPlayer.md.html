@@ -1,0 +1,1212 @@
+<meta charset="utf-8">
+**05MVID - 002 - MultiPlayer**
+    <small>©2020 VIU - 05MVID Programación II - Iván Fuertes</small>
+
+Introducción
+==============================================================
+
+Desde el inicio de los videojuegos siempre se ha intentado compartir la experiencia con otros jugadores, es decir, jugar a la vez en la misma partida contra otro jugador o de manera colaborativa. Esto muchas veces da una dimensión nueva al mismo videojuego, no es lo mismo competir contra una inteligencia artificial por muy desarrollada que esté que contra un ser humano.
+
+La primera forma que surgió fue la del multijugador local, el juego estaba diseñado para dos o más jugadores que jugaban en el mismo ordenador, y aún hoy día muchos juegos incluyen esta opción de juego. Mayormente pueden ser programados de la misma forma que los juegos de un solo jugador, las únicas diferencias suelen ser que tienen varios puntos de vista y pantalla partida para cada jugador y el soporte para varios dispositivos de entrada.
+
+Los primeros juegos multijugador a través de la red funcionaron en pequeñas redes sobre servidores, la principal diferencia con los locales, es que había dos o más equipos conectados unos a otros durante una sesión de juego.
+
+Cuando los ordenadores personales fueron ganando mercado se empezó a usar la comunicación por el puerto serie entre ellos para poder jugar. Este puerto permite transmitir datos bit a bit, enviando uno solo a la vez, se solían usar para comunicarse con dispositivos externos como impresoras o módems, pero se podían conectar dos ordenadores directamente con estos puertos y crear una sesión de juego que podía persistir. Uno de los mayores problemas es que los ordenadores no tenían más de dos puertos serie, con lo cual para conectar más de dos equipos había que usar sistemas y protocolos complejos.
+
+Los *MUD* (*Multi-User-Dungeon*) fueron un estilo de juegos multijugador donde varios jugadores se conectaban al mismo mundo virtual a la vez, solían estar basados en texto, empezaron a desarrollarse en las universidades y eran versiones muy tempranas de juegos de rol llevadas a los ordenadores.
+
+Cuando los ordenadores personales empezaron a ganar potencia, aparecieron los módems para uso personal, que permitían comunicar dos ordenadores a través de la línea telefónica, y aunque las velocidades de transmisión eran muy lentas, esto permitió salir a los *MUDS* de las universidades, incluso algunos se llegaron a ejecutar en *BBS* (*Bulletin Board System*), lo que permitía que muchos usuarios se conectarán vía módem a un sistema que podía ejecutar muchas cosas.
+
+Los juegos de red local corrían sobre ordenadores conectados uno a otro en un área cercana. El mecanismo puede variar, desde los primitivos puertos serie, pero cuando despegaron fue con la llegada de *Ethernet*. La mayoría de juegos que soportaban multijugador sobre una red local también lo hacían a través de otras redes, o bien conexiones de módem o una red online. Aquí se empezaron a gestar las primeras *LAN parties* donde muchos usuarios se encontraban en un sitio y conectaban sus equipos para jugar entre ellos.
+
+En un juego online los jugadores se conectan unos a otros a través de grandes redes geográficamente lejanas. Hoy en día, es sinónimo de jugar a través de internet. Aunque pueda parecer que un juego online puede implementarse como un juego de red local, el mayor problema es la latencia, o el tiempo que tardan los datos en viajar por la red.
+Incluso hoy, la mayor parte de los juegos online están limitados a un pequeño número de jugadores por sesión (de 4 a 32). En un *MMO* (*Massively Multiplayer Online Game)*, en cambio, cientos o miles de jugadores pueden participar en una sesión de juego. La mayoría de estos suelen ser juegos de rol (*MMO-RPG*) o *FPS* (*MMO-FPS*). Y pueden ser vistos como la evolución de los *MUD*.
+
+Ahora que los jugadores incluso han adoptado las plataformas móviles, los juegos online han seguido la tendencia. Muchos juegos multijugador en estas plataformas son asíncronos, juegos basados en turnos que no requieres transmisión en tiempo real de los datos. En este modelo los jugadores son notificados cuando es su turno, y tienen tiempo suficiente para ejecutar su movimiento. Desde un punto de vista técnico, este modelo es mucho más simple de implementar que uno en tiempo real. Originalmente usar este modelo era una restricción técnica por la mala calidad de las conexiones móviles, cosa que está cambiando actualmente con la mejora de las redes móviles y la adopción del Wi-Fi.
+
+Arquitecturas
+==============================================================
+
+Peer To Peer Lockstep
+--------------------------------------------------------------
+
+Inicialmente los juegos en red se desarrollaban sobre una topología *peer-to-peer*, donde cada ordenador compartía información con cada uno que estaba conectado en una topología completamente conectada. Aún se puede ver este modelo vivo en los juegos *RTS* (*Real Time Strategy*), y quizás porque fue la primera manera, la mayoría de la gente aún piensa que es cómo funcionan los juegos en red.
+
+La idea básica es abstraer el juego en una serie de turnos y determinar una serie de mensajes de comando que cuando se procesan al inicio de cada turno dirigen la evolución del estado del juego. Por ejemplo, mover unidad, atacar a unidad, construir edificio. Todo lo que se necesita es ejecutar exactamente el mismo conjunto de comandos y turnos en la máquina de cada jugador empezando de un estado inicial común.
+
+Esto es una explicación simplista y pasa por encima de muchos puntos complicados, pero es la idea básica de cómo funcionan los juegos *RTS*. Parece una solución simple y elegante, pero por desgracia tiene muchas limitaciones.
+
+Primero, es realmente difícil asegurar que un juego sea completamente determinista, que cada turno se ejecute exactamente igual en cada máquina. Por ejemplo, una unidad puede tomar un camino ligeramente distinto en dos máquinas, llegando antes a una batalla y ganándola en una máquina, mientras que en otra puede llegar tarde y perderla. Una pequeña diferencia acaba en una completa desincronización en el tiempo.
+
+La siguiente es que para asegurar que el juego se ejecuta idénticamente en todas las maquinas es necesario esperar hasta que todos los comandos de todos los jugadores para un turno se reciben antes de simular ese turno. Esto significa que cada jugador en la partida tiene la misma latencia al jugador con la latencia más alta. Los juegos *RTS* normalmente suelen ocultar esto dando *feedback* de audio o reproduciendo una pequeña animación, pero la acción de juego real solo puede ocurrir después de que este retraso haya sucedido.
+
+La ultima limitación se produce por la manera en la que el juego se sincroniza, mandando solo los mensajes de comando que cambian el estado. Para que esto funcione es necesario que todos los jugadores empiecen desde el mismo estado inicial. Esto suele significar que cada jugador debe esperar en una sala antes de empezar el juego, aunque es posible soportar la incorporación una vez se ha empezado el juego, no es lo más común debido a la dificultad de capturar y transmitir un punto de arranque completamente determinista a mitad de una partida en vivo.
+
+A pesar de estas limitaciones este modelo se ajusta a los juegos *RTS* y sigue vivo en muchos juegos de este estilo. La razón es porque normalmente en este tipo de juegos el estado del juego consiste en cientos o miles de unidades y es simplemente demasiado grande para intercambiarlo entre los jugadores. Estos juegos no tienen más opción que intercambiar los comandos que dirigen la evolución del estado del juego.
+
+Cliente Servidor
+--------------------------------------------------------------
+
+En la era de los juegos de acción las limitaciones del modelo *peer-to-peer lockstep* quedaron al descubierto con *Doom*, mientras que funcionaba razonablemente bien en redes de área local, lo hacía muy mal a través de internet. El problema era que el juego estaba diseñado para jugar en red local y además usaba el modelo *peer-to-peer lockstep*, cada entrada del jugador era intercambiada con el resto de *peers*, y antes de que cada jugador pudiera simular un *frame* todas las entradas del resto de jugadores tenían que haberse recibido. En otras palabras, antes de que cualquier jugador pudiera realizar una acción había que esperar las entradas del jugador con más *lag*.
+
+Para salir de las redes locales era necesario cambiar el modelo, y es lo que se hizo con *Quake*, que usaba un modelo *cliente-servidor* en lugar del *peer-to-peer*. Ahora en lugar de que cada jugador ejecutara el mismo código de juego y se comunicaran directamente unos con otros, cada jugador ahora era un cliente y se comunicaban solo con otro equipo llamado servidor. No había ya necesidad de que el juego fuera determinista a través de todas las maquinas, porque la partida realmente solo existía en el servidor. Cada cliente actuaba como un terminal tonto mostrando una aproximación de la partida tal como se estaba jugando en el servidor.
+
+En un modelo *cliente-servidor* puro no se ejecuta ninguna lógica de juego localmente, en su lugar, se envían las entradas del jugador al servidor. En respuesta el servidor actualiza el estado del personaje en el mundo y contesta con un paquete que contiene el estado del jugador y el resto de jugadores alrededor. Todo lo que tiene que hacer el cliente es interpolar entre estas actualizaciones para dar la ilusión de movimiento suave.
+
+Esto fue un gran paso adelante, la calidad de la experiencia de juego ahora dependía de la conexión entre el cliente y el servidor, en lugar de con el *peer* con más *lag* en la partida. También hizo posible que los jugadores entraran y salieran a mitad de partida, y el número de jugadores simultáneos subió, puesto que este modelo reduce el ancho de banda requerido de media para cada jugador.
+
+Sin embargo, surgieron varios problemas nuevos, como la latencia o los jugadores tramposos. Como programador de juegos, no importa demasiado si alguien hace trampas en un juego para un solo jugador, sus acciones solo le afectan a él, quizás su experiencia con el juego no sea tal como fue planeada, pero como, al fin y al cabo, es su juego, puede hacer con él lo que quiera.
+
+En cambio, los juegos multijugador son distintos. En un juego competitivo, un jugador haciendo trampas no solo está haciendo la experiencia mejor para él, sino que la está haciendo peor para el resto, y por tanto alejando a al resto de jugadores del juego. Hay muchas cosas que se pueden hacer para prevenir las trampas, pero la más importante es simple, no te fíes del jugador, siempre asume lo peor, que los jugadores intentarán hacer trampas.
+
+### Servidores Autoritativos
+
+Esto lleva a una simple solución, hacer que toda la lógica de juego es ejecute en un servidor central bajo el control del desarrollador, y hacer a los clientes espectadores privilegiados del juego. El juego manda entradas (teclado, joystick, ratón, comandos…) al servidor, este ejecuta la simulación y se le devuelven los resultados de vuelta al cliente. Esto se llama usar servidores autoritativos, porque la única autoridad que maneja la simulación está en el servidor.
+
+Por supuesto, un servidor puede tener una vulnerabilidad, pero usar un servidor autoritativo puede prevenir un gran rango de pirateos. Por ejemplo, el juego no se fía del nivel de salud de los jugadores, un cliente pirateado puede modificar su copia local de salud y decirle al jugador que tiene 10000% de salud, pero el servidor sabe que en realidad es del 10%, cuando el jugador es atacado entonces muere, a pesar de lo que el cliente pirateado pueda pensar.
+
+Tampoco se fía de la posición del jugador en el mundo. Si se hiciera, un cliente pirateado podría decirle al servidor que está en la posición (10, 10) y un segundo después en (20, 10), posiblemente atravesando paredes o moviéndose más rápido que el resto de jugadores. En su lugar, el servidor sabe que la posición del jugador es (10, 10), y el cliente le dice al servidor que quiere moverse hacia la derecha, entonces el servidor actualiza su estado interno con la nueva posición del jugador a (11, 10) y le manda al jugador su nueva posición.
+En resumen, el estado del juego se gestiona únicamente por el servidor, los clientes envían acciones al servidor, este actualiza el estado del juego periódicamente y envía el nuevo estado a los clientes, que simplemente pintan la escena.
+
+El modelo de cliente tonto tal cual funciona correctamente para juegos lentos por turnos o en redes locales, donde las comunicaciones son a todos los efectos, instantáneas. Pero se rompe cuando se usa para juegos que necesitan un ritmo rápido a través de una red como internet.
+
+Suponiendo que estamos en Madrid y el servidor del juego está en Moscú, son aproximadamente 4000 km, nada puede viajar más rápido de la luz, ni siquiera los bytes a través de internet, la luz viaja a 300.000 km/s, así que le cuesta unos 13ms viajar 4000 kms. Parece rápido, pero es un cálculo muy optimista, en la vida real los datos van a través de una serie de saltos de router a router, muchos de los cuales no se hacen a la velocidad de la luz, los routers introducen un pequeño retraso, los paquetes deben ser copiados, inspeccionados y *enrutados*. Suponiendo que los datos tardan 50ms en total entre el cliente y el servidor, como el escenario mejor, pero no es difícil pensar en retrasos de 100, 200 o incluso 500 ms.
+
+Bajo este escenario, el cliente manda una entrada al servidor, se ha presionado la flecha derecha, el servidor lo recibe 50 ms más tarde, se supone que el servidor procesa la petición y devuelve el estado actualizado inmediatamente, el cliente recibe el nuevo estado del juego 50 ms más tarde. Desde el punto de vista del jugador, lo que ha pasado es que se ha pulsado la flecha derecha, pero no ha pasado nada por una décima de segundo, y después el personaje se ha movido hacia la derecha. Este pequeño *lag* entre la pulsación de la tecla y sus consecuencias puede no parecer mucho, pero es apreciable, y por supuesto un *lag* de medio segundo, no solo es muy apreciable, si no que hace que el juego no se pueda jugar.
+
+### Predicción en el Cliente
+
+Aunque hay algunos jugadores tramposos, la mayoría del tiempo el servidor del juego está procesando peticiones validas, de jugadores que no hacen trampas y de jugadores que sí las hacen, pero no están usándolas en ese preciso instante. Esto significa que la mayoría de las entradas recibidas serán válidas y actualizaran el estado del juego como se espera, es decir, si el jugador está en (10,10) y se pulsa la tecla derecha acabará en (11,10). Se puede usar este hecho a nuestro favor, si el juego es lo suficientemente determinista.
+
+Suponiendo que se tiene un *lag* de 100ms, y la animación del personaje moviéndose de una posición a la siguiente toma 100ms. Usando la implementación simple, la acción global llevaría 200 ms.
+
+![Figure [002_001]: Retraso de Red y Animación](Res/002_001.png)
+
+Puesto que el mundo es determinista, se puede asumir que las entradas que se mandan al servidor se ejecutarán con éxito. Bajo esta presunción, el cliente puede predecir el estado del mundo de juego tras procesar las entradas, y la mayoría de las veces esto será correcto.
+
+En lugar de mandar las entradas y esperar al nuevo estado del juego para empezar a pintarlo, se pueden mandar las entradas y empezar a pintar la salida de esas entradas como si hubieran tenido éxito, mientras se espera a que el servidor mande el estado del juego real, que casi siempre coincidirá con el estado calculado localmente.
+
+![Figure [002_002]: La Animación se Reproduce Mientras el Servidor Confirma la Acción](Res/002_002.png)
+
+Ahora no hay retraso entre las acciones del jugador y los resultados en pantalla, mientras el servidor aún se mantiene autoritativo, si un cliente pirateado mandara entradas invalidas, podría pintar lo que quisiera en pantalla, pero no afectaría al estado del juego en el servidor, que es lo que ven el resto de jugadores.
+
+Pero es fácil encontrar problemas de sincronización en este modelo. Suponiendo un *lag* de 250ms, y si mover el jugador de una posición a otra cuesta 100ms, cuando el jugador pulsa dos veces seguidas la tecla de moverse a la derecha, tratando de moverse dos unidades a la derecha.
+
+![Figure [002_003]: Error en el Estado Predicho y el Autoritativo](Res/002_003.png)
+
+En el punto en que llega el nuevo estado desde el servidor, el estado que ha predicho el cliente es (12,10), pero el servidor dice que el nuevo estado es (11, 10). Puesto que el servidor es el que manda, mueve al personaje a (11, 10), entonces llega un nuevo estado desde el servidor y se mueve al personaje a (12, 10), así que el personaje da otro salto, esta vez hacia delante.
+
+Desde el punto de vista del jugador, ha pulsado la flecha derecha dos veces, el personaje se ha movido dos unidades a la derecha, se ha quedado quieto ahí 50 ms, ha dado un salto de vuelta una unidad a la izquierda, se ha quedado ahí 100 ms y luego ha saltado otra vez a la derecha. Y esto, por supuesto, es inaceptable.
+
+### Reconciliación con el Servidor
+
+La clave para arreglar el problema es darse cuenta que el cliente ve el mundo de juego en el presente, pero a causa del *lag*, las actualizaciones que recibe del servidor es realmente el estado del juego en el pasado. En el momento en que el servidor manda el estado del juego actualizado, aún no ha procesado todos los comandos que ha mandado el cliente.
+
+La solución no es difícil. Primero, el cliente añade un numero de secuencia a cada petición, la primera pulsación de la flecha derecha es la petición 1, y la segunda la 2, entonces, cuando el servidor responde incluye el número de secuencia de la última entrada procesada.
+
+![Figure [002_004]: Predicción en el Cliente y Reconciliación con el Servidor](Res/002_004.png)
+
+Ahora, en el momento que llega la primera respuesta del servidor, en el momento 250ms, el servidor manda la respuesta a la primera entrada, y dice que la posición del jugador es (11, 10) tras procesar la entrada 1. Como el servidor es autoritativo, mueve la posición del jugador a (11,10). Si el cliente guarda una copia de las peticiones que manda al servidor, basándose en el nuevo estado del juego, sabe que el servidor ya ha procesado la petición 1, así que puede descartar esa copia. Pero también sabe que el servidor aún tiene que enviar los resultados del procesamiento de la petición 2. Así que aplica predicción otra vez, y calcula el estado presente del juego basado en el último estado autoritativo mandado por el servidor, más las entradas que el servidor aún no ha procesado.
+
+En el momento que llega la segunda respuesta del servidor, en 350ms, llega un nuevo estado que dice que en respuesta a la petición 2, la posición es (12, 10), en este punto, el cliente descarta todas las entradas hasta la petición 2, y actualiza el estado con la posición (12, 10). No hay más entradas no procesadas que volver a aplicar, así el procesamiento acaba aquí, con el resultado correcto.
+
+Este ejemplo implica movimiento, pero el mismo principio se puede aplicar a casi cualquier cosa. En un juego de combate por turnos, cuando el jugador ataca a otro personaje, se puede mostrar la sangre y un número mostrando el daño realizado, pero no se debería actualizar la vida del personaje hasta que el servidor lo diga.
+
+Debido a las complejidades del estado del juego, que no siempre es reversible, quizás sea buena idea evitar matar a un personaje hasta que el servidor lo diga, incluso si su vida ha bajado de 0 en el estado del cliente. ¿Qué pasaría si el otro jugador hubiera usado un paquete de curación justo antes de recibir el ataque mortal, pero el servidor aún no hubiera informado al cliente?
+
+Esto trae un nuevo problema, aunque el mundo sea completamente determinista y no haya ningún cliente haciendo trampas, aún es posible que el estado predicho por el cliente y el estado enviado por el servidor no ajusten tras una reconciliación. Esto es imposible que suceda en un juego de un solo jugador, pero es sencillo tener problemas cuando muchos jugadores se conectan a la vez al servidor.
+
+### Interpolación de Entidades
+
+En un juego multijugador pueden haber muchos jugadores mandando entradas a la vez, y a un ritmo muy rápido, tan rápido como el jugador pueda enviar comandos, sea pulsando teclas, moviendo el ratón o tocando la pantalla. Actualizar el mundo de juego cada vez que se reciben entradas desde cada cliente y enviar el estado del juego a todos los clientes consume mucha *CPU* y ancho de banda.
+
+Una mejor aproximación es encolar las entradas de los clientes cuando se reciben, sin ningún procesamiento. Y el mundo de juego se actualiza periódicamente a una baja frecuencia, por ejemplo 10 veces por segundo. El retraso entre cada actualización, 100ms en este caso, se llama paso de tiempo. En la actualización de cada iteración del bucle, todas las entradas de clientes que no han sido procesadas se aplican, posiblemente en incrementos de tiempo más pequeños que el paso de tiempo, para hacer las físicas más predecibles, y el nuevo estado de juego se envía a todos los clientes. Haciendo que el mundo de juego se actualice de manera independiente a la presencia o cantidad de entradas de los clientes, a un ritmo predecible.
+Desde el punto de vista del cliente, esta solución funciona igual, la predicción en el cliente funciona independientemente del retraso de la actualización, así que también funciona bajo predecibles, aunque infrecuentes, actualizaciones de estado. Sin embargo, puesto que el estado del juego se envía a una baja frecuencia, cada 100ms, el cliente tiene información muy dispersa sobre el resto de entidades que pueden estar moviéndose en el mundo. Implementándolo tal cual, se actualizarían las posiciones del resto de personajes cuando se recibe una actualización del estado, esto lleva a personajes moviéndose a golpes, saltos discretos de 100ms en lugar de movimiento suave.
+
+![Figure [002_005]: Cliente 1 visto por el Cliente 2](Res/002_005.png)
+
+En función del juego hay muchas maneras de solucionar esto, en general, cuanto más predecibles son las entidades del juego, más sencillo.
+
+#### *Dead Reckoning*, navegación a estima
+
+Desarrollando un juego de carreras, un coche que va realmente rápido es bastante predecible, si va a 100 metros por segundo, un segundo más tarde, estará más o menos 100 metros delante de donde estaba. Durante ese segundo, el coche puede haber acelerado o frenado un poco, o girado un poco en alguna dirección. La maniobrabilidad de un coche es tal que a altas velocidades su posición en cualquier momento del tiempo es muy dependiente de su posición anterior, a pesar de lo que el jugador haga. Un coche de carreras no puede hacer un giro de 180º instantáneamente.
+
+En un servidor que manda actualizaciones cada 100ms, el cliente recibe la velocidad y dirección de cada coche, pero en los siguientes 100ms no recibirá nueva información, pero necesita mostrarlos corriendo. Lo más sencillo es asumir que la aceleración y la dirección del coche se mantendrá constante en esos 100ms, y ejecutar la física del coche localmente con esos parámetros. Entonces, 100ms después, cuando la actualización del servidor llega, corregir la posición del coche.
+
+Esa corrección puede ser grande o pequeña en función de multitud de factores, si el jugador mantiene el coche en una línea recta y no cambia su velocidad, la posición predicha será exactamente como la corregida, pero si el jugador se estrella contra algo, la posición predicha será totalmente incorrecta.
+
+Esta técnica se puede aplicar a situaciones de baja velocidad también, de hecho, el termino *dead reckoning* (navegación a estima) tiene su origen en la navegación marítima.
+
+#### Interpolación de Entidades
+
+Hay algunas situaciones en las que el *dead reckoning* no puede ser aplicado, sobre todo en los escenarios en los que la dirección y velocidad del jugador pueden cambiar instantáneamente. En un *shooter* 3D, los jugadores corren, se paran y giran a alta velocidad, haciendo esta técnica inútil, puesto que las posiciones y velocidades no se pueden predecir de los datos anteriores. Y no se puede actualizar las posiciones de los jugadores cuando llegan los datos del servidor, puesto que los jugadores se tele transportarían cada 100 ms.
+
+Lo que se tiene es la posición autoritativa cada 100ms, el truco es mostrar al jugador lo que pasa entre medias y la clave es mostrar al resto de jugadores en el pasado relativo al jugador principal.
+
+Si se recibe la posición en el tiempo 1000ms, entonces se han recibido datos previamente en 900ms, así que se sabe dónde estaba ese jugador en 900ms y en 1000ms. Así, entre 1000ms y 1100ms se muestra lo que hizo el otro jugador entre 900ms y 100ms. De esta manera siempre se están mostrando datos de movimiento reales, pero se está haciendo con 100ms de retraso.
+
+![Figure [002_006]: Cliente 2 pinta al Cliente en el pasado, interpolando entre las últimas posiciones conocidas](Res/002_006.png)
+
+Los datos de posición que se usan para interpolar entre 900ms y 1000ms dependen del juego. Esta solución suele funcionar bien, si no lo hace, se puede hacer que el servidor mande datos de movimiento más detallados con cada actualización, como las posiciones muestreadas cada 10ms hace que se vean mejor al interpolarlas, no se necesita mandar 10 veces más datos, se mandan los deltas para movimientos pequeños.
+
+### Compensación de Lag
+
+Usando la interpolación de entidades, cada jugador puede ver un pintado distinto del mundo de juego, porque cada jugador se ve a sí mismo en el presente, pero a los otros en el pasado. Incluso para juegos de velocidad rápida, ver otras entidades con 100ms de retraso no es evidente. Pero hay excepciones, cuando se necesita mucha precisión temporal o espacial, como cuando un jugador dispara a otro, en ese momento, puesto que el jugador ve al resto en el pasado, se está disparando a donde estaba el objetivo hace 100ms. Se ha efectuado el disparo, pero se falla, pese a que el objetivo estaba en la mira.
+
+La solución pasa por un poco más de lógica. Cuando el cliente dispara, este envía este evento al servidor con mucha más información, la marca de tiempo del disparo y la posición de apuntado exacta del arma. Puesto que el servidor recibe todas las entradas con marcas de tiempo, puede autoritativamente reconstruir el mundo en cualquier instante en el pasado. En particular, puede reconstruir el mundo exactamente como era para cualquier cliente en cualquier momento. Esto significa que el servidor puede saber exactamente lo que estaba en la mira del arma del jugador en el instante en el que disparó. Era la posición en el pasado de la cabeza del enemigo, pero el servidor sabe que era la posición de su cabeza en el presente del jugador. Así que el servidor procesa el disparo en un momento determinado del tiempo, y actualiza a los clientes.
+
+El único problema de esta aproximación es lo que pasa si el enemigo estaba en una posición descubierta, se cubrió tras una pared, y entonces recibió el disparo una fracción de segundo más tarde, cuando pensaba que estaba seguro. Esto puede suceder y es una solución intermedia, puesto que se le dispara en el pasado, aun puede recibir un disparo unos milisegundos después de haberse cubierto. No es del todo justo, pero es la solución más aceptada para todos los actores involucrados, sería mucho peor fallar un disparo seguro.
+
+TCP-IP
+==============================================================
+
+Los juegos multijugador modernos hacen uso de Internet para comunicarse, la red mundial más grande. Si se quiere usar el potencial completo de ella en un juego, hay que entender cómo funciona, y concretamente cómo funciona el protocolo *TCP/IP*.
+
+Un protocolo de red es el lenguaje que dos o más ordenadores usan cuando intercambian información entre ellos. Todos los ordenadores deben hablar el mismo lenguaje para hacer que la información fluya entre ellos. Un protocolo define las reglas de comunicación y el formato de los datos. Esto significa que, si dos ordenadores pueden estar conectados físicamente en una red, pueden compartir información siempre que usen el mismo protocolo, independientemente del sistema operativo o qué tipo de ordenadores sean.
+
+Intercambio de Paquetes
+--------------------------------------------------------------
+
+Para intercambiar información entre ordenadores, se requieren líneas de comunicación entre ellos, y para usarlas la información se suele fragmentar en paquetes que se envían a través de líneas compartidas usando un proceso llamado almacenamiento y reenvío (*store and forward*). Cada nodo de la red está conectado a otros nodos usando una línea que puede transportar paquetes entre ellos. Cada nodo puede almacenar los paquetes que le llegan y entonces reenviarlos a un nodo más cercano a su destino final. De esta manera se pueden realizar múltiples comunicaciones a la vez a través de las mismas líneas. Para ello se estructuraron una serie de protocolos que evolucionaron hasta lo que ahora se conoce como protocolo *TCP/IP*.
+
+Modelo de Capas
+--------------------------------------------------------------
+
+El protocolo *TCP/IP* está basado en capas independientes y abstraídas unas de otras, cada una de ellas se apoya en una serie de protocolos intercambiables. Como desarrollador de videojuegos hay que entender el modelo completo para hacer el juego funcional y eficiente, y eso suele suponer tocar solo las capas más altas de la pila, pero para hacerlo de manera eficiente es útil entender las capas inferiores y como afectan a las superiores.
+
+Hay muchos modelos que explican las interacciones entre las capas usadas para la comunicación a través de internet. El más conocido es el modelo *OSI* (*Open Systems Interconnection*), y usa siete capas.
+
+![Figure [002_007]: Modelo OSI](Res/002_007.png width="500px")
+
+Las realmente relevantes al desarrollo de videojuegos se pueden resumir en 5 capas, capa física, de enlace, de red, de transporte y de aplicación.
+
+![Figure [002_008]: Modelo de 5 capas](Res/002_008.png width="500px")
+
+Cada capa tiene una tarea, dando soporte a la capa directamente por encima. Esas tareas suelen ser, aceptar un bloque de datos a transmitir por la capa superior, empaquetar los datos con una cabecera propia (y a veces con un pie), reenviar los datos a una capa inferior para la transmisión, recibir datos transmitidos de una capa inferior, desempaquetar los datos quitando la cabecera, enviar los datos a una capa superior para su procesamiento.
+
+![Figure [002_009]: Flujo de datos entre las capas](Res/002_009.png width="500px")
+
+La manera en que una capa realiza su trabajo, sin embargo, no está construida en la definición de la capa, de hecho, hay varios protocolos que cada capa puede usar para hacer su tarea, algunos tan viejos como el propio *TCP/IP* y otros que se están inventado día a día. Es útil pensar en cada capa como un interfaz (en POO), y cada protocolo o grupo de protocolos como una implementación de dicho interfaz. Idealmente, los detalles de implementación de una capa se abstraen de las capas altas.
+
+Capa Física
+--------------------------------------------------------------
+
+En el fondo del modelo de capas está la más rudimentaria, la capa física. Su trabajo es proveer una conexión física entre equipos conectados por una red, o hosts. Es necesario un medio físico para la transmisión de información. Cable cruzado, líneas de teléfono, cable coaxial, fibra óptica,…. No es necesario que la conexión física sea tangible, las ondas de radio pueden ser un medio físico perfectamente válido.
+
+Capa de Enlace
+--------------------------------------------------------------
+
+Esta capa provee un método de comunicación entre equipos conectados físicamente. Esto significa que debe proveer un método a través del cual un servidor origen pueda empaquetar información y transmitirla a través de la capa física, de tal manera que el servidor destino tenga opción de recibir el paquete y extraer la información.
+
+En esta capa, una unidad de transmisión se le llama *frame*. Usando la capa de enlace, los equipos se mandan *frames* unos a otros. Las tareas de esta capa son:
+- Definir una manera en la cual un equipo pueda ser identificado de tal manera que un *frame* pueda ser direccionado a un destino específico.
+- Definir el formato de un *frame* que incluya la dirección de destino y los datos que hay que enviar.
+- Definir el tamaño máximo de un *frame* para que las capas superiores sepan cuantos datos pueden enviar en una sola transmisión
+- Definir una manera de convertir físicamente un *frame* en una señal electrónica que pueda ser enviada a través de la capa física y probablemente recibida por el equipo de destino.
+
+La entrega del *frame* al equipo destino solo es probable, no está garantizado en esta capa. Hay muchos factores que pueden influir en la señal electrónica, por eso esta capa se considera como no fiable.
+
+Para cada medio físico que se puede elegir para implementar la capa física, hay un protocolo correspondiente que proveen los servicios necesarios en la capa de enlace. Por ejemplo, equipos conectados con un cable cruzado se pueden comunicar usando uno de los protocolos de *Ethernet*, los que están conectados por ondas de radio pueden hacerlo usando alguno de los protocolos *Wi-Fi* de corto alcance ( *802.11g*, …), o alguno de los de largo alcance como *3G* o *4G*.
+
+Es importante tener en cuenta que en una conexión a través de internet entre dos equipos distantes hay más de un solo medio físico y un solo protocolo de capa de enlace. Afortunadamente, gracias a la abstracción de *TCP/IP*, los detalles de los protocolos de la capa de enlace usados se ocultan al desarrollo del juego, y, por tanto, no es necesario conocerlos todos en detalle, sin embargo, hay uno que ilustra claramente el funcionamiento de la capa de enlace, y merece la pena profundizar, *Ethernet*.
+
+### Ethernet
+
+Para asignar una identidad a cada equipo, *Ethernet* introduce la idea de la dirección de acceso a control de medios (*MAC*). Una dirección *MAC* es un número único de 48 bits asignado a cada pieza de hardware que se puede conectar a una red *Ethernet*. Usualmente a este hardware se le conoce como controlador de interfaz de red (*NIC*). Para mantener las direcciones *MAC* únicas universalmente, el fabricante quema la dirección *MAC* en el *NIC* durante la producción del hardware. Es un concepto tan útil que no solo se usa en *Ethernet*, sino en muchos otros protocolos, como *WiFi* o *Bluetooth*.
+
+Con una única dirección *MAC* asignada a cada equipo, el formato de un paquete de *Ethernet* que envuelve a un frame de la capa de enlace queda así:
+
+![Figure [002_010]: Estructura de un *frame* en *Ethernet*](Res/002_010.png)
+
+El preámbulo y *SFD* (*Start Frame Delimiter*) son los mismos siempre para cada paquete y son un patrón binario que ayuda al hardware a sincronizarse y prepararse para el frame que llega, se suelen quitar del paquete por el *NIC*, y los bytes restantes, formando el *frame*, se pasan al módulo de *Ethernet* para su procesado.
+
+Tras el *SFD* hay 6 bytes que representan la dirección *MAC* del destino del *frame*, y a continuación otros 6 bytes con la dirección *MAC* del origen. El campo de tipo puede representar el tipo o la longitud. Cuando se usar para representar la longitud, contiene el tamaño en bytes de la carga (*payload*) contenida en el *frame*. Cuando se usa para el tipo, contiene un número que identifica unívocamente el protocolo que se debe usar para interpretar los datos en la carga. *Ethernet* define un tamaño máximo para la carga de 1500 bytes, esto se conoce como unidad de transmisión máxima (*MTU*). Muchos *NIC* modernos soportan frames con *MTUs* de más de 1500 bytes. La carga en sí son los datos transmitidos por este *frame*, típicamente es un paquete de la capa de red superior, que se ha pasado a la capa de enlace para entregarlo al destino apropiado.
+
+Los últimos 4 bytes son una suma de verificación de redundancia cíclica (*CRC32*), generada a partir del *frame*, para verificar cualquier corrupción de los datos.
+
+La manera específica en la que los paquetes *Ethernet* son transmitidos a través de la capa física varían entre distintos medios y no son relevantes en este punto. Es suficiente saber que cada equipo en la red recibe un *frame*, y en ese momento el equipo lee el *frame* y determina si es el destino, si lo es extrae los datos de la carga y los procesa, y si no lo es lo reenvía hacia el destino correcto.
+
+En las redes modernas se usan *switches* para conectar equipos, estos recuerdan las *MAC* (y a veces las *IPs*) de los equipos que tienen conectados a cada uno de sus puertos, así muchos paquetes pueden ser enviados a través del camino más corto posible al destino, sin tener que visitar cada equipo en la red.
+
+Capa de Red
+--------------------------------------------------------------
+
+Esta capa provee una manera de enviar datos de un equipo direccionable a uno o más equipos direccionables. La capa de enlace tiene varias limitaciones que hacen necesaria una capa superior para direccionar.
+
+- Las direcciones *MAC* quemadas limitan la flexibilidad. Si se tiene un servidor web con miles de usuarios, si solo se usara la capa de enlace, las peticiones al servidor se deberían direccionar a través de la dirección *MAC* de su *NIC* de *Ethernet*, si se reemplaza la *NIC* del servidor, está tendrá una dirección *MAC* distinta y por tanto el servidor ya no recibirá más peticiones de los usuarios. Se necesita un sistema de direcciones fácilmente configurable por encima de la *MAC*.
+- La capa de enlace no provee ninguna manera de segmentar internet en redes locales más pequeñas. Si internet usara solo la capa de enlace, todos los equipos deberían estar conectados a una sola red continua.
+- La capa de enlace no da soporte para la comunicación entre equipos usando distintos protocolos de capa de enlace.
+
+La tarea principal de la capa de red es proveer una dirección lógica sobre la capa de enlace, de manera que el hardware de un equipo pueda ser reemplazado, grupos de equipos puedan ser segregados en subredes y equipos en subredes distantes, usando diferentes protocolos de capa de enlace y diferentes medios físicos puedan mandarse mensajes entre ellos.
+
+### IPv4
+
+Hoy en día, el protocolo más común para implementar las características de la capa de red es el internet protocol versión 4 (*IPv4*). Este define un sistema de direcciones lógicas para identificar a un equipo individualmente, un sistema de subredes para definir subsecciones lógicas y un sistema de enrutamiento para reenviar datos entre subredes.
+En el corazón de *IPv4* está la dirección *IP*, es un número de 32 bits, normalmente mostrado a los humanos como 4 números de 8 bits separados por puntos. Con una dirección *IP* única para cada equipo en internet, un equipo origen puede direccionar un paquete a un equipo destino simplemente especificando su dirección *IP* en la cabecera del paquete.
+
+![Figure [002_011]: Cabecera de un paquete *IPv4*](Res/002_011.png)
+
+El paquete en *IPv4* consiste en una cabecera, que contiene los datos necesarios para implementar la funcionalidad de la capa de red y la carga, que contiene los datos de la siguiente capa arriba para transmitir.
+
+Los primeros 4 bits especifican la versión que soporta este paquete, en este caso es un 4. Los siguientes 4 bits, especifican la longitud de la cabecera en palabras de 32 bits, puesto que hay campos opcionales al final, la cabecera tiene tamaño variable. El tipo de servicio (8 bits) se usa para múltiples propósitos, desde control de la congestión a la identificación de servicios diferenciados. La longitud total del paquete (16 bits) especifica la longitud en bytes de todo el paquete, incluyendo cabecera y carga, al ser de 16bits el tamaño máximo de un paquete es de 65535 bytes, y como una cabecera tiene como mínimo 20 bytes, la carga máxima de un paquete en *IPv4* es de 65515 bytes. *Identification*, *flags* y *fragment offset* se usan para ensamblar los paquetes fragmentados. *Time to Live*, se usar para limitar el número de veces que un paquete puede ser reenviado. *Protocol* especifica el protocolo a usar para interpretar el contenido de la carga. El *checksum* sirve para validar la integridad de la cabecera, y solo para la cabecera, es trabajo de la capa superior asegurar la integridad de la carga. La dirección de origen y destino son las respectivas direcciones *IP* de los equipos involucrados en la comunicación.
+
+### Enrutamiento directo y protocolo de resolución de direcciones
+
+*IPv4* permite a los paquetes ser destinados usando una dirección *IP*, pero para que la capa de enlace pueda enviar ese paquete, debe ser envuelto en un *frame* con una dirección que la capa de enlace pueda entender. Hay un protocolo en la capa de enlace llamado protocolo de resolución de direcciones (*ARP*), que provee un método para traducir una dirección *IP* a una dirección *MAC*. *ARP* consiste de dos partes, una estructura de paquete para preguntar la dirección *MAC* de un *NIC* asociada con una dirección *IP*, y una tabla para llevar un registro de estos pares. Cuando la implementación de *IP* necesita enviar un paquete a un destino usando la capa de enlace, primero le pregunta a la tabla *ARP* para conseguir la *MAC* asociada a la *IP* de destino. Si la encuentra, entonces se construye un *frame* usando esa *MAC* y lo pasa a la implementación de la capa de enlace para el envío. Pero si no la encuentra, entonces el módulo *ARP* intenta determinar la *MAC* mandando un paquete *ARP* a todos los equipos a su alcance en la red.
+
+![Figure [002_012]: Tabla *ARP*](Res/002_012.png)
+
+Normalmente los equipos cuando realizan la petición de *ARP* inicial, suelen hacerlo en *broadcast*, es decir a todos los equipos de la red, y suelen incluir en esa petición su propia dirección *IP* y su *MAC*, dando la oportunidad a todos los equipos a actualizar sus tablas *ARP* con los datos correctos.
+
+### Subredes y enrutamiento indirecto
+
+Para conectar dos subredes distantes, la capa de red introduce la capacidad de enrutar paquetes entre dos equipos en redes que no están directamente conectadas en el nivel de la capa de enlace. De hecho, originalmente internet fue concebida como una federación de pequeñas redes, enlazadas por unas pocas conexiones de larga distancia.
+
+Existen equipos especiales conocidos como enrutadores (*routers*). Un *router* tiene varias *NICs*, cada una con su propia dirección *IP*.
+
+Una máscara de subred es un número de 32 bits, escrito normalmente en la misma notación que una dirección *IP*. Los equipos se dice que están en la misma subred si sus direcciones *IP*, cuando se hace un *and* binario con la máscara de subred, tienen el mismo resultado. Por tanto, una subred puede ser definida simplemente por su máscara de subred y su dirección de red.
+
+Una vez se definen las subredes, la especificación *IPv4* provee una manera de mover paquetes entre equipos en diferentes redes. Esto es posible gracias a las tablas de enrutamiento presentes en el módulo *IP* de cada equipo. Específicamente, cuando al módulo *IPv4* de un equipo se le pide enviar un paquete *IP* a un equipo remoto, debe decidir si usar la tabla *ARP* y el enrutamiento directo, o alguna ruta indirecta. Para ayudar en esto se usa la tabla de enrutamiento. Para cada subred de destino alcanzable, esta tabla tiene una fila con información de cómo los paquetes se deberían enviar a esa subred.
+
+![Figure [002_013]: Tabla de enrutamiento](Res/002_013.png)
+
+La columna de subred de destino se refiere a la subred que contiene la dirección *IP* de destino, la puerta de enlace se refiere a la dirección *IP* del siguiente equipo en la actual subred, al cual se debe enviar este paquete a través de la capa de enlace. Se requiere que ese equipo se pueda alcanzar a través de enrutamiento directo. Si la puerta de enlace está en blanco, quiere decir que toda la subred de destino es alcanzable a través de enrutamiento directo, y el paquete puede ser enviado directamente a través de la capa de enlace. Finalmente, la columna interfaz dice a través de que *NIC* se debería enviar el paquete. Este es el mecanismo mediante el cual un paquete puede ser recibido de una capa de enlace de una red y enviado a otra red.
+
+Si una red necesita mandar paquetes al resto de internet, entonces se necesita una dirección *IP* pública valida y una puerta de enlace de un proveedor de servicios de internet (*ISP*).
+
+Un *ISP* no es más que una organización grande, con su propio bloque de direcciones *IP* propias, su principal trabajo es coger esas direcciones *IP*, partirlas en subredes, y alquilar esas subredes a otras organizaciones o particulares para su uso.
+
+### Fragmentación
+
+EL *MTU* de un *frame* de *Ethernet* es de 1500 bytes, sin embargo, el tamaño máximo de un paquete *IPv4* es de 65535 bytes. Puesto que un paquete *IP* se debe transmitir envolviéndolo con un *frame* de capa de red con un límite mucho menor, se usa la fragmentación para ello. Cuando a un módulo *IP* se le pide transmitir un paquete más grande que el *MTU*, puede partir el paquete en tantos trozos del tamaño de la *MTU* como sean necesarios.
+
+Los paquetes *IP* fragmentados son como cualquier otro paquete *IP*, pero con algunos valores específicos en su cabecera, identificación de fragmento, *flags* y *offset*. Cuando se fragmenta un paquete *IP*, se crea un nuevo paquete *IP* para cada fragmento y se configuran esos campos.
+
+Una vez los paquetes son enviados, es posible que algunos de ellos puedan ser fragmentados otra vez, si en su ruta al destino viajan a través de una capa de red con un *MTU* menor.
+
+Para que el paquete pueda ser procesado en el destino, cada uno de los paquetes deben llegar al equipo de destino, y ser reconstruidos en el paquete original. Es posible, que estos paquetes lleguen fuera de orden, e incluso intercalados con otros paquetes del mismo o de otros equipos. Cuando el primer fragmento llega, el modulo *IP* del destino ya tiene suficiente información para establecer que el fragmento es de hecho un fragmento y no un paquete completo. En este punto, crea un *buffer* de 64kb y copia los datos del fragmento en el *buffer* con el correspondiente *offset*, marca el *buffer* con la *IP* del origen y el número de identificación del fragmento, así cuando fragmentos futuros lleguen, puede copiarlos en el *buffer* correspondiente. Cuando todos los datos de un paquete han llegado, el modulo *IP* pasa el paquete reconstruido a la siguiente capa para procesarlo.
+
+Capa de Transporte
+--------------------------------------------------------------
+
+Mientras que el trabajo de la capa de red es facilitar la comunicación entre equipos distantes en redes remotas, el trabajo de la capa de transporte es habilitar las comunicaciones entre procesos individuales en esos equipos. Puesto que múltiples procesos pueden estar ejecutándose en un equipo, no es suficiente saber que un equipo manda un paquete *IP* a otro, se necesita también saber a qué proceso se deben enviar los contenidos para su procesamiento.
+
+Para solucionar esto, la capa de transporte introduce el concepto de los puertos. Un puerto es un número de 16 bits representando un punto final de una comunicación en un equipo en particular. Usando el módulo de la capa de transporte, un proceso puede enlazarse a un puerto especifico, diciéndole al módulo que se le pase cualquier comunicación dirigida a ese puerto. Es importante que un puerto esté enlazado a un solo proceso.
+
+Los puertos entre el 0 y el 1023, son los puertos de sistema o reservados, están registrados por el *IANA* (*Internet Assigned Numbers Authority*), y son especiales porque muchos sistemas operativos permiten solo a procesos de nivel *root* enlazar a puertos de sistema, permitiendo ser usados para propósitos que requieren elevados niveles de seguridad. Los puertos entre el 1024 y 49151 son los puertos de usuario o registrados, y pueden ser reservados por cualquier desarrollador, y se considera mal uso por parte de cualquier aplicación o protocolo usarlos si ya están registrados, aunque las capas de transporte no suelen prevenirlo. Finalmente, los puertos entre 49152 y 65535 son los puertos dinámicos, nunca están registrados y son de libre uso por cualquier proceso. Si un proceso intenta enlazarse a un puerto dinámico y encuentra que está en uso, debería intentar enlazarse a otro puerto dinámico hasta encontrar uno libre.
+
+Una vez una aplicación ha identificado que puerto usar, debe emplear un protocolo de capa de transporte para enviar datos. Los principales son *UPD* y *TCP*.
+
+### UDP
+
+El protocolo de datagramas de usuario (*UDP*) es un protocolo ligero para envolver datos y enviarlos desde un puerto en un equipo a otro puerto en otro equipo. Un datagrama *UDP* consiste en una cabecera de 8 bytes seguida por los datos de carga.
+
+![Figure [002_014]: Datagrama UDP](Res/002_014.png)
+
+El puerto de origen identifica el puerto desde el cual el datagrama se ha originado, es útil para que el destino del datagrama quiere contestar. El módulo *UDP* envía el datagrama al proceso que esté enlazado al puerto de destino. La longitud es la medida en bytes de la cabecera *UDP* y la carga de datos. El checksum es un *CRC* calculado con todo el datagrama, muchas veces es ignorado porque las capas inferiores ya validan los datos.
+
+*UDP* es un protocolo sin florituras, cada datagrama es una entidad auto contenida, sin confiar en un estado compartido entre los dos equipos que se comunican. No hace nada por limitar el tráfico en redes congestionadas, enviar datos en orden, o garantizar que los datos se han entregado.
+
+### TCP
+
+Mientras que *UDP* permite transferir datagramas discretos entre equipos, el protocolo de control de transmisión (*TCP*) permite la creación de una conexión persistente entre dos equipos seguida de una transferencia fiable de una transmisión de datos. La clave es la palabra fiable. *TCP* hace lo que puede por asegurar que todos los datos enviados son recibidos en destino, en su orden correcto, y a su destino correcto. Para realizar esto, requiere una cabecera mucho más grande y el seguimiento del estado de la conexión en cada equipo participante en la conexión. Esto permite a los receptores responder a los datos recibidos, y a los remitentes reenviar cualquier transmisión que no ha recibido acuse de recibo.
+
+![Figure [002_015]: Segmento TCP](Res/002_015.png)
+
+Una unidad de transmisión de datos *TCP* se llama segmento. Un segmento consiste de una cabecera *TCP* seguida por los datos para ese segmento.
+
+El puerto de origen y destino son los puertos de la capa de transporte. El número de secuencia es un identificador que se incrementa monolíticamente, cada byte transferido por *TCP* tiene un numero de secuencia consecutivo que sirve como identificador único para ese byte, de esta manera el remitente puede etiquetar los datos enviados y el receptor puede dar acuse de recibo de los mismos. El número del acuse de recibo (*ACK*) contiene el número de secuencia del siguiente byte de datos que el remitente espera recibir, puesto que *TCP* garantiza que todos los datos se entregan en orden, el número de secuencia del siguiente byte que un equipo espera recibir es siempre uno más que el número de secuencia del byte anterior que ha recibido. El *offset* de los datos especifica la longitud de la cabecera en palabras de 32 bits. Los bits de control contienen metadatos de la cabecera. La ventana expresa la cantidad máxima de espacio de *buffer* restante el remitente tiene para datos de llegada. El puntero urgente tiene el *delta* entre el primer byte de los datos en este segmento y el primer byte de los datos urgentes.
+
+### Fiabilidad
+
+El origen envía un paquete identificado de manera unívoca al destino, entonces espera a un paquete de respuesta desde el destino, dando acuse de haber recibido el paquete. Si no recibe el esperado acuse en un determinado tiempo, entonces reenvía el paquete original. Eso continua hasta que todos los datos se han enviado y se han recibido sus acuses.
+
+### Negociación en tres pasos
+
+Para realizar la conexión entre dos equipos, el equipo A inicia la conexión enviando el primer segmento, este tiene el *flag SYN* levantado y un orden de secuencia inicial aleatorio. Si el equipo B quiere abrir la conexión, entonces contesta con un paquete con las *flags SYN* y *ACK* levantadas, y acusa el recibo del número de secuencia de A colocando un numero de secuencia al acuse como el de A + 1, y a su vez B elige un numero de secuencia aleatorio para sus propios números de secuencia. Hay dos transmisiones separadas de datos en la conexión, una de A a B, que usa las secuencias de A, y otro de B a A, que usa las secuencias de B. La presencia del *flag SYN* indica que se quiere establecer una conexión, y la presencia del *flag ACK* indica que el número de secuencia en el segundo segmento significa que se han recibido todos los datos hasta ese número de secuencia. Cuando A recibe este segmento, solo le queda mandar un segmento con *ACK* a B con la secuencia de números de B, para dar por establecida la conexión.
+
+![Figure [002_016]: Negociación en Tres Pasos](Res/002_016.png)
+
+La fiabilidad se garantiza a través del enviado cuidadoso y el acuse de recibo de los datos. Si un *timeout* expira antes de recibir el *ACK*, entonces el paquete nunca llegó a destino y la respuesta se perdió, en cualquier caso, se reenvía el segmento.
+
+### Transmisión de datos
+
+Para transmitir datos, los equipos pueden incluir una carga en cada segmento de salida. Cada segmento se etiqueta con el número de secuencia del primer byte de los datos en la secuencia. Cada byte tiene un numero de secuencia consecutivo, con lo cual el número de secuencia de un segmento debería ser el número de secuencia del segmento anterior más la cantidad de datos en el segmento actual.
+
+Cada vez que un segmento de datos llega a su destino, el receptor envía de vuelta un paquete con el acuse de recibo con el *flag ACK* levantado y con el próximo número de secuencia que espera recibir. Normalmente debería ser el número de secuencia del segmento recibido más recientemente más la cantidad de datos en el segmento.
+
+*TCP* garantiza que los datos se entregan en orden, así que si un receptor recibe un paquete con un numero de secuencia que no espera, tiene dos opciones. La más simple es abandonar el paquete y esperar a que se reenvíe en el orden correcto. O bien, guardarlo en un *buffer*, sin dar acuse de recibo o enviarlo a la capa superior. En lugar de eso, el equipo lo copia en su *buffer* de transmisión local en la posición correcta basándose en el número de secuencia. Entonces, cuando todos los números de secuencia precedentes han llegado, el equipo puede mandar el acuse de recibo del segmento fuera de orden y enviarlo a la capa superior, sin necesitar que el remitente tenga que reenviarlo.
+
+El *MTU* para *Ethernet* es de 1500 bytes, la cabecera de *IPv4* se lleva 20 de esos bytes y la cabecera de *TCP* se lleva al menos otros 20 bytes, eso quiere decir que los datos máximos que se pueden mandar en un segmento sin fragmentar en *TCP* a través de *Ethernet* es de 1460 bytes. Esto es el tamaño máximo de segmento (*MSS*). Si una conexión *TCP* solo tuviera un segmento sin acusar al vuelo a la vez, su ancho de banda sería muy limitado. De hecho, sería el *MSS* dividido por la cantidad de tiempo que le cuesta a un segmento ir del remitente al receptor, más el tiempo que tarda el acuse de recibo en volver, eso es el *round trip time* (*RTT*). Un *RTT* normal puede ser de 30ms, esto significa que la máxima velocidad sería de 1500 bytes/0.03 secs, o 50kbps. No demasiado.
+
+Para evitar este problema, una conexión *TCP* puede tener muchos segmentos sin acuse al vuelo a la vez. Sin embargo, no puede tener un número ilimitado de ellos, puesto que supondría otro problema. Cuando los datos de la capa de transporte llegan a un equipo, se guardan en un *buffer* hasta que el proceso enlazado al puerto los consume, en ese momento, se eliminan del *buffer*. No importa cuanta memoria hay disponible, el *buffer* es de un tamaño fijo. Es posible que un proceso complejo en una *CPU* lenta pueda no consumir los datos tan rápido como llegan, así el *buffer* se llenaría y los datos que llegan se abandonarían. En el caso de *TCP*, eso significa que no se enviaría acuse de recibo por ellos, y el remitente empezaría a reenviarlos. Y muchos de esos que se reenvían se volverían a abandonar, porque el proceso no da abasto. Esto causa un atasco de tráfico y es un problema.
+
+Para prevenir esto, *TCP* implementa un proceso conocido como control de flujo (*flow control*), que previene que un equipo que transmite muy rápido sature a uno que consume más lento. Cada cabecera *TCP* contiene un campo de ventana de recepción que especifica cuanto espacio tiene disponible el receptor en su *buffer*. Esto equivale a decirle al otro equipo cual es la máxima cantidad de datos que puede enviar antes de parar y esperar a recibir acuses de recibo. El ancho de banda máximo teórico de una transmisión *TCP* entonces viene determinado por la ventana de recepción dividido por el tiempo que tarda un segmento en ser enviado y acusado.
+
+Tener una ventana de recepción muy pequeña puede crear un cuello de botella en la transmisión de datos. Para evitar esto, se debería elegir una ventana de recepción lo suficientemente grande para que el ancho de banda máximo siempre sea mayor que la velocidad máxima de transmisión de la capa de enlace entre los equipos.
+
+El control de flujo ayuda a *TCP* a proteger a los puntos finales lentos de ser saturados con datos, pero no hace nada por prevenir a las redes o *routers* lentos de ser saturados. El tráfico se acumula en las redes como lo hacen los coches en las autopistas, con atascos en *routers* populares. Para evitar esto *TCP* implementa el control de congestión. Para reducir la congestión, el módulo *TCP* voluntariamente limita la cantidad de datos sin acuse que permite que estén en el aire. Es similar a lo que hace en el control de flujo, pero en lugar de determinar el limite a un tamaño de ventana dictado por el destino, calcula el limite basándose en el número de paquetes que han sido acusados o abandonados. El algoritmo exacto es dependiente de cada implementación particular.
+
+### Desconectando
+
+Cerrar una conexión *TCP* requiere una petición de finalización y un acuse de recibo por parte de cada extremo. Cuando un equipo no tiene más datos que enviar, envía un paquete *FIN*, indicando que está listo para dejar de enviar datos. Todos los datos pendientes en el *buffer* de salida, incluido el paquete *FIN*, se transmitirán y retransmitirán hasta que sean acusados. Sin embargo, el módulo *TCP* no aceptará más datos de salida de una capa superior. Aun se pueden recibir datos del otro equipo, pero todos los datos de llegada serán acusados. Cuando la otra parte no tiene más datos que enviar, puede enviar un paquete *FIN* también. Cuando un equipo que está cerrándose recibe un paquete *FIN* del otro equipo y un paquete *ACK* en respuesta a su propio *FIN* (o un *timeout* para el *ACK* ha saltado), es entonces cuando el módulo *TCP* cierra y borra su estado de conexión.
+
+Capa de Aplicación
+--------------------------------------------------------------
+
+En la parte superior del modelo de capas esta la capa de aplicación, y es donde vive todo el código para del juego que gestiona sus capacidades multijugador. También se encuentran aquí muchos protocolos fundamentales de internet que confían en la capa de transporte para la comunicación.
+
+![Figure [002_017]: Modelo de capas completo y como se envuelven los paquetes](Res/002_017.png)
+
+### DHCP
+
+Asignar direcciones *IPv4* únicas a cada equipo en una subred privada puede ser complejo, sobre todo cuando portátiles y smartphones se introducen. El protocolo de configuración dinámica de host (*DHCP*) soluciona este problema permitiendo a un equipo pedir la información de configuración automáticamente cuando se conecta a una red.
+
+Al conectarse a una red, el equipo crea un mensaje *DHCPDISCOVER* conteniendo su propia dirección *MAC* y la envía a todos los equipos de la red por *UDP* al puerto 67. Si en la red hay algún servidor *DHCP* este recibirá el mensaje, y si tiene una dirección *IP* para ofrecer al cliente, prepara un paquete *DHCPOFFER*. Este paquete contiene la dirección *IP* ofrecida y la dirección *MAC* del cliente al que se le envía la oferta. El cliente aún no tiene dirección *IP*, así que el servidor no puede mandarle directamente el paquete. En su lugar, lo envía a todos los equipos de la subred por *UDP* al puerto 68. Todos los clientes reciben el paquete, pero solo le hace caso el cliente con el que coincide la *MAC*. Este cliente lee la dirección *IP* ofrecida, y si la acepta, contesta otra vez con un *DHCPREQUEST* pidiendo la *IP* ofrecida. Si la oferta sigue disponible, entonces el servidor contesta con un mensaje *DHCPACK*, que confirma al cliente que esa *IP* la tiene asignada, y adjunta cualquier información adicional de la red necesaria, como la máscara de subred, puerta de enlace y *DNS* recomendados.
+
+### DNS
+
+El protocolo de sistema de nombres de dominio (*DNS*) facilita la traducción de nombres de dominio y subdominio a direcciones *IP*. Cuando un usuario quiere visitar una página web, suele recordar su nombre completo, pero raramente recordará la dirección *IP* del servidor en la que está alojada. Para traducir el nombre de dominio a una dirección *IP*, se envía una petición *DNS* a la dirección *IP* del servidor de nombres que el equipo tiene configurado.
+
+Un servidor de nombres almacena mapas entre nombres de dominio y direcciones *IP*. Hay miles de servidores de nombres activos en Internet, la mayoría son autoritativos para un pequeño subconjunto de dominios. Si a un servidor de nombres se le pregunta por un dominio en el cual no es autoritativo, normalmente apunta a otro servidor de nombres más autoritativo al cual pregunta. Los resultados de esa segunda petición se suelen guardar para posteriores peticiones.
+
+NAT
+--------------------------------------------------------------
+
+Hasta ahora, cada dirección *IP*  era pública enrutable. Una *IP* se considera pública enrutable si cualquier *router* configurado correctamente en internet puede mandar un paquete y eventualmente puede llegar al equipo con esa dirección *IP*. Esto obliga a que cualquier dirección pública enrutable sea asignada de manera única a cada equipo. Si dos o más equipos comparten la misma dirección *IP*, entonces un paquete dirigido a un equipo puede acabar en otro. Para mantener esas direcciones únicas, el *ICANN* reparte distintos bloques de direcciones *IP* a grandes instituciones, universidades, *ISP*, … Las cuales pueden gestionar esas direcciones y dárselas a sus usuarios o clientes, asegurando que son asignadas unívocamente.
+
+Puesto que *IPv4* tiene un espacio de direccionamiento de 32 bits, hay solo 4.294.967.296 direcciones *IP* publicas disponibles, y aunque no lo parezca, escasean. Es habitual que un usuario tenga menos direcciones *IP* asignadas que equipos tiene para configurar. Afortunadamente es posible conectar una subred completa de equipos a internet a través de una sola dirección *IP* publica compartida. Esto lo hace posible la traducción de direcciones de red (*NAT*). Para configurar una red para *NAT*, cada equipo en la red debe tener asignada una dirección *IP* privada enrutable. Las más habituales suelen estar en el rango de 192.168.0.0 a 192.168.255.255, entre otras. Estas direcciones *IP* están reservadas por el *ICANN* para uso privado y nunca pueden ser asignadas como públicas. Así cada usuario puede configurar su red privada con esas *IPs* garantizando su unicidad. No se requiere la unicidad entre redes porque estas direcciones no son públicas enrutables, es decir, ningún *router* público en internet debería tener información acerca de cómo acceder a dicha dirección privada, así que no importa si muchas redes privadas usan las mismas direcciones privadas internamente.
+
+En una red privada, hay varios equipos conectados a un *router*, cada equipo tiene su propia dirección *IP* privada, el *router* también tiene una dirección *IP* privada en el *NIC* conectado a la red local, y también tiene una dirección *IP* publica en el *NIC* conectado a internet, que le ha asignado el *ISP*. Puesto que el *NIC* conectado internamente está conectado a la red local, se le llama puerto *LAN* (*local area network*), y puesto que el *NIC* público está conectado al mundo, se le llama puerto *WA*N (*wide area network*).
+Cuando un equipo dentro de una red local manda un paquete a otro sobre una *IP* publica, en el datagrama o segmento, pone su dirección local, pero esta es privada, con lo cual el receptor del mensaje no puede contestar, puesto que la dirección de origen es privada. Para evitar esto, el módulo *NAT* del *router* puede reescribir el paquete *IP* mientras lo reenvía, reemplazando la *IP* privada del origen por la *IP* publica del propio *router*. Así el receptor del mensaje ya puede contestar a una *IP* pública. Sin embargo, cuando este paquete llega de vuelta, el *router* no sabe quién envió el paquete original dentro de su subred privada, así que no sabe a dónde dirigir la respuesta. Para ser capaz de esto, el *router* necesita de algún mecanismo para identificar el destino interno de un paquete que llega. La solución empleada por todos los *routers* modernos es romper la abstracción entre la capa de red y la de transporte. Reescriben no solo la dirección *IP* en la cabecera *IP*, sino también los números de los puertos en la cabecera de la capa de transporte, así el *router* puede crear un sistema de mapeo y marcado mucho más preciso, y lleva una monitorización de ese mapeo en la tabla *NAT*.
+
+Cuando un paquete de salida llega al *router*, el módulo *NAT* registra tanto la dirección *IP* de origen, como el puerto, en una nueva fila en la tabla *NAT*. Entonces elige un puerto nuevo aleatorio que no esté en uso, que se usará para identificar la combinación de dirección/puerto de origen, y escribe ese número de puerto en la misma fila de la tabla. Entonces reescribe el paquete para usar la *IP* publica del router y el nuevo puerto. El paquete reescrito viaja al destino, y cuando el destino, manda una respuesta, direccionada a la *IP* publica del router y el nuevo puerto, el módulo *NAT* usa ese número de puerto para buscar la dirección *IP* y puertos originales dentro de la subred, y reescribe el paquete de respuesta y lo envía al equipo correcto.
+
+### NAT Traversal
+
+El *NAT* es un problema importante para los juegos multijugador. Es muy común que los jugadores quieran alojar su propio servidor de partidas. Teniendo en cuenta cuantos usuarios tienen su propia red local y usan *NAT* para conectar sus equipos a internet, por el modo en que funciona *NAT*, el problema es que no hay una manera de que un equipo externo inicie una conexión con el servidor dentro de una red local.
+
+Hay varias maneras de solucionar esto. Una es pedir al usuario que quiere montar el servidor de partidas que configure manualmente el reenvío de puertos en su router, y según el nivel técnico del usuario puede resultar complicado. La segunda manera es más elegante y furtiva, se llama utilidades para atravesar sesiones para *NAT* (*STUN, Session Traversal Utilities for NAT*).
+
+Cuando se usa *STUN*, los equipos se comunican con un tercer equipo, como un servidor público externo, y este informa a los equipos como iniciar las conexiones entre ellos, de manera que se actualicen sus tablas *NAT* con las entradas requeridas, y puedan comunicarse directamente.
+
+Sockets
+==============================================================
+
+Un *socket* es un concepto abstracto mediante el cual dos procesos pueden intercambiar cualquier flujo de datos. Es la construcción comúnmente empleada para el desarrollo de juegos multijugador.
+
+Crear Sockets
+--------------------------------------------------------------
+
+Los *sockets* proveen una manera standard para que los procesos interactúen a varios niveles con la pila *TCP/IP*. La *API* ha sido portada a casi todas las plataformas y lenguajes, así que es un standard de la programación en red.
+
+Los procesos usan la *API* creando e inicializando uno o más *sockets*, y entonces leyendo o escribiendo datos a esos *sockets*.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ C++ linenumbers
+SOCKET socket(int af, int type, int protocol);
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [socket]: Definición de un *socket*]
+
+Para crear un *socket* se usa la función con el mismo nombre. El parámetro `af` (*address family*), indica al protocolo de la capa de red qué *socket* debe emplear.
+
+Macro | Descripción
+-------|:------:
+`AF_UNSPEC` | Sin especificar
+`AF_INET` | Protocolo de internet versión 4, *IPv4*
+`AF_IPX` | *Internetwork Packet Exchange*, red primitiva de *Novell* y *MSDOS*
+`AF_APPLETALK` | *Appletalk*, red primitiva para *Apple* y *Macintosh*
+`AF_INET6` | Protocolo de internet versión 6, *IPv6*
+[Table [sockets]: Valores para la familia de direcciones para la creación de *sockets*]
+
+La mayoría de los juegos hoy en día soportan *IPv4*, así que se usará `AF_INET`. Cuando más usuarios se vayan cambiando a conexiones sobre *IPv6*, será importante soportar *sockets* `AF_INET6`.
+
+El parámetro `type` indica el significado de los paquetes enviados y recibidos a través del *socket*. Cada protocolo de la capa de transporte que el *socket* puede usar tiene una forma en la cual agrupa y usa los paquetes.
+
+Macro | Descripción
+-------|:------:
+`SOCK_STREAM` | El paquete representa segmentos de una transmisión de datos ordenada y fiable
+`SOCK_DGRAM` | El paquete representa datagramas discretos
+`SOCK_RAW` | Las cabeceras de los paquetes han sido personalizadas por la capa de aplicación
+`SOCK_SEQPACKET` | Similar a `SOCK_STREAM`, pero los paquetes necesitan ser leídos enteros tras la recepción
+[Table [sockets]: Valores del tipo para la creación de *sockets*]
+
+Crear un *socket* de tipo `SOCK_STREAM` informa al sistema operativo que el *socket* va a necesitar una conexión con estado. Entonces asigna los recursos necesarios para soportar una transmisión de datos ordenada y fiable. Es el tipo apropiado cuando se va a crear un socket *TCP*. Por otro lado, `SOCK_DGRAM` provee una conexión sin estado y asigna los mínimos recursos necesarios para enviar y recibir datagramas. Este *socket* no realizará ningún esfuerzo por mantener el orden o la fiabilidad de los paquetes. Es el tipo de *socket* apropiado para *UDP*.
+
+El parámetro `protocol` indica el protocolo específico que el *socket* debería usar para enviar datos. Normalmente, el valor pasado como protocolo se copia directamente en el campo de protocolo en la cabecera *IP* de cada paquete saliente. Esto indica al sistema operativo receptor como interpretar los datos envueltos por el paquete.
+
+Macro | Tipo requerido | Descripción
+-------|-------|:------:
+`IPPROTO_TCP` | `SOCK_STREAM` | Los paquetes envuelven segmentos *TCP*
+`IPPROTO_UDP` | `SOCK_DGRAM` | Los paquetes envuelven datagramas *UDP*
+`IPPROTO_IP / 0` | Cualquiera | Usa el protocolo por defecto para el tipo
+[Table [sockets]: Valores para el protocolo para la creación de *sockets*]
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ C++ linenumbers
+SOCKET udpSocket = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
+SOCKET tcpSocket = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [socket2]: Creación de *sockets* TCP y UDP]
+
+Esto crea un *socket* *TCP* y otro *UDP*, con los parámetros correctamente dispuestos.
+
+Para cerrar un *socket* independientemente del tipo se usa la función `closesocket`.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ C++ linenumbers
+int closesocket(SOCKET sock);
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [socket]: Cierre de *sockets*]
+
+Cuando se elimina un *socket TCP*, es importante hacerlo de una manera que asegure que todos los datos entrantes y salientes son transmitidos y acusados. Es mejor dejar de transmitir antes en el *socket*, esperar a que todos los datos sean acusados y todos los datos entrantes leídos y entonces cerrar el *socket*. Para dejar de transmitir o recibir antes de cerrar, se usa la función `shutdown`.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ C++ linenumbers
+int shutdown(SOCKET sock, int how);
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [socket]: Dejar de transmitir/recibir en el *socket*]
+
+En el parámetro `how`, se pasa `SD_SEND` para dejar de enviar, `SD_RECEIVE` para dejar de recibir, o `SD_BOTH` para dejar de enviar y recibir. Pasar `SD_SEND` hace que se transmita un paquete *FIN* una vez todos los datos se han enviado, lo cual notifica al otro punto de la conexión que puede cerrar el *socket* de manera segura, lo cual acabará en otro paquete *FIN* enviado de vuelta como respuesta. Una vez se recibe el paquete *FIN*, ya es seguro cerrar el *socket*. Esto cierra el *socket* y devuelve los recursos asociados, hay que asegurarse de cerrar todos los *sockets* cuando no se necesitan.
+
+Diferencias entre Plataformas
+--------------------------------------------------------------
+
+Pese a que los *sockets* son el standard a bajo nivel para trabajar con internet en varias plataformas, la *API* no es perfectamente uniforme entre todos los sistemas operativos.
+
+La primera diferencia es el tipo de dato usado para representar el *socket* en sí mismo. La función `socket` devuelve un tipo `SOCKET`, pero este tipo solo existe en plataformas Windows, y esta mapeado con un `typedef` a `UINT_PTR`, es decir, un puntero a un área de memoria que guarda el estado y datos del *socket*. En plataformas *POSIX*, como Linux o Mac, un *socket* viene representado como un simple `int`, no hay datos del *socket*. La función devuelve un entero, que representa un índice dentro de la lista de ficheros abiertos y *sockets* del sistema operativo, de esta manera, un *socket* es como un descriptor de fichero. Independientemente si un *socket* se representa como `int` o como `SOCKET`, estos deberían pasarse siempre como valor a las funciones de la librería de *sockets*.
+
+La segunda diferencia es el fichero de cabeceras que contiene las declaraciones de la librería. La versión de Windows que hay que incluir es `WinSock2.h`. Si hay que incluir la cabecera `Windows.h` en la misma unidad, hay que asegurarse de incluir `WinSock2.h` antes de `Windows.h`, o bien definir la macro `WIN32_LEAN_AND_MEAN` antes de incluir `Windows.h`.
+
+`WinSock2.h` solo contiene declaraciones para las funciones y tipos de datos directamente relacionados con los *sockets*, para funcionalidad tangencial, hay que incluir otros ficheros, por ejemplo, para usar la conversión de direcciones hay que incluir también `Ws2tcpip.h`.
+
+En plataformas *POSIX*, la librería de *sockets* suele estar en `sys/socket.h`, para usar funcionalidad específica de *IPv4* hay que incluir `netinet/in.h`, para usar conversión de direcciones `arpa/inet.h`, y para resolver nombres `netdb.h`.
+
+La inicialización y cierre de la librería de *sockets* también se realiza de manera distinta. En plataformas *POSIX*, la librería está activa por defecto y no hay que hacer nada. En cambio, `Winsock2` requiere un arranque y cierre explícitos, y permite al usuario especificar que versión de la librería usar.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ C++ linenumbers
+int WSAStartup(WORD wVersionRequested, LPWSADATA lpWSAData);
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [socket]: Arranque de `Winsock2` en Windows]
+
+El parámetro `wVersionRequested` es una palabra de 2 bytes, la versión más alta es la 2.2, así que se suele pasar un `MAKEWORD(2,2)` en este parámetro. `lpWSAData` apunta a una estructura de datos que la función `WSAStartup` rellena con datos sobre la librería activada. La función devuelve un 0 si ha sido exitosa, o un código de error, indicando que la librería no se ha podido iniciar. Ninguna función de `WinSock2` funcionará hasta que se haya llamado a `WSAStartup` con éxito.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ C++ linenumbers
+int WSACleanup();
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [socket]: Cierre de `Winsock2` en Windows]
+
+Para cerrar la librería se llama a `WSACleanup`, no recibe ningún parámetro, y devuelve un código de error. Cuando se llama a esta función todas las operaciones pendientes sobre los *sockets* se terminan y los recursos se liberan, por lo que suele ser conveniente asegurar que todos los *sockets* están cerrados y sin uso antes de cerrar `WinSock2`. Hay que llamar exactamente tantas veces a `WSACleanup` como veces se ha llamado a `WSAStartup` para asegurarse que todo se limpia.
+
+El informe de errores también se maneja de manera ligeramente diferente, muchas funciones en todas las plataformas devuelven un -1 en caso de error. En Windows se puede usar la macro `SOCKET_ERROR` en lugar del -1, y se puede usar `WSAGetLastError` para averiguar un código de error adicional que da más información sobre la causa del error.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ C++ linenumbers
+int WSAGetLastError();
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [socket]: Obtener el último error de `Winsock2` en Windows]
+
+Esta función devuelve solo el ultimo código de error generado en el hilo actual, así que es importante verificarlo inmediatamente tras una llamada a función que devuelva un -1.
+
+En plataformas *POSIX* hay un mecanismo similar para averiguar información específica de errores, sin embargo, usan la variable global standard de C `errno`, para ello. Para usarlo hay que incluir la cabecera `errno.h`, y se puede leer directamente de esa variable después de cada función. Al igual que en el caso de `WSAGetLastError`, `errno` puede cambiar después de llamar a cada función.
+
+Dirección del Socket
+--------------------------------------------------------------
+
+Cada paquete de la capa de red necesita una dirección de origen y de destino. Si el paquete envuelve datos de la capa de transporte, también necesita un puerto de origen y destino. Para trabajar con esta información en la librería de *sockets*, la *API* provee el tipo de datos `sockaddr`.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ C++ linenumbers
+struct sockaddr {
+  uint16_t sa_family;
+  char sa_data[4];
+};
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [socket]: Estructura `sockaddr`]
+
+El campo `sa_family` contiene una constante que identifica el tipo de dirección, cuando se usa esta dirección con un *socket*, el campo `sa_family` debería coincidir con el parámetro `af` usado para crear el *socket*. El campo `sa_data` tiene 14 bytes y contiene la dirección, es un array de bytes porque debe ser capaz de alojar cualquier tipo de dirección sin importar la familia de direcciones elegida. La *API* provee tipos de datos específicos para ayudar a inicializar las direcciones para las familias más comunes. Puesto que no había clases, herencia o polimorfismo en los tiempos en los que se creó la *API*, estos tipos tiene que *castearse* a mano al tipo `sockaddr` cuando se pasan a cualquier función de *sockets* que necesita una dirección. Para crear una dirección para un paquete *IPv4* se usa el tipo `sockaddr_in`.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ C++ linenumbers
+struct sockaddr_in {
+  short sin_family;
+  uint16_t sin_port;
+  struct in_addr sin_addr;
+  char sin_zero[8];
+};
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [socket]: Estructura `sockaddr_in`]
+
+El campo `sin_family` se solapa con el `sa_family` del `sockaddr` y tiene el mismo significado. El campo `sin_port` contiene el número de puerto en 16 bits. `sin_addr` contiene los 4 bytes de la dirección *IPv4*, este tipo varía entre las librerías de *sockets*, en algunas plataformas es un simple entero de 4 bytes, pero las direcciones *IPv4* no se suelen escribir así, si no como 4 bytes individuales separados por puntos. Por esta razón, otras plataformas suelen facilitar una estructura que envuelve una unión de *structs* que se pueden usar para determinar la dirección en varios formatos. El campo `sin_zero` no se usa y existe para hacer el *padding* y que coincida la longitud de `sockaddr_in` con la de `sockaddr`.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ C++ linenumbers
+struct in_addr {
+  union {
+    struct {
+      uint8_t s_b1, s_b2, s_b3, s_b4;
+    } S_un_b;
+    struct {
+      uint16_t s_w1, s_w2;
+    } S_un_w;
+    uint32_t S_addr;
+  } S_un;
+};
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [socket]: Estructura `in_addr`]
+
+Poniendo los campos `s_b1`, `s_b2`, `s_b3` y `s_b4` del `struct` `S_un_b` dentro de la unión `S_un`, se puede introducir la dirección de manera legible.
+
+Suele ser buena idea cuando se instancia cualquier `struct` de *sockets* usar `memset` para poner a cero a todos sus miembros, esto puede prevenir algunos errores por campos no inicializados.
+
+Cuando se pone una dirección *IP* como un entero de 4 bytes, o un numero de puerto, es importante tener en cuenta que *TCP/IP* y el equipo pueden usar diferentes estándares para el ordenamiento de los bytes cuando se usan números que ocupan más de un byte (*endianness*). Por norma general, las redes siempre siguen un orden *big endian*, mientras que la mayoría de los equipos usan *little endian*. Para facilitar esta conversión la *API* provee las funciones `htons` y `htonl` (*host to network)*.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ C++ linenumbers
+uint16_t htons(uint16_t hostshort);
+uint32_t htonl(uint32_t hostlong);
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [socket]: Host to NetWork Endiannes]
+
+La función `htons` recibe un entero de 16 bits, en el orden de bytes nativo por el equipo y lo convierte al orden de bytes de la red, `htonl` hace lo mismo sobre enteros de 32 bits.
+Algunas veces, como cuando se recibe un paquete, la librería de *sockets* rellena la estructura `sockaddr_in`, cuando esto pasa los campos en `sockaddr_in` están en el orden de bytes de la red, así que para poder interpretarlos correctamente hay que realizar la conversión contraria, usando `ntohs` y `ntohl` (*network to host*).
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ C++ linenumbers
+uint16_t ntohs(uint16_t networkshort);
+uint32_t ntohl(uint32_t networklong);
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [socket]: Network to Host Endiannes]
+
+Juntando todo, para crear una dirección de *socket* que representa el puerto 80 y una dirección IP 80.205.120.43.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ C++ linenumbers
+sockaddr_in myAddr;
+memset(myAddr.sin_zero, 0, sizeof(myAddr.sin_zero));
+myAddr.sin_family = AF_INET;
+myAddr.sin_port = htons(80);
+myAddr.sin_addr.S_un.S_un_b.s_b1 = 80;
+myAddr.sin_addr.S_un.S_un_b.s_b2 = 205;
+myAddr.sin_addr.S_un.S_un_b.s_b3 = 120;
+myAddr.sin_addr.S_un.S_un_b.s_b4 = 43;
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [socket]: Dirección de *socket*]
+
+En algunas plataformas se añade un campo extra a `sockaddr` para guardar la longitud de la estructura usada, con la finalidad de albergar estructuras más largas en el futuro. Por ejemplo, en MacOSX, se añadiría esta línea.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ C++ linenumbers
+myAddr.sin_len = sizeof(sockaddr_in);
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [socket]: Longitud de `struct`]
+
+### Clase SocketAddress
+
+Cuando la librería de *sockets* fue creada no había mucha preocupación por la seguridad de los tipos. Así pues, puede ser útil envolver los tipos básicos y funciones de los *sockets* con otros usando POO, implementados a nivel de aplicación. Esto también ayuda a aislar a la *API* de *sockets* del código del juego, y en caso de cambiar de librería de *sockets* no afectar al juego.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ C++ linenumbers
+class SocketAddress {
+  public:
+    SocketAddress(uint32_t address, uint16_t port) {
+      getAsSockAddrIn()->sin_family = AF_INET;
+      getAsSockAddrIn()->sin_addr.S_un.S_addr = htonl(address);
+      getAsSockAddrIn()->sin_port = htons(port);
+    }
+
+    SocketAddress(const sockaddr& sockAddr) {
+      memcpy(&_sockAddr, &sockAddr, sizeof(sockaddr));
+    }
+
+    size_t getSize() const {
+      return sizeof(sockaddr);
+    }
+
+  private:
+    sockaddr_in* getAsSockAddrIn() {
+      return reinterpret_cast<sockaddr_in*>(&_sockAddr);
+    }
+
+    sokaddr _sockAddr;
+};
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [socket]: Clase `SockAddress`]
+
+Esta clase tiene dos constructores, el primero toma como parámetros la dirección de 4 bytes *IPv4* y un puerto, y los asigna al `sockaddr` interno. El segundo usa otro `sockaddr` y lo copia al interno.
+
+### Inicializar `sockaddr` desde una cadena de texto
+
+Muchas veces la dirección *IP* llega como una cadena de texto, y hay que pasársela a `sockaddr`, para ello se puede usar la función `inet_pton` de *POSIX* o `InetPton` de Windows (presente en `Ws2tcpip.h`).
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ C++ linenumbers
+int inet_pton(int af, const char* src, void* dst);
+int InetPton(int af, const PCTSTR src, void* dst);
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [socket]: Dirección *IP* de textp a binario]
+
+Ambas reciben una familia de direcciones, `AF_INET`, y convierten la cadena `src` en un `in_addr`. La función devuelve un 1 si ha sido exitosa o un -1 en caso de error.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ C++ linenumbers
+sockaddr_in myAddr;
+myAddr.sin_family = AF_INET;
+myAddr.sin_port = htons(80);
+InetPton(AF_INET, "80.205.120.43", &myAddr.sin_addr);
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [socket]: Uso de `InetPton`]
+
+Pese a que esta función convierte una cadena legible a una dirección *IP* binaria, la cadena debe ser una dirección *IP*, no puede ser un nombre de dominio, puesto que habría que realizar una búsqueda *DNS*. Para hacerlo, y traducir un nombre de dominio a una dirección *IP* se puede usar `getaddrinfo`.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ C++ linenumbers
+int getaddrinfo(const char* hostname, const char* servname, const addrinfo* hints, addrinfo** res);
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [socket]: Declaración de `getaddrinfo`]
+
+La cadena `hostname` contiene el nombre de dominio sobre el que realizar la búsqueda, `servname` debería ser una cadena con el número de puerto o el nombre del servicio que mapea ese puerto, `hints`, debería ser un puntero a una estructura `addrinfo` donde se especifican algunos valores acerca de los resultados que se esperan. Por último, `res`, debería ser un puntero a una variable que la función rellenará y apuntará al primer elemento de una lista enlazada que ha creado de estructuras `addrinfo`, cada uno de los elementos de esa lista representa una sección de la respuesta del servidor *DNS*.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ C++ linenumbers
+struct addrinfo {
+  int ai_flags;
+  int ai_family;
+  int ai_socktype;
+  int ai_protocol;
+  size_t ai_addrlen;
+  char* ai_canonname;
+  sockaddr* ai_addr;
+  addrinfo* ai_next;
+};
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [socket]: Struct `addrinfo`]
+
+Los campos `ai_flags`, `ai_socktype` y `ai_protocol` se usan para pedir determinados tipos de respuestas cuando se pasa esta estructura como `hint`, se pueden ignorar en la respuesta. `ai_family` identifica la familia de direcciones (`AF_INET`). `ai_addrlen` muestra el tamaño del `sockaddr` apuntado por `ai_addr`. `ai_canonname` tiene el nombre canónico del nombre resuelto, si se ha pedido con el flag `AI_CANONNAME` al pasar la estructura como `hint`. `ai_next` apunta al siguiente `addrinfo` en la lista, o bien a `nullptr` si es el último en ella. Puesto que un nombre de dominio puede mapearse a varias direcciones *IP*, habría que iterar sobre la lista hasta encontrar un `sockaddr` que se ajuste, alternativamente, se puede especificar una `ai_family` en el `addrinfo` que se pasa como `hint`, y así solo se recibirían resultados para la familia deseada.
+
+Puesto que `getaddrinfo` reserva una o más estructuras `addrinfo`, se debería llamar a `freeaddrinfo` para liberar la memoria una vez se ha copiado el `sockaddr` fuera de la lista.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ C++ linenumbers
+void freeaddrinfo(addrinfo* ai);
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [socket]: Liberación de `addrinfo`]
+
+En el parámetro `ai` se le pasa el primer elemento `addrinfo` de la lista, y la función ya recorre la lista y libera todos los nodos y sus *buffers* asociados.
+
+Para resolver un nombre de dominio a una *IP*, la función `getaddrinfo` crea un paquete del protocolo *DNS* y lo manda por *TCP* o *UDP* a uno de los servidores *DNS* configurados en el sistema operativo, espera la respuesta, la parsea y construye la lista. Puesto que esta operación depende de enviar y recibir información de equipos remotos, puede consumir una cantidad de tiempo significativa, así que esta operación bloquea el hilo principal hasta que recibe una respuesta, con lo cual habría que considerar llamar a esta función desde otro hilo. En Windows existe la función `GetAddrInfoEx`, que permite realizar la llamada de manera asíncrona si necesitar crear otro hilo.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ C++ linenumbers
+static SocketAddress CreateIPv4FromString(const std::string& in) {
+  const auto pos = in.find_last_of(':');
+  std::string host, service;
+  if (pos != std::string::npos) {
+    host = in.substr(0, pos);
+    service = in.substr(pos + 1);
+  }
+  else {
+    host = in;
+    service = "0";   //use default port...
+  }
+
+  addrinfo hint;
+  memset(&hint, 0, sizeof(hint));
+  hint.ai_family = AF_INET;
+  addrinfo* list;
+  const int error = getaddrinfo(host.c_str(), service.c_str(), &hint, &list);
+  addrinfo* list_head = list;
+  if (error != 0 && list != nullptr) {
+    freeaddrinfo(list_head);
+    return nullptr;
+  }
+
+  while (!list->ai_addr && list->ai_next) {
+    list = list->ai_next;
+  }
+
+  if (!list->ai_addr) {
+    freeaddrinfo(list_head);
+    return nullptr;
+  }
+
+  SocketAddress result(*list->ai_addr);
+  freeaddrinfo(list_head);
+  return result;
+}
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [socket]: Creación de `SocketAddress` a partir de una cadena de texto]
+
+Se puede añadir esta función estática para crear un `SocketAddress` a partir de una cadena de texto que contenga el nombre de dominio y el puerto, separados por dos puntos.
+
+### Enlazando un socket
+
+El procedimiento para notificar al sistema operativo que un *socket* usará una dirección específica y un puerto de capa de transporte se llama *binding* (enlace). Para enlazar de manera manual un *socket* a una dirección y puerto, se usa la función `bind`.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ C++ linenumbers
+int bind(SOCKET sock, const sockaddr* address, int address_len);
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [socket]: Función `bind`]
+
+El parámetro `sock`, es el *socket* a enlazar, previamente creado. El parámetro `address` es el `sockaddr` al que el *socket* se quiere enlazar. Esto no tiene nada que ver con la dirección a la que va a enviar los paquetes. Pasarle una dirección específica a la que enlazar el *socket* permite determinar que interfaz (*NIC*) va a usar el `socket` (es habitual que un equipo pueda tener varias tarjetas de red, wifi, …). En videojuegos muchas veces no suele ser importante especificar un interfaz, y de hecho suele ser deseable enlazar un puerto determinado a todas las redes disponibles y una dirección *IP* que tenga el equipo. Para hacer esto, se puede asignar la macro `INADDR_ANY` al campo `sin_addr` de la estructura `sockaddr_in` que se le pasa a `bind`. El parámetro `address_len` debe contener la longitud del `sockaddr` pasado como `address`.
+
+La función `bind` devuelve un 0 en caso de éxito y -1 en caso de error.
+
+Enlazar un *socket* a una dirección `sockaddr` tiene dos funciones. Primero le dice al sistema operativo que este *socket* debería ser el destino de cualquier paquete que llegue con destino que coincida con la dirección y puerto del *socket* enlazado. Segundo, determina la dirección y puerto de origen que la librería de *sockets* debería usar cuando se creen las cabeceras de los paquetes para la capa de transporte y red, cuando se envían desde el *socket*.
+
+Por norma, solo se puede enlazar un solo *socket* a una dirección y puerto. Si no importa el puerto, se puede dejar el puerto a 0, y la función `bind` encontrará un puerto que no esté en uso y enlazará el *socket* a ese puerto.
+
+Un puerto debe ser enlazado antes de que pueda ser usado para enviar o recibir datos. Si un proceso intenta enviar datos sobre un *socket* no enlazado, la librería automáticamente lo enlazaría a cualquier puerto disponible. Por tanto, la única razón para llamar manual a `bind` es especificar la dirección y puerto. Es necesario al construir un servidor que debe escuchar a paquetes en una dirección y puerto anunciados públicamente. Pero no suele ser necesario para un cliente. Un cliente puede enlazarse automáticamente a cualquier puerto, cuando envía el primer paquete al servidor, este paquete ya contendrá la dirección y puerto de origen elegidos automáticamente, y el servidor puede usar esa dirección para devolver los paquetes correctamente.
+
+Sockets UDP
+--------------------------------------------------------------
+
+Se pueden mandar datos a través de un *socket UDP* tan pronto como se ha creado (esté o no enlazado). Para enviar datos se usa la función `sendto`.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ C++ linenumbers
+int sendto(SOCKET sock, const char* buf, int len, int flags, const sockaddr* to, int tolen);
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [socket]: Función `sendto`]
+
+El parámetro `sock` es el *socket* a través del cual el datagrama debería ser enviado. La dirección y puerto del *socket* enlazado será usado como dirección de origen en las cabeceras del paquete saliente. `buf` es un puntero a la dirección inicial de los datos a enviar, no tiene por qué ser un puntero a `char`, puede ser cualquier tipo de datos mientas se pueda *castear* correctamente a `char*`.
+
+El parámetro `len` es la longitud de los datos a enviar en bytes. Técnicamente el tamaño máximo de un datagrama *UDP* incluyendo su cabecera de 8 bytes es de 65535 bytes, porque la longitud del campo en la cabecera es de 16 bits. Sin embargo, el *MTU* de la capa de enlace determina el paquete más grande que se puede enviar sin fragmentar, y ese *MTU* es de 1500bytes, pero debe incluir no solo los datos de carga del juego, sino que múltiples cabeceras y algún envoltorio de paquetes. Como programador de videojuegos e intentando evitar la fragmentación, una buena regla es evitar enviar datagramas más grandes de 1300 bytes.
+
+El parámetro `flags` es una colección de bits controlando como se envían los datos, para la mayoría de los casos es 0.
+
+El parámetro `to`, es el `sockaddr` del destino. La familia de `sockaddr` debe coincidir con la familia del *socket* cuando se creó. La dirección y puerto del parámetro `to` se copian en las cabeceras *IP* y *UDP* como los destinos. El parámetro `tolen` es la longitud del `sockaddr` pasado como parámetro `to`, `sizeof(sockaddr_in)`.
+
+Si la operación es exitosa, `sendto` devuelve la longitud de los datos encolados para enviar. En caso contrario devuelve -1. Un valor devuelto mayor que 0, no implica que el datagrama se haya enviado, solo que se ha encolado para ser enviado.
+
+Recibir datos en un *socket UDP* se realiza usando la función `recvfrom`.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ C++ linenumbers
+int recvfrom(SOCKET sock, char* buf, int len, int flags, sockaddr* from, int* fromlen);
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [socket]: Función `recvfrom`]
+
+El parámetro `sock` es el *socket* al cual preguntar por los datos, por defecto, si no hay datagramas pendientes de lectura que hayan sido enviados al *socket*, el hilo se bloqueará hasta que llegue un datagrama. `buf` es el *buffer* donde el datagrama recibido debería copiarse, por defecto una vez el datagrama ha sido copiado a un *buffer*, la librería de *sockets* ya no necesita una copia de él. `len` debería especificar el tamaño máximo de bytes que `buf` puede alojar. Para evitar un error de desbordamiento de *buffer*, `recvfrom` nunca copiará más bytes de los que se especifican en `len`, cualquier byte que sobre se perderá para siempre, así que hay que asegurarse que el *buffer* de recepción sea tan grande como el datagrama más grande que se espere recibir. `flags` es una colección de bits controlado la recepción de los datos, suele ser 0, en algunos casos se puede usar el flag `MSG_PEEK`, para recibir una copia del datagrama sin eliminarlo de la cola de entrada.
+
+El parámetro `from` debería apuntar a una estructura `sockaddr` que se rellenará con la dirección y puerto del remitente. Los datagramas son enviados a la función `recvfrom` en el orden que han llegado, y la variable `from` se rellena de acuerdo a cada datagrama recibido. `fromlen` debe apuntar a un entero que guarda la longitud del `sockaddr` pasado en `from`, la función puede reducir este valor si no necesita todo el espacio al copiar la dirección de origen.
+
+Tras una ejecución exitosa, `recvfrom` devuelve el número de bytes que han sido copiados en `buf`. En caso contrario, devuelve un -1.
+
+### Clase udpSocket
+
+La cabecera de la una clase para manejar *sockets UDP* podría ser.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ C++ linenumbers
+class UDPSocket {
+  public:
+    ~UDPSocket();
+
+    int bindTo(const SocketAddress& inToAddress) const;
+    int sendTo(const void* inData, int inLen, const SocketAddress& inTo) const;
+    int receiveFrom(void* inBuffer, int inLen, SocketAddress& outFrom) const ;
+    int setBlockingMode(bool blocking);
+  private:
+    UDPSocket(SOCKET inSocket);
+    SOCKET _socket;
+};
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [socket]: Cabecera de clase `UDPSocket`]
+
+Y una posible implementación.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ C++ linenumbers
+UDPSocket::UDPSocket(SOCKET inSocket) : socket_(inSocket) {}
+
+UDPSocket::~UDPSocket() {
+  closesocket(socket_);
+}
+
+int UDPSocket::bindTo(const SocketAddress& inToAddress) const {
+  const int err = bind(socket_, &inToAddress.sockAddr_, inToAddress.getSize());
+
+  if (err != 0) {
+    std::cout << "Error Binding Socket" << std::endl;
+    return WSAGetLastError();
+  }
+  return NO_ERROR;
+}
+
+int UDPSocket::sendTo(const void* inData, int inLen, const SocketAddress& inTo) const {
+  const int byteSentCount = sendto(socket_, static_cast<const char*>(inData), inLen, 0,
+    &inTo.sockAddr_, inTo.getSize());
+
+  if (byteSentCount >= 0) {
+    std::cout << "Sent " << byteSentCount << " bytes" << std::endl;
+    return byteSentCount;
+  } else {
+    std::cout << "Error Sending Data" << std::endl;
+    return -WSAGetLastError();
+  }
+}
+
+int UDPSocket::receiveFrom(void* inBuffer, int inLen, SocketAddress& outFrom) const {
+  int fromLength = outFrom.getSize();
+  const int readByteCount = recvfrom(socket_, static_cast<char*>(inBuffer), inLen,
+    0, &outFrom.sockAddr_, &fromLength);
+
+  if (readByteCount >= 0) {
+    std::cout << "Received " << readByteCount << " bytes" << std::endl;
+    return readByteCount;
+  } else {
+    std::cout << "Error Binding Socket" << std::endl;
+    return -WSAGetLastError();
+  }
+}
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [socket]: Implementación de clase `UDPSocket`]
+
+La clase expone tres métodos principales, `bindTo`, `sendTo` y `receiveFrom`, cada uno usando la clase `SocketAddress` definida antes.
+
+Para prevenir errores el constructor se marca privado y se provee un método estático para construir los *sockets UDP*.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ C++ linenumbers
+static UDPSocket CreateUDPSocket(SocketAddressFamily inFamily) {
+  const SOCKET s = socket(inFamily, SOCK_DGRAM, IPPROTO_UDP);
+
+  if (s != INVALID_SOCKET) {
+    UDPSocket result(s);
+    return result;
+  } else {
+    std::cout << "Error Creating UDP Socket" << std::endl;
+    abort();
+  }
+}
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [socket]: Método para crear `UDPSocket`]
+
+Sockets TCP
+--------------------------------------------------------------
+
+*UDP* no mantiene el estado, no mantiene la conexión y no es fiable, así que se necesita un solo *socket* por equipo para enviar y recibir datagramas. *TCP*, por otro lado, es fiable y necesita de una conexión establecida entre dos equipos antes de que la transmisión tenga lugar. Además, debe mantener el estado para reenviar los paquetes perdidos y tiene que guardar ese estado en algún sitio, normalmente en el propio *socket*. Esto significa, que un equipo necesita un *socket* único para cada conexión *TCP* que mantiene.
+
+*TCP* necesita de la negociación en tres pasos para iniciar una conexión entre un cliente y un servidor. Para que el servidor reciba la fase inicial de la negociación, primero debe crear un *socket*, enlazarlo a un puerto y ponerse a la escucha de negociaciones entrantes. Una vez creado y enlazado, usando `socket` y `bind`, empieza a escuchar con la función `listen`.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ C++ linenumbers
+int listen(SOCKET sock, int backlog);
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [socket]: Función `listen`]
+
+El parámetro `sock` es el *socket* que se quiere poner a la escucha. Cada vez que un *socket* en modo de escucha recibe la primera fase de una negociación, almacena la petición hasta que el propio proceso hace una llamada para aceptar la conexión y continua la negociación. El parámetro `backlog` es el número máximo de conexiones entrantes que se puede permitir encolar. Una vez que el número máximo de negociaciones pendientes se alcanza, cualquier conexión nueva se abandona. Se suele pasar `SOMAXCONN` para usar el valor por defecto.
+
+Esta función devuelve un 0 en caso de éxito, y -1 en caso de error.
+
+Para aceptar una conexión entrante y continuar con la negociación se usa la función `accept`.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ C++ linenumbers
+SOCKET accept(SOCKET sock, sockaddr* addr, int* addrlen);
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [socket]: Función `accept`]
+
+El parámetro `sock` es el *socket* que está escuchando y sobre el cual la conexión entrante debería ser aceptada. `addr` es un puntero a una estructura `sockaddr` que será rellenada con la dirección del equipo remoto que solicita la conexión, no necesita ser inicializada. El parámetro `addrlen` es un puntero al tamaño en bytes de `addr`, y se actualizará con el tamaño de la dirección escrita.
+
+Si `accept` se ejecuta con éxito, creará y devolverá un nuevo *socket* que puede ser usado para comunicarse con el equipo remoto. Este nuevo *socket* esta enlazado al mismo puerto que el *socket* de escucha. Cuando el sistema operativo recibe un paquete destinado al puerto enlazado, usa la dirección y puerto de origen para determinar que *socket* debería recibir el paquete.
+
+El nuevo *socket* está asociado con el equipo remoto que inicio la conexión, guarda la dirección y puerto del equipo remoto, y gestiona todos los paquetes que salen por si hubiera que reenviarlos si se pierden. También es el único *socket* que puede comunicarse con el equipo remoto, un proceso nunca debería intentar enviar datos a un equipo remoto usando el *socket* inicial en modo escucha, este solo actúa como despachador ayudando a crear nuevos *sockets* en respuesta a peticiones de conexiones.
+
+El proceso de escucha y aceptación de conexiones es asimétrico, solo el servidor pasivo necesita un *socket* de escucha. Un cliente que quiere empezar una conexión debería en su lugar, crear un *socket* y usar la función `connect` para empezar la negociación con el servidor remoto.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ C++ linenumbers
+int connect(SOCKET sock, sockaddr* addr, int addrlen);
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [socket]: Función `connect`]
+
+El parámetro `sock` es el *socket* que conectar, `addr` es el puntero con la dirección del servidor remoto, y `addrlen` es el tamaño del parámetro `addr`. En caso de éxito devuelve un 0, en caso contrario un -1.
+
+Llamar a `connect` inicia el proceso de negociación *TCP* enviando el paquete inicial *SYN* a un equipo destino. Si este equipo tiene un *socket* a la escucha en el puerto correcto, puede proceder a la negociación llamando a `accept`. Por defecto, una llamada a `connect` bloquea el hilo hasta que la conexión es aceptada o el tiempo expira.
+
+### Enviando y recibiendo en sockets conectados
+
+Un socket *TCP* conectado guarda la dirección del equipo remoto, por eso, un proceso no necesita pasar la dirección destino en cada llamada para enviar datos. En lugar de usar `sendto`, para enviar a través de un *socket* conectado *TCP* se usa la función `send`.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ C++ linenumbers
+int send(SOCKET sock, const char* buf, int len, int flags);
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [socket]: Función `send`]
+
+El parámetro `sock` es el *socket* a través del cual el stream debería ser enviado. `buf` es un puntero a la dirección inicial de los datos a enviar, no tiene por qué ser un puntero a `char`, puede ser cualquier tipo de datos mientas se pueda *castear* correctamente a `char*`. Al contrario de *UDP*, `buf` no es un datagrama, así que no se garantiza que se transmita en una sola unidad de datos, en su lugar, los datos se añaden al *buffer* de salida del *socket*, y se transmiten en algún momento en el futuro a voluntad de la librería de red.
+
+El parámetro `len` es la longitud de los datos a enviar en bytes. Al contrario de *UDP*, no hay razón para mantener este valor por debajo del *MTU* de la capa de enlace, mientras haya espacio en el *buffer* de envío del *socket*, la librería añadirá los datos y los enviara en los trozos que sean necesarios.
+
+El parámetro `flags` es una colección de bits controlando como se envían los datos, para la mayoría de los casos es 0.
+
+Si la llamada a `send` acaba con éxito, devuelve la cantidad de datos enviados. Esto puede ser menor que el parámetro `len`, en el caso de que el *buffer* de salida tenga algún espacio libre, pero no el suficiente para todo el `buf`. Si no hay espacio, entonces el hilo se bloquea hasta que la llamada acabe su *timeout* o se hayan enviado suficientes paquetes para hacer sitio. Si hay un error, devuelve -1. Un valor de retorno mayor que 0 no implica que se hayan enviado los datos, solo que se han encolado para enviarse.
+
+Para recibir en un socket *TCP* conectado se llama a `recv`.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ C++ linenumbers
+int recv(SOCKET sock, char* buf, int len, int flags);
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [socket]: Función `recv`]
+
+El parámetro `sock` es el *socket* al cual preguntar por los datos, `buf` es el *buffer* donde se van a copiar los datos, y se borra la copia del *buffer* de recepción del *socket*. `len` debería especificar el tamaño máximo de bytes que `buf` puede alojar. `flags` es una colección de bits controlado la recepción de los datos, suele ser 0, son las mismas que para `recvfrom`.
+
+Si la llamada retorna con éxito, devuelve el número de bytes recibidos, puede ser menos o igual a `len`. No es posible predecir la cantidad de datos recibida a través de llamadas remotas a `send`, la librería de red en el equipo remoto acumula los datos y envía segmentos con un tamaño variable, según estima oportuno. Si `recv` devuelve 0 y `len` no es 0, significa que el otro lado de la conexión ha mandado un paquete *FIN* y promete no enviar más datos. Si devuelve 0 y `len` es 0, significa que hay datos en el *socket* listos para ser leídos. Con muchos *sockets* en uso, esto puede ser una manera sencilla de verificar la presencia de datos sin tener que dedicar un *buffer* a ello. Una vez `recv` ha indicado que hay datos disponibles, se puede reservar un *buffer* y llamar a `recv` otra vez, pasando el `buffer` y su longitud. Si hay algún error devuelve -1.
+
+Por defecto, si no hay datos en el *buffer* de recepción del *socket*, `recv` bloquea el hilo hasta que el siguiente segmento en el stream llega o la llamada expira su tiempo.
+
+Se puede usar `sendto` y `recvfrom` en un *socket* conectado, sin embargo, los parámetros de dirección serán ignorados y esto puede confundir. En algunas plataformas también se puede llamar a `connect` sobre un *socket UDP* para almacenar la dirección y puerto del equipo remoto en los datos de conexión del *socket*. Esto no establece una conexión fiable, pero permite el uso de `send` para transmitir datos al equipo almacenado sin tener que especificar la dirección cada vez. Eso también causa que el *socket* descarte datagramas de entrada de cualquier otro equipo que no sea el almacenado.
+
+### Clase TCPSocket
+
+De manera similar al `UDPSocket` un prototipo de clase para el `TCPSocket` podría ser.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ C++ linenumbers
+class TCPSocket {
+  public:
+    ~TCPSocket();
+
+    int connectTo(const SocketAddress& inAddress) const;
+    int bindTo(const SocketAddress& inToAddress) const;
+    int listenTo(int inBackLog = 32) const;
+    TCPSocket acceptCon(SocketAddress& inFromAddress) const;
+    int sendTo(const void* inData, int inLen) const;
+    int receiveFrom(void* inBuffer, int inLen) const;
+  private:
+    TCPSocket(SOCKET inSocket) : _socket(inSocket) {}
+    SOCKET _socket;
+};
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [socket]: Cabecera de clase `TCPSocket`]
+
+Y su implementación.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ C++ linenumbers
+TCPSocket::~TCPSocket() {
+  closesocket(socket_);
+}
+
+int TCPSocket::connectTo(const SocketAddress& inAddress) const {
+  const int err = connect(socket_, &inAddress.sockAddr_, inAddress.getSize());
+
+  if (err < 0) {
+    std::cout << "Error Connecting Socket" << std::endl;
+    return -WSAGetLastError();
+  }
+  return NO_ERROR;
+}
+
+int TCPSocket::bindTo(const SocketAddress& inBindAddress) const {
+  const int error = bind(socket_, &inBindAddress.sockAddr_, inBindAddress.getSize());
+
+  if (error != 0) {
+    std::cout << "Error Binding Socket" << std::endl;
+    return WSAGetLastError();
+  }
+  return NO_ERROR;
+}
+
+int TCPSocket::listenTo(int inBackLog) const {
+  const int err = listen(socket_, inBackLog);
+
+  if (err < 0) {
+    std::cout << "Error Listening Socket" << std::endl;
+    return -WSAGetLastError();
+  }
+  return NO_ERROR;
+}
+
+TCPSocket TCPSocket::acceptCon(SocketAddress& inFromAddress) const {
+  int length = inFromAddress.getSize();
+  SOCKET newSocket = accept(socket_, &inFromAddress.sockAddr_, &length);
+  if (newSocket != INVALID_SOCKET) {
+    return newSocket;
+  } else {
+    std::cout << "Error Accepting Socket" << std::endl;
+    abort();
+  }
+}
+
+int TCPSocket::sendTo(const void* inData, int inLen) const {
+  int bytesSentCount = send(socket_, static_cast<const char*>(inData), inLen, 0);
+
+  if (bytesSentCount < 0) {
+    std::cout << "Error Sending Data" << std::endl;
+    return -WSAGetLastError();
+  }
+  return bytesSentCount;
+}
+
+int TCPSocket::receiveFrom(void* inData, int inLen) const {
+  int bytesReceivedCount = recv(socket_, static_cast<char*>(inData), inLen, 0);
+
+  if (bytesReceivedCount < 0) {
+    std::cout << "Error Receiving Data" << std::endl;
+    return -WSAGetLastError();
+  }
+  return bytesReceivedCount;
+}
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [socket]: Implementación de clase `TCPSocket`]
+
+Para permitir la creación de un `TCPSocket`, habría que crear la función `CreateTCPSocket` de manera parecida a la de *UDP*.
+
+Bloqueante y No Bloqueante
+--------------------------------------------------------------
+
+Recibir de un *socket* es normalmente una operación bloqueante, si no hay datos listos para ser recibidos, el hilo se bloqueará hasta que le lleguen datos. Esto no es buena idea si se están pidiendo datos desde el hilo principal. Enviar, aceptar y conectar también pueden bloquear si el *socket* no está listo para realizar la operación. Esto es un problema para aplicaciones en tiempo real como un juego, que necesita verificar la llegada de datos nuevos sin reducir el *frame rate*. Afortunadamente hay tres maneras de manejar este problema.
+
+### Multihilo
+
+Una manera de solucionar el problema de los bloqueos en *I/O* es poner cada llamada potencialmente bloqueante en su propio hilo. Un servidor entonces necesitará tantos hilos como conexiones necesite atender, y una más para el hilo que está a la escucha de nuevas conexiones.
+
+![Figure [002_018]: Proceso Multhilo en un Videojuego](Res/002_018.png)
+
+Al arrancar, se lanza un hilo para escuchar. Este hilo crea un *socket*, lo enlaza, lo pone a la escucha y llama a aceptar. La llamada a `accept` bloquea el hilo hasta que un cliente intenta conectarse, cuando lo hace, `accept` devuelve un nuevo *socket*. El servidor entonces lanza un nuevo hilo para atender a este *socket* que se queda en bucle llamando a `recv`, que lo bloquea hasta que el cliente manda datos, y cuando lo hace `recv` se desbloquea y ese hilo usa algún mecanismo de *callback* para enviar los nuevos datos de cliente al hilo principal para su procesamiento antes de volver al bucle de `recv` y volver a bloquearse. Entre tanto, el *socket* de escucha sigue bloqueando mientras acepta nuevas conexiones y el hilo principal está libre ejecutando la simulación.
+
+Esto funciona, pero necesita de un hilo por cliente, lo cual no escala muy bien cuando el número de clientes aumenta. También puede ser complicado de gestionar, puesto que todos los datos llegan de hilos en paralelo y necesitan ser enviados a la simulación de manera segura. Finalmente, si el hilo principal intenta enviar datos a un *socket* a la vez que el hilo de recepción está recibiendo datos en ese *socket*, seguirá bloqueando la simulación.
+
+### *Sockets* No Bloqueantes
+
+Por defecto, los *sockets* operan en modo bloqueante. Sin embargo, los *sockets* también soportan el modo no bloqueante. Cuando a un *socket* en modo no bloqueante se le pide que realice una operación que normalmente bloquearía, en su lugar vuelve inmediatamente, con un resultado de -1. También pone el `errno` a `EAGAIN` o `WSAGetLastError` a `WASEWOULDBLOCK`. Esto significa que la acción ejecutada sobre el *socket* hubiera bloqueado y ha sido abortada sin tener lugar. El proceso que llama puede entonces reaccionar de manera correcta.
+
+Para poner un *socket* en modo no bloqueante en Windows se usa la función `ioctlsocket`.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ C++ linenumbers
+int ioctlsocket(SOCKET sock, long cmd, u_long* argp);
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [socket]: Función `ioctlsocket`]
+
+Donde `sock` es el socket al que se le quiere cambiar el modo, `cmd` es el parámetro a controlar en este caso `FIONBIO`, `argp` es el valor a poner para el parámetro, cualquier valor distinto de cero lo pondrá en modo no bloqueante, y 0 lo pondrá en modo bloqueante.
+
+En un sistema *POSIX* se usa la función `fcntl`.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ C++ linenumbers
+int fcntl(int sock, int cmd, ...);
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [socket]: Función `fcntl`]
+
+Y una función que las usara seria así.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ C++ linenumbers
+int UDPSocket::setBlockingMode(bool blocking) {
+  #if _WIN32
+    u_long arg = blocking ? 1 : 0;
+    const int result = ioctlsocket(socket_, FIONBIO, &arg);
+  #else
+    int flags = fcntl(socket_, F_GETFL, 0);
+    flags = inShouldBeNonBlocking ? (flags | O_NONBLOCK) : (flags & ~O_NONBLOCK);
+    fcntl(socket_, F_SETFL, flags);
+  #endif
+    if (result == SOCKET_ERROR) {
+      std::cout << "Error Changing Mode To Socket" << std::endl;
+      return WSAGetLastError();
+    } else {
+      return NO_ERROR;
+    }
+  }
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [socket]: Método para determinar el modo bloqueante de un *socket*]
+
+Cuando un *socket* está en modo no bloqueante, es seguro llamar a cualquier función bloqueante y se vuelve inmediatamente si no se puede completar sin bloquear. Con el *socket* en modo no bloqueante, el juego puede verificar en cada frame si hay datos nuevos que recibir. Si hay datos, el juego procesa el primer datagrama pendiente, si no hay ninguno, el juego sigue para el resto del frame sin esperar. Si se quiere procesar más de un datagrama se puede montar un bucle hasta que no haya más que procesar.
+
+### Select
+
+Preguntar en cada frame a *sockets* no bloqueantes es una solución sencilla, pero si se tienen muchos *sockets*, esto puede ser ineficiente. Como alternativa, la librería de *sockets* provee una manera de verificar muchos *sockets* de una sola vez, y reaccionar tan pronto como uno de ellos está listo. Se usa la función `select`.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ C++ linenumbers
+int select(int nfds, fd_set* readfs, fd_set* writefds, fd_set* exceptfds, const timeval* timeout);
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [socket]: Función `select`]
+
+En plataformas *POSIX* el parámetro `nfds` debería ser el identificador del *socket* con el número más alto, como en *POSIX* un *socket* es un `int`, es simplemente el máximo de todos los *sockets* que hay que pasar a la función. En Windows, este parámetro se puede ignorar.
+
+El parámetro `readfds` es un puntero a una colección de *sockets*, conocido como `fd_set`, que debería contener la lista de *sockets* que hay que consultar para la lectura. Cuando un paquete llega a un paquete que está en una lista `readfds`, la función `select` devuelve el control al hilo tan pronto como puede. Primero elimina todos los *sockets* de la lista que no han recibido un paquete. Así cuando `select` retorna el control, una lectura en cualquier *socket* en la lista `readfs` está garantizada que no bloquea. Se puede pasar `nullptr` en `readfs` para saltarse la verificación de lectura.
+El parámetro `writefds` es un puntero a un `fd_set`, con *sockets* para consultar la escritura. El funcionamiento es análogo a `readfs`.
+
+`exceptfds` es otro puntero a un `fd_set` con *sockets* sobre los consultar sus errores. Y `timeout` es un puntero al máximo tiempo a esperar antes de hacer un *timeout*. Si expira antes de que cualquiera de los tres sets realice una operación, todas las listas se vacían y se devuelve el control al hilo.
+
+La función `select` devuelve el número de *sockets* que quedan en `readfs`, `writefds` y `exceptfds` tras una ejecución exitosa, en caso de un *timeout* devuelve 0.
+
+Para iniciar un `fd_set` vacío, se declara en la pila y se pone a cero con la macro `FD_ZERO`.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ C++ linenumbers
+fd_set myReadSet;
+FD_ZERO(&myReadSet);
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [socket]: Crear un `fd_set`]
+
+Para añadir un *socket* a la lista, se usa la macro `FD_SET` y para verificar si un *socket* está en la lista una vez `select` devuelve el control se usa `FD_ISSET`.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ C++ linenumbers
+FD_SET(mySocket, &myReadSet);
+FD_ISSET(mySocket, &myReadSet);
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [socket]: Uso de `fd_set`]
+
+Opciones de Sockets
+--------------------------------------------------------------
+
+Hay varias opciones para configurar el comportamiento de los *sockets*. Para ello se usa la función `setsockopt`.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ C++ linenumbers
+int setsockopt(SOCKET sock, int level, int optname, const char* optval, int optlen);
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[Listing [socket]: Función `setsockopt`]
+
+El parámetro `sock` es el *socket* a configurar, `level` y `optname` describen la opción a asignar, `level` es un entero identificando el nivel al cual se define la opción determinada por `optname`. `optval` es un puntero al valor a asignar para la opción y `optlen` es la longitud de los datos, si una opción necesita un entero, esto será 4. Esta función devuelve un 0 en caso de éxito, y -1 si da un error.
+
+Macro | Tipo | Descripción
+-------|:------|:-------:
+`SO_RCVBUF` | int | Espacio de *buffer* que el *socket* reserva para los paquetes entrantes
+`SO_REUSEADDR` | bool/int | Especifica que la capa de red debería permitir a este *socket* enlazarse a una dirección *IP* y puerto ya enlazadas a otro puerto
+`SO_RECVTIMEO` | DWORD/timeval | Tiempo tras el que una llamada bloqueante de recepción debería dar un *timeout*
+`SO_SNDBUF` | int | Espacio de *buffer* que el *socket* reserva para los paquetes salientes.
+`SO_SNDTIMEO` | DWORD/timeval | Tiempo tras el que una llamada bloqueante de envío debería dar un *timeout*
+`SO_KEEPALIVE` | bool/int | Valido solo para *sockets TCP*, especifica si el *socket* debería enviar paquetes especiales para mantener la conexión viva
+[Table [sockets]: Opciones para el nivel `SOL_SOCKET`]
+
+Macro | Tipo | Descripción
+-------|:------|:-------:
+`TCP_NODELAY` | bool/int | Especifica si los datos se envían sin espera, esto disminuye el retraso desde que se pide el envío hasta que se realiza, pero puede aumentar la congestión de red
+[Table [sockets]: Opciones para el nivel `IPPROTO_TCP`, solo para *sockets TCP*]
+
+*TCP* vs *UDP*
+==============================================================
+
+Una de las primeras decisiones a tomar al programar un juego multijugador a través de red es la elección del tipo de *socket* a usar. ¿*TCP*, *UDP* o una mezcla de ambos? Una decisión incorrecta puede tener consecuencias importantes. La decisión depende del tipo de juego, sobre todo, pero como se ha visto antes, la máxima complejidad se da cuando se piensan en juegos de acción de ritmo rápido.
+
+*TCP* es un protocolo basado en conexión, garantiza la entrega y además ordenada, automáticamente fragmenta los datos en paquetes, se asegura de no enviar datos demasiado rápido (control de flujo), es fácil de usar, lee y escribe los datos como si fuera un fichero.
+
+Por otro lado, *UDP* no tiene ningún concepto de conexión, hay que programarlo, no garantiza la entrega ni su orden, pueden llegar fuera de orden, duplicados o ni siquiera llegar. Hay que fragmentar manualmente los datos en paquetes antes de enviarlos, hay que asegurarse de no enviar los datos demasiado rápido. Si un paquete se pierde, hay que inventar alguna manera de detectarlo y reenviarlo, incluso el mecanismo de *checksum* de *UDP* no es fiable.
+
+La decisión viendo las características de ambos protocolos parece clara, *TCP* hace todo lo que se necesita y además de manera sencilla para el programador, en cambio, en *UDP* habría que implementar todo eso a mano.
+
+Sin embargo, usar *TCP* podría ser un error importante al desarrollar un videojuego multijugador en red.
+
+Como funciona *TCP* realmente
+--------------------------------------------------------------
+
+*TCP* y *UDP* están construidos ambos sobre *IP*, pero son diferentes. *UDP* se comporta casi como el protocolo *IP* que está por debajo, en cambio, *TCP* abstrae todo para que parezca que se está escribiendo o leyendo de un fichero, ocultando todas las complejidades de los paquetes y la fiabilidad.
+
+Inicialmente, *TCP* es un protocolo de *stream*, así que como programador solo hay que escribir bytes en un *stream*, y *TCP* se asegura de que lleguen al otro lado. Puesto que *IP* está construido sobre paquetes, y *TCP* está construido sobre *IP*, *TCP* debe romper el *stream* de datos en paquetes. Así, el código interno de *TCP* encola los datos que le llegan, y cuando suficientes datos están encolados para su envío, es cuando envía un paquete al otro equipo.
+
+Esto puede ser un problema si se mandan paquetes muy pequeños, puede pasar que *TCP* decida que no va a enviar datos hasta que no tenga encolados suficientes para construir un paquete lo bastante grande para enviar por la red. Es un problema, puesto que se necesita que los datos de entrada del cliente lleguen al servidor lo más rápido posible, si se retrasa, la experiencia de juego será muy mala. Las actualizaciones de juego llegarán tarde y con poca frecuencia.
+
+*TCP* tiene una opción para cambiar ese comportamiento, *TCP_NODELAY*, esta opción le dice a *TCP* que no espere a que tenga suficientes datos encolados antes de enviarlos.
+
+Como *TCP* implementa la fiabilidad
+--------------------------------------------------------------
+
+Fundamentalmente *TCP* fragmenta el *stream* de datos en paquetes, los envía sobre la capa *IP* no fiable, entonces coge los paquetes recibidos en el otro lado y reconstruye el *stream*.
+
+Cuando *TCP* manda un paquete, espera hasta que se detecta que el paquete se ha perdido porque no ha recibido un acuse de recibo sobre el mismo (*ACK*), entonces reenvía el paquete perdido otra vez. Los paquetes duplicados son descartados en el receptor, y los que llegan fuera de orden son puestos en orden para que todo sea fiable y en orden.
+
+El problema es que, si se quiere mandar datos de juego de tiempo crítico sobre *TCP*, cuando un paquete se pierde, tiene que parar y esperar a que los datos se reenvíen. Incluso si llegan datos más recientes, esos datos se ponen en una cola, y no se puede acceder a ellos hasta que el paquete perdido haya sido retransmitido.
+
+El tiempo que va a costar reenviar el paquete es importante. Al menos a *TCP* le va a costar el *round trip time* averiguar que los datos hay que reenviarlos, pero normalmente le cuesta el doble del *RTT*, y otro viaje de ida del emisor al receptor para que el paquete reenviado llegue. Si se tiene un ping de 125ms, habrá que estar esperando 0.250ms como caso mejor a que el paquete se vuelva a enviar, y en el peor caso se podría estar esperando 0.500ms o más. Y que pasa, si además de eso, *TCP* decide que el paquete perdido indica congestión de red y baja la velocidad… Y es justo lo que hace.
+
+Nunca usar *TCP* para datos de tiempo crítico
+--------------------------------------------------------------
+
+El problema de usar *TCP* para juegos en tiempo real es que al contrario de lo que pasa con navegadores web, email, u otras aplicaciones, los juegos tiene un requisito de tiempo real en el envío de paquetes. Esto significa, que, para muchas partes del juego, no importa lo que ha pasado hace un segundo, al juego solo le importan los datos más recientes.
+
+Y *TCP* no fue diseñado sobre estas premisas. En un *shooter* multijugador, se necesita que cada *frame* se mande el *input* del cliente al servidor, el servidor procesa las entradas de cada jugador, ejecuta un paso de simulación y entonces enviar la posición de los objetos de juego de vuelta al cliente para su pintado. Así que, cada vez que se pierde un paquete, todo tiene que parar y esperar a que el paquete se reenvíe. En el cliente los objetos de juego dejan de recibir actualizaciones y parecen inmóviles, y en el servidor las entradas dejan de llegar, así que los jugadores no se pueden mover o disparar. Cuando el paquete reenviado finalmente llega, se recibe esta información caducada, que ya no le importa a nadie. Además, hay paquetes encolados esperando a ser enviados que llegan al mismo tiempo, así que hay que procesarlos todos en un solo *frame*, todo se amontona.
+
+Por desgracia, no hay nada para arreglar ese comportamiento, es la naturaleza de *TCP*. Es el precio de hacer a la no fiable, basada en paquetes internet, parecer un *stream* ordenado y fiable.
+
+El caso es que no se necesita un *stream* ordenado y fiable, se necesita que los datos lleguen lo más rápido posible de un cliente a un servidor sin tener que esperar a que los datos perdidos se reenvíen. Por eso nunca se debería usar *TCP* para datos de tiempo crítico.
+
+Usar *UDP* y *TCP* a la vez
+--------------------------------------------------------------
+
+Para datos en tiempo real, solo los datos más recientes son relevantes, pero para otro tipo de datos, como una secuencia de comandos, la fiabilidad y orden puede ser muy importantes.
+
+La tentación entonces es usar *UDP* para las entradas de usuario y el estado, y *TCP* para los datos fiables y ordenados. Entonces incluso habría que tener varios *streams* de comandos fiables y ordenados, quizás uno para la carga de un nivel, otro para la IA, …. Así se mantienen unos *streams* independientes de otros si hay alguna perdida de paquetes. A priori, esto parece una buena idea, el problema es que, puesto que *TCP* y *UDP* están construidos ambos sobre *IP*, los paquetes enviados por cada protocolo afectan al otro. Fundamentalmente, *TCP* suele inducir perdida de paquetes sobre los paquetes *UDP*.
+
+Además, suele ser complicado mezclar *UDP* y *TCP*, si se hace se pierde bastante control.
+
+Es mejor implementar la fiabilidad a mano sobre *UDP*, de una manera más eficiente y que se adapte mejor a las necesidades del juego. Incluso si se necesita datos ordenados, es posible, dado que los datos son muy pequeños en relación al ancho de banda disponible, que los datos lleguen más rápido y más seguros que usando *TCP*. Además, si hay que usar *NAT* para permitir que conexiones caseras hablen unas con otras, tener que hacer *NAT* una vez para *UDP* y otra para *TCP* puede ser muy complicado.
+
+Siempre es recomendable usar *UDP*, y solo *UDP* para el protocolo de comunicaciones de cualquier videojuego. No hay que mezclar *UDP* y *TCP*. En su lugar, es mejor idea aprender cómo implementar las características específicas de *TCP* que se necesitan en un protocolo propio basado en *UDP*.
+
+No hay problema en usar *HTTP* para comunicarse con algún servicio *RESTful* mientras el juego está en marcha, unas pocas conexiones *TCP* no van a suponer demasiado problema. Pero no hay que dividir el protocolo del juego en *TCP* y *UDP*. Hay que mantener el protocolo del juego funcionando sobre *UDP* para tener el control absoluto de los datos que se envían y reciben, y el control sobre la implementación de la fiabilidad, ordenamiento y control de la congestión.
+
+<link rel="stylesheet" href="res/md/viu.css">
+<style class="fallback">body{visibility:hidden}</style><script>markdeepOptions={tocStyle:'long'};</script>
+<!-- Markdeep: --><script src="res/md/markdeep.min.js?" charset="utf-8"></script>
+
