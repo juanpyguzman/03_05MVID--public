@@ -80,19 +80,19 @@ Aunque hay algunos jugadores tramposos, la mayoría del tiempo el servidor del j
 
 Suponiendo que se tiene un *lag* de 100ms, y la animación del personaje moviéndose de una posición a la siguiente toma 100ms. Usando la implementación simple, la acción global llevaría 200 ms.
 
-![Figure [002_001]: Retraso de Red y Animación](Res/002_001.png)
+![Figure [002_001]: Retraso de Red y Animación](res/002_001.png)
 
 Puesto que el mundo es determinista, se puede asumir que las entradas que se mandan al servidor se ejecutarán con éxito. Bajo esta presunción, el cliente puede predecir el estado del mundo de juego tras procesar las entradas, y la mayoría de las veces esto será correcto.
 
 En lugar de mandar las entradas y esperar al nuevo estado del juego para empezar a pintarlo, se pueden mandar las entradas y empezar a pintar la salida de esas entradas como si hubieran tenido éxito, mientras se espera a que el servidor mande el estado del juego real, que casi siempre coincidirá con el estado calculado localmente.
 
-![Figure [002_002]: La Animación se Reproduce Mientras el Servidor Confirma la Acción](Res/002_002.png)
+![Figure [002_002]: La Animación se Reproduce Mientras el Servidor Confirma la Acción](res/002_002.png)
 
 Ahora no hay retraso entre las acciones del jugador y los resultados en pantalla, mientras el servidor aún se mantiene autoritativo, si un cliente pirateado mandara entradas invalidas, podría pintar lo que quisiera en pantalla, pero no afectaría al estado del juego en el servidor, que es lo que ven el resto de jugadores.
 
 Pero es fácil encontrar problemas de sincronización en este modelo. Suponiendo un *lag* de 250ms, y si mover el jugador de una posición a otra cuesta 100ms, cuando el jugador pulsa dos veces seguidas la tecla de moverse a la derecha, tratando de moverse dos unidades a la derecha.
 
-![Figure [002_003]: Error en el Estado Predicho y el Autoritativo](Res/002_003.png)
+![Figure [002_003]: Error en el Estado Predicho y el Autoritativo](res/002_003.png)
 
 En el punto en que llega el nuevo estado desde el servidor, el estado que ha predicho el cliente es (12,10), pero el servidor dice que el nuevo estado es (11, 10). Puesto que el servidor es el que manda, mueve al personaje a (11, 10), entonces llega un nuevo estado desde el servidor y se mueve al personaje a (12, 10), así que el personaje da otro salto, esta vez hacia delante.
 
@@ -104,7 +104,7 @@ La clave para arreglar el problema es darse cuenta que el cliente ve el mundo de
 
 La solución no es difícil. Primero, el cliente añade un numero de secuencia a cada petición, la primera pulsación de la flecha derecha es la petición 1, y la segunda la 2, entonces, cuando el servidor responde incluye el número de secuencia de la última entrada procesada.
 
-![Figure [002_004]: Predicción en el Cliente y Reconciliación con el Servidor](Res/002_004.png)
+![Figure [002_004]: Predicción en el Cliente y Reconciliación con el Servidor](res/002_004.png)
 
 Ahora, en el momento que llega la primera respuesta del servidor, en el momento 250ms, el servidor manda la respuesta a la primera entrada, y dice que la posición del jugador es (11, 10) tras procesar la entrada 1. Como el servidor es autoritativo, mueve la posición del jugador a (11,10). Si el cliente guarda una copia de las peticiones que manda al servidor, basándose en el nuevo estado del juego, sabe que el servidor ya ha procesado la petición 1, así que puede descartar esa copia. Pero también sabe que el servidor aún tiene que enviar los resultados del procesamiento de la petición 2. Así que aplica predicción otra vez, y calcula el estado presente del juego basado en el último estado autoritativo mandado por el servidor, más las entradas que el servidor aún no ha procesado.
 
@@ -123,7 +123,7 @@ En un juego multijugador pueden haber muchos jugadores mandando entradas a la ve
 Una mejor aproximación es encolar las entradas de los clientes cuando se reciben, sin ningún procesamiento. Y el mundo de juego se actualiza periódicamente a una baja frecuencia, por ejemplo 10 veces por segundo. El retraso entre cada actualización, 100ms en este caso, se llama paso de tiempo. En la actualización de cada iteración del bucle, todas las entradas de clientes que no han sido procesadas se aplican, posiblemente en incrementos de tiempo más pequeños que el paso de tiempo, para hacer las físicas más predecibles, y el nuevo estado de juego se envía a todos los clientes. Haciendo que el mundo de juego se actualice de manera independiente a la presencia o cantidad de entradas de los clientes, a un ritmo predecible.
 Desde el punto de vista del cliente, esta solución funciona igual, la predicción en el cliente funciona independientemente del retraso de la actualización, así que también funciona bajo predecibles, aunque infrecuentes, actualizaciones de estado. Sin embargo, puesto que el estado del juego se envía a una baja frecuencia, cada 100ms, el cliente tiene información muy dispersa sobre el resto de entidades que pueden estar moviéndose en el mundo. Implementándolo tal cual, se actualizarían las posiciones del resto de personajes cuando se recibe una actualización del estado, esto lleva a personajes moviéndose a golpes, saltos discretos de 100ms en lugar de movimiento suave.
 
-![Figure [002_005]: Cliente 1 visto por el Cliente 2](Res/002_005.png)
+![Figure [002_005]: Cliente 1 visto por el Cliente 2](res/002_005.png)
 
 En función del juego hay muchas maneras de solucionar esto, en general, cuanto más predecibles son las entidades del juego, más sencillo.
 
@@ -145,7 +145,7 @@ Lo que se tiene es la posición autoritativa cada 100ms, el truco es mostrar al 
 
 Si se recibe la posición en el tiempo 1000ms, entonces se han recibido datos previamente en 900ms, así que se sabe dónde estaba ese jugador en 900ms y en 1000ms. Así, entre 1000ms y 1100ms se muestra lo que hizo el otro jugador entre 900ms y 100ms. De esta manera siempre se están mostrando datos de movimiento reales, pero se está haciendo con 100ms de retraso.
 
-![Figure [002_006]: Cliente 2 pinta al Cliente en el pasado, interpolando entre las últimas posiciones conocidas](Res/002_006.png)
+![Figure [002_006]: Cliente 2 pinta al Cliente en el pasado, interpolando entre las últimas posiciones conocidas](res/002_006.png)
 
 Los datos de posición que se usan para interpolar entre 900ms y 1000ms dependen del juego. Esta solución suele funcionar bien, si no lo hace, se puede hacer que el servidor mande datos de movimiento más detallados con cada actualización, como las posiciones muestreadas cada 10ms hace que se vean mejor al interpolarlas, no se necesita mandar 10 veces más datos, se mandan los deltas para movimientos pequeños.
 
@@ -176,15 +176,15 @@ El protocolo *TCP/IP* está basado en capas independientes y abstraídas unas de
 
 Hay muchos modelos que explican las interacciones entre las capas usadas para la comunicación a través de internet. El más conocido es el modelo *OSI* (*Open Systems Interconnection*), y usa siete capas.
 
-![Figure [002_007]: Modelo OSI](Res/002_007.png width="500px")
+![Figure [002_007]: Modelo OSI](res/002_007.png width="500px")
 
 Las realmente relevantes al desarrollo de videojuegos se pueden resumir en 5 capas, capa física, de enlace, de red, de transporte y de aplicación.
 
-![Figure [002_008]: Modelo de 5 capas](Res/002_008.png width="500px")
+![Figure [002_008]: Modelo de 5 capas](res/002_008.png width="500px")
 
 Cada capa tiene una tarea, dando soporte a la capa directamente por encima. Esas tareas suelen ser, aceptar un bloque de datos a transmitir por la capa superior, empaquetar los datos con una cabecera propia (y a veces con un pie), reenviar los datos a una capa inferior para la transmisión, recibir datos transmitidos de una capa inferior, desempaquetar los datos quitando la cabecera, enviar los datos a una capa superior para su procesamiento.
 
-![Figure [002_009]: Flujo de datos entre las capas](Res/002_009.png width="500px")
+![Figure [002_009]: Flujo de datos entre las capas](res/002_009.png width="500px")
 
 La manera en que una capa realiza su trabajo, sin embargo, no está construida en la definición de la capa, de hecho, hay varios protocolos que cada capa puede usar para hacer su tarea, algunos tan viejos como el propio *TCP/IP* y otros que se están inventado día a día. Es útil pensar en cada capa como un interfaz (en POO), y cada protocolo o grupo de protocolos como una implementación de dicho interfaz. Idealmente, los detalles de implementación de una capa se abstraen de las capas altas.
 
@@ -216,7 +216,7 @@ Para asignar una identidad a cada equipo, *Ethernet* introduce la idea de la dir
 
 Con una única dirección *MAC* asignada a cada equipo, el formato de un paquete de *Ethernet* que envuelve a un frame de la capa de enlace queda así:
 
-![Figure [002_010]: Estructura de un *frame* en *Ethernet*](Res/002_010.png)
+![Figure [002_010]: Estructura de un *frame* en *Ethernet*](res/002_010.png)
 
 El preámbulo y *SFD* (*Start Frame Delimiter*) son los mismos siempre para cada paquete y son un patrón binario que ayuda al hardware a sincronizarse y prepararse para el frame que llega, se suelen quitar del paquete por el *NIC*, y los bytes restantes, formando el *frame*, se pasan al módulo de *Ethernet* para su procesado.
 
@@ -244,7 +244,7 @@ La tarea principal de la capa de red es proveer una dirección lógica sobre la 
 Hoy en día, el protocolo más común para implementar las características de la capa de red es el internet protocol versión 4 (*IPv4*). Este define un sistema de direcciones lógicas para identificar a un equipo individualmente, un sistema de subredes para definir subsecciones lógicas y un sistema de enrutamiento para reenviar datos entre subredes.
 En el corazón de *IPv4* está la dirección *IP*, es un número de 32 bits, normalmente mostrado a los humanos como 4 números de 8 bits separados por puntos. Con una dirección *IP* única para cada equipo en internet, un equipo origen puede direccionar un paquete a un equipo destino simplemente especificando su dirección *IP* en la cabecera del paquete.
 
-![Figure [002_011]: Cabecera de un paquete *IPv4*](Res/002_011.png)
+![Figure [002_011]: Cabecera de un paquete *IPv4*](res/002_011.png)
 
 El paquete en *IPv4* consiste en una cabecera, que contiene los datos necesarios para implementar la funcionalidad de la capa de red y la carga, que contiene los datos de la siguiente capa arriba para transmitir.
 
@@ -254,7 +254,7 @@ Los primeros 4 bits especifican la versión que soporta este paquete, en este ca
 
 *IPv4* permite a los paquetes ser destinados usando una dirección *IP*, pero para que la capa de enlace pueda enviar ese paquete, debe ser envuelto en un *frame* con una dirección que la capa de enlace pueda entender. Hay un protocolo en la capa de enlace llamado protocolo de resolución de direcciones (*ARP*), que provee un método para traducir una dirección *IP* a una dirección *MAC*. *ARP* consiste de dos partes, una estructura de paquete para preguntar la dirección *MAC* de un *NIC* asociada con una dirección *IP*, y una tabla para llevar un registro de estos pares. Cuando la implementación de *IP* necesita enviar un paquete a un destino usando la capa de enlace, primero le pregunta a la tabla *ARP* para conseguir la *MAC* asociada a la *IP* de destino. Si la encuentra, entonces se construye un *frame* usando esa *MAC* y lo pasa a la implementación de la capa de enlace para el envío. Pero si no la encuentra, entonces el módulo *ARP* intenta determinar la *MAC* mandando un paquete *ARP* a todos los equipos a su alcance en la red.
 
-![Figure [002_012]: Tabla *ARP*](Res/002_012.png)
+![Figure [002_012]: Tabla *ARP*](res/002_012.png)
 
 Normalmente los equipos cuando realizan la petición de *ARP* inicial, suelen hacerlo en *broadcast*, es decir a todos los equipos de la red, y suelen incluir en esa petición su propia dirección *IP* y su *MAC*, dando la oportunidad a todos los equipos a actualizar sus tablas *ARP* con los datos correctos.
 
@@ -268,7 +268,7 @@ Una máscara de subred es un número de 32 bits, escrito normalmente en la misma
 
 Una vez se definen las subredes, la especificación *IPv4* provee una manera de mover paquetes entre equipos en diferentes redes. Esto es posible gracias a las tablas de enrutamiento presentes en el módulo *IP* de cada equipo. Específicamente, cuando al módulo *IPv4* de un equipo se le pide enviar un paquete *IP* a un equipo remoto, debe decidir si usar la tabla *ARP* y el enrutamiento directo, o alguna ruta indirecta. Para ayudar en esto se usa la tabla de enrutamiento. Para cada subred de destino alcanzable, esta tabla tiene una fila con información de cómo los paquetes se deberían enviar a esa subred.
 
-![Figure [002_013]: Tabla de enrutamiento](Res/002_013.png)
+![Figure [002_013]: Tabla de enrutamiento](res/002_013.png)
 
 La columna de subred de destino se refiere a la subred que contiene la dirección *IP* de destino, la puerta de enlace se refiere a la dirección *IP* del siguiente equipo en la actual subred, al cual se debe enviar este paquete a través de la capa de enlace. Se requiere que ese equipo se pueda alcanzar a través de enrutamiento directo. Si la puerta de enlace está en blanco, quiere decir que toda la subred de destino es alcanzable a través de enrutamiento directo, y el paquete puede ser enviado directamente a través de la capa de enlace. Finalmente, la columna interfaz dice a través de que *NIC* se debería enviar el paquete. Este es el mecanismo mediante el cual un paquete puede ser recibido de una capa de enlace de una red y enviado a otra red.
 
@@ -301,7 +301,7 @@ Una vez una aplicación ha identificado que puerto usar, debe emplear un protoco
 
 El protocolo de datagramas de usuario (*UDP*) es un protocolo ligero para envolver datos y enviarlos desde un puerto en un equipo a otro puerto en otro equipo. Un datagrama *UDP* consiste en una cabecera de 8 bytes seguida por los datos de carga.
 
-![Figure [002_014]: Datagrama UDP](Res/002_014.png)
+![Figure [002_014]: Datagrama UDP](res/002_014.png)
 
 El puerto de origen identifica el puerto desde el cual el datagrama se ha originado, es útil para que el destino del datagrama quiere contestar. El módulo *UDP* envía el datagrama al proceso que esté enlazado al puerto de destino. La longitud es la medida en bytes de la cabecera *UDP* y la carga de datos. El checksum es un *CRC* calculado con todo el datagrama, muchas veces es ignorado porque las capas inferiores ya validan los datos.
 
@@ -311,7 +311,7 @@ El puerto de origen identifica el puerto desde el cual el datagrama se ha origin
 
 Mientras que *UDP* permite transferir datagramas discretos entre equipos, el protocolo de control de transmisión (*TCP*) permite la creación de una conexión persistente entre dos equipos seguida de una transferencia fiable de una transmisión de datos. La clave es la palabra fiable. *TCP* hace lo que puede por asegurar que todos los datos enviados son recibidos en destino, en su orden correcto, y a su destino correcto. Para realizar esto, requiere una cabecera mucho más grande y el seguimiento del estado de la conexión en cada equipo participante en la conexión. Esto permite a los receptores responder a los datos recibidos, y a los remitentes reenviar cualquier transmisión que no ha recibido acuse de recibo.
 
-![Figure [002_015]: Segmento TCP](Res/002_015.png)
+![Figure [002_015]: Segmento TCP](res/002_015.png)
 
 Una unidad de transmisión de datos *TCP* se llama segmento. Un segmento consiste de una cabecera *TCP* seguida por los datos para ese segmento.
 
@@ -325,7 +325,7 @@ El origen envía un paquete identificado de manera unívoca al destino, entonces
 
 Para realizar la conexión entre dos equipos, el equipo A inicia la conexión enviando el primer segmento, este tiene el *flag SYN* levantado y un orden de secuencia inicial aleatorio. Si el equipo B quiere abrir la conexión, entonces contesta con un paquete con las *flags SYN* y *ACK* levantadas, y acusa el recibo del número de secuencia de A colocando un numero de secuencia al acuse como el de A + 1, y a su vez B elige un numero de secuencia aleatorio para sus propios números de secuencia. Hay dos transmisiones separadas de datos en la conexión, una de A a B, que usa las secuencias de A, y otro de B a A, que usa las secuencias de B. La presencia del *flag SYN* indica que se quiere establecer una conexión, y la presencia del *flag ACK* indica que el número de secuencia en el segundo segmento significa que se han recibido todos los datos hasta ese número de secuencia. Cuando A recibe este segmento, solo le queda mandar un segmento con *ACK* a B con la secuencia de números de B, para dar por establecida la conexión.
 
-![Figure [002_016]: Negociación en Tres Pasos](Res/002_016.png)
+![Figure [002_016]: Negociación en Tres Pasos](res/002_016.png)
 
 La fiabilidad se garantiza a través del enviado cuidadoso y el acuse de recibo de los datos. Si un *timeout* expira antes de recibir el *ACK*, entonces el paquete nunca llegó a destino y la respuesta se perdió, en cualquier caso, se reenvía el segmento.
 
@@ -356,7 +356,7 @@ Capa de Aplicación
 
 En la parte superior del modelo de capas esta la capa de aplicación, y es donde vive todo el código para del juego que gestiona sus capacidades multijugador. También se encuentran aquí muchos protocolos fundamentales de internet que confían en la capa de transporte para la comunicación.
 
-![Figure [002_017]: Modelo de capas completo y como se envuelven los paquetes](Res/002_017.png)
+![Figure [002_017]: Modelo de capas completo y como se envuelven los paquetes](res/002_017.png)
 
 ### DHCP
 
@@ -1034,7 +1034,7 @@ Recibir de un *socket* es normalmente una operación bloqueante, si no hay datos
 
 Una manera de solucionar el problema de los bloqueos en *I/O* es poner cada llamada potencialmente bloqueante en su propio hilo. Un servidor entonces necesitará tantos hilos como conexiones necesite atender, y una más para el hilo que está a la escucha de nuevas conexiones.
 
-![Figure [002_018]: Proceso Multhilo en un Videojuego](Res/002_018.png)
+![Figure [002_018]: Proceso Multhilo en un Videojuego](res/002_018.png)
 
 Al arrancar, se lanza un hilo para escuchar. Este hilo crea un *socket*, lo enlaza, lo pone a la escucha y llama a aceptar. La llamada a `accept` bloquea el hilo hasta que un cliente intenta conectarse, cuando lo hace, `accept` devuelve un nuevo *socket*. El servidor entonces lanza un nuevo hilo para atender a este *socket* que se queda en bucle llamando a `recv`, que lo bloquea hasta que el cliente manda datos, y cuando lo hace `recv` se desbloquea y ese hilo usa algún mecanismo de *callback* para enviar los nuevos datos de cliente al hilo principal para su procesamiento antes de volver al bucle de `recv` y volver a bloquearse. Entre tanto, el *socket* de escucha sigue bloqueando mientras acepta nuevas conexiones y el hilo principal está libre ejecutando la simulación.
 

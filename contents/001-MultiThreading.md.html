@@ -11,13 +11,13 @@ Históricamente, la mayoría de ordenadores tenían un solo procesador, con una 
 
 Los ordenadores con procesadores con múltiples núcleos son ahora comunes, en máquinas de escritorio como en dispositivos móviles. Tanto si tienen múltiples procesadores, como múltiples núcleos dentro de un procesador, o ambos, estos ordenadores son capaces de ejecutar realmente más de una tarea en paralelo. Esto se llama concurrencia por hardware.
 
-![Figure [Res/001_001]: Escenario Ideal](Res/001_001.png)
+![Figure [res/001_001]: Escenario Ideal](res/001_001.png)
 
 En un escenario ideal con dos tareas a procesar, como el de la figura 1, en una maquina con dos núcleos cada tarea se puede ejecutar en su propio núcleo. En una maquina con un solo núcleo haciendo *task switching*, los trozos de ejecución de cada tarea están intercalados, pero también están un poco espaciados entre sí. Para realizar la intercalación, el sistema tiene que realizar un cambio de contexto cada vez que cambia de una tarea a otra, y esto lleva tiempo. Este cambio de contexto supone que el sistema operativo debe guardar el estado de la CPU y el puntero de instrucción para la tarea que se está ejecutando, averiguar a qué tarea se debe cambiar, y recargar el estado de la CPU para la nueva tarea, la CPU entonces debe cargar la memoria para las instrucciones y los datos para la nueva tarea en la cache, lo que causa un retraso aún mayor.
 
 El factor más importante a considerar es el número real de hilos de hardware, la medida de cuantas tareas independientes el hardware puede realmente ejecutar de manera concurrente. Incluso en un sistema con concurrencia real, es muy habitual tener más tareas en ejecución de las que el hardware puede ejecutar en paralelo, así que el *task switching* es usado incluso en estos casos.
 
-![Figure [Res/001_002]: *Task Switching* en Dos Nucleos](Res/001_002.png)
+![Figure [res/001_002]: *Task Switching* en Dos Nucleos](res/001_002.png)
 
 En la figura 2 se puede ver el uso de *task switching* para cuatro tareas en dos núcleos, donde se ejecutan cada uno de los trozos de ejecución en cualquiera de los dos núcleos en cualquier orden. Incluso en la realidad es todo más caótico puesto que los trozos de ejecución suelen ser de tamaños distintos haciendo la planificación mucho más irregular.
 
@@ -32,7 +32,7 @@ La primera forma de usar concurrencia en una aplicación es dividir la aplicaci�
 
 Un punto a favor es la protección que los sistemas operativos suelen aplicar a los procesos y la comunicación a través de mecanismos de alto nivel hacer que sea más sencillo escribir código seguro concurrente. Otra ventaja añadida es que se pueden ejecutar procesos separados en distintos equipos conectados a través de una red.
 
-![Figure [Res/001_003]: Comunicación entre dos procesos concurrentes](Res/001_003.png)
+![Figure [res/001_003]: Comunicación entre dos procesos concurrentes](res/001_003.png)
 
 ### Concurrencia con múltiples hilos
 
@@ -42,7 +42,7 @@ El espacio de direcciones compartido y la falta de protección de los datos entr
 
 El bajo sobrecoste de lanzar y comunicar múltiples hilos en un solo proceso comparado con lanzar y comunicar varios procesos mono-hilados significa que es la opción preferida a la concurrencia en la mayoría de los lenguajes, incluido C++.
 
-![Figure [Res/001_004]: Comunicación entre dos hilos en un proceso](Res/001_004.png)
+![Figure [res/001_004]: Comunicación entre dos hilos en un proceso](res/001_004.png)
 
 ¿Por qué Usar Concurrencia?
 --------------------------------------------------------------

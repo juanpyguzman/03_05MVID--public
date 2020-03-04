@@ -15,7 +15,7 @@ Desde el punto de vista de la programación de videojuegos, el interés no se ce
 
 *PacMan* mostraba una técnica de IA muy simple, una máquina de estado. Cada uno de los cuatro fantasmas o perseguían al jugador o huían de él. Para cada estado elegían una ruta semi-aleatoria en cada intersección. En modo persecución, cada uno tenía una probabilidad distinta de perseguir al jugador o elegir un camino aleatorio. En modo huida, o huían directamente o elegían una dirección aleatoria.
 
-![Figure [Res/003_001]: Comportamiento de un fantasma de *PacMan*](Res/003_001.png)
+![Figure [res/003_001]: Comportamiento de un fantasma de *PacMan*](res/003_001.png)
 
 Hasta mediados de los años 90 la IA en videojuegos no evolucionó demasiado, la mayoría de los personajes controlados por la maquina eran de una sofisticación similar. En *Golden Axe (1987)*, los enemigos estaban quietos (o se movían ligeramente) hasta que el jugador se acercaba, entonces se dirigían hacia él.
 
@@ -27,7 +27,7 @@ Ahora hay una amplia diversidad de AI en los juegos, muchos de ellos siguen usan
 
 La IA en la mayoría de los juegos modernos aborda tres necesidades básicas: la capacidad de mover personajes, la capacidad de tomar decisiones acerca de donde moverse, y la capacidad de pensar táctica o estratégicamente.
 
-![Figure [Res/003_002]: Modelo de IA](Res/003_002.png)
+![Figure [res/003_002]: Modelo de IA](res/003_002.png)
 
 El modelo básico de IA se divide en tres secciones, movimiento, toma de decisiones y estrategia. Las dos primeras contienen algoritmos que funcionan a nivel de personaje, mientras que la última funciona a nivel de equipo. A su alrededor hay toda una infraestructura (gestión del tiempo, visión del mundo, animaciones, físicas, scripting…).
 
@@ -154,7 +154,7 @@ Bases
 
 Cada personaje tiene una posición actual y posiblemente propiedades físicas adicionales que controlan su movimiento. Un algoritmo de movimiento está diseñado para usar esas propiedades y calcular donde estará el personaje en el siguiente momento.
 
-![Figure [Res/003_003]: Estructura del Algoritmo de Movimiento](Res/003_003.png)
+![Figure [res/003_003]: Estructura del Algoritmo de Movimiento](res/003_003.png)
 
 Todos estos algoritmos tienen la misma forma, cogen los datos geométricos de su propio estado y del mundo, y devuelven una salida geométrica representando el movimiento que quieren hacer. Algunos requieren pocas entradas, otros, muchas interacciones con el estado del juego y la geometría del nivel. Igualmente, la salida también puede variar.
 
@@ -170,7 +170,7 @@ Los personajes en 2D tienen dos coordenadas lineales representando su posición,
 
 En la mayoría de los casos el eje Y es el opuesto a la dirección de la gravedad (hacia arriba), y los ejes X y Z se apoyan en el plano del suelo. El movimiento de los personajes tiene lugar en los ejes X y Z usados para pintar.
 
-![Figure [Res/003_004]: Ejes en 3D](Res/003_004.png)
+![Figure [res/003_004]: Ejes en 3D](res/003_004.png)
 
 Además de las dos coordenadas lineales, un objeto mirando hacia una dirección tiene un valor de orientación. Este representa el ángulo desde un eje de referencia. Se suele usar un ángulo en dirección contraria a las agujas del reloj, desde el eje positivo Z. Por defecto, con orientación cero, el personaje está mirando hacia el eje Z.
 
@@ -424,7 +424,7 @@ void calculate(const KinematicStatus& character, const KinematicStatus* target, 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 [Listing [ia]: *Steering Behavior Seek*]
 
-![Figure [Res/003_005]: Seek](Res/003_005.png)
+![Figure [res/003_005]: Seek](res/003_005.png)
 
 ### Arrive y Leave
 
@@ -463,7 +463,7 @@ void calculate(const KinematicStatus& character, const KinematicStatus* target, 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 [Listing [ia]: *Steering Behavior Arrive*]
 
-![Figure [Res/003_006]: Arrive](Res/003_006.png)
+![Figure [res/003_006]: Arrive](res/003_006.png)
 
 El comportamiento opuesto es *leave*, si se necesita dejar un destino, no se suele necesitar acelerar con una aceleración minúscula al principio e ir incrementándola. Lo normal es acelerar lo más rápido posible, con lo cual, se convierte en el comportamiento *flee*.
 
@@ -545,7 +545,7 @@ En lugar de apuntar hacia la dirección actual del destino, hay que predecir don
 
 El algoritmo averigua la distancia entre el personaje y el destino, luego calcula cuanto tiempo le costaría llegar hasta allí, a máxima velocidad. Usa ese intervalo de tiempo como predicción. Calcula la posición del destino si continuara moviéndose a su velocidad actual en ese tiempo, y esa posición es usada como destino del comportamiento *seek* standard.
 
-![Figure [Res/003_007]: Pursue](Res/003_007.png)
+![Figure [res/003_007]: Pursue](res/003_007.png)
 
 Si el personaje se mueve muy despacio, o está muy lejos, el tiempo de predicción podría ser muy grande, y el destino es poco probable que siga el mismo camino para siempre, así que pone un límite a lo lejos que se apunta. El algoritmo tiene un parámetro de tiempo máximo para esto, si la predicción de tiempo va más allá, se usa el máximo.
 
@@ -576,7 +576,7 @@ void calculate(const KinematicStatus& character, const KinematicStatus* target, 
 
 El opuesto de *pursue* es *evade*, se predice la posición del destino, pero en lugar de delegar a *seek*, se delega a *flee*.
 
-![Figure [Res/003_008]: Evade](Res/003_008.png)
+![Figure [res/003_008]: Evade](res/003_008.png)
 
 Si el personaje perseguidor se mueve más rápido que el destino, entonces lo sobrepasará y oscilará alrededor del destino, tal como hacia el *seek*, para evitarlo se puede delegar a *arrive*. Esto demuestra la potencia de construir unos comportamientos sobre otros, a partir de sus componentes lógicos, si se desea un efecto ligeramente distinto, se puede modificar fácilmente para conseguirlo.
 
@@ -628,11 +628,11 @@ Se puede dibujar un circulo alrededor del personaje en el cual el destino está 
 
 Se puede mejorar moviendo el circuito alrededor en el que está limitado el destino. Ese círculo se hace pequeño y se aleja delante del personaje, entonces este intenta encararse al destino cada frame, usando el comportamiento *face* para alinearse al destino, y se le aplica aceleración al máximo en esa dirección.
 
-![Figure [Res/003_009]: Wander](Res/003_009.png)
+![Figure [res/003_009]: Wander](res/003_009.png)
 
 La orientación del personaje entonces se retiene entre llamadas (suavizando los cambios en orientación), los ángulos en los cuales los bordes del círculo delimitan al personaje, determinan como de rápido girará. Si el destino es un punto extremo, girara rápidamente. El destino se sacudirá alrededor del borde del círculo, pero la orientación del personaje cambiará suavemente.
 
-![Figure [Res/003_010]: Wander](Res/003_010.png)
+![Figure [res/003_010]: Wander](res/003_010.png)
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ C++ linenumbers
 float wander_offset_ = 50.0f;       //forward offset of circle
@@ -680,7 +680,7 @@ La posición del destino se calcula en dos fases. Primero, la posición actual d
 
 Algunas implementaciones generan el destino de manera distinta, primero predicen donde estaría el personaje en un espacio corto de tiempo, entonces mapean esto al punto más cercano del camino. Este es un destino candidato, si este candidato no ha sido situado más adelante en el camino de lo que lo fue en el frame anterior, entonces se cambia para que lo sea. Esto puede resultar más suave para caminos complejos con cambios bruscos de dirección, pero puede llegar a cortar esquinas cuando dos caminos se juntan demasiado.
 
-![Figure [Res/003_011]: Path Following](Res/003_011.png)
+![Figure [res/003_011]: Path Following](res/003_011.png)
 
 ### Separation
 
@@ -688,7 +688,7 @@ Este es un comportamiento habitual en simulaciones de multitudes, donde varios p
 
 La mayor parte del tiempo este comportamiento no tiene salida, no recomienda ningún movimiento, solo si se detecta otro personaje más cerca de un margen, entonces actúa de manera similar al comportamiento *evade* para alejarse de un personaje, pero la fuerza del movimiento tiene relación a la distancia del destino.
 
-![Figure [Res/003_012]: Separation](Res/003_012.png)
+![Figure [res/003_012]: Separation](res/003_012.png)
 
 ### Collision Avoidance
 
@@ -698,7 +698,7 @@ Una aproximación simple es usar una variación de *evade* o *separation*, que s
 
 Una mejor solución suele ser averiguar si los personajes colisionaran si mantienen su velocidad, hay que tener en cuenta que pueden tener distintas velocidades y aunque sus trayectorias se crucen puede que no lo hagan en el tiempo y no se produzca una colisión.
 
-![Figure [Res/003_013]: Collision Avoidance](Res/003_013.png)
+![Figure [res/003_013]: Collision Avoidance](res/003_013.png)
 
 ### Obstacle and Wall Avoidance
 
@@ -707,7 +707,7 @@ El comportamiento *collision avoidance* solo se dedica a evitar la colisión sin
 Este algoritmo usa un sistema distinto, el personaje que se mueve lanza uno o más rayos en la dirección de su movimiento, si esos rayos colisionan con un obstáculo entonces se crea un destino que evitará la colisión, y el personaje hace un *seek* sobre ese destino. Normalmente los rayos no son infinitos, se extienden una distancia pequeña delante del personaje.
 Muchas veces se suelen tirar varios rayos por delante en distintos ángulos para evitar problemas asociados con la detección de esquinas, o bien en paralelo, con distintas longitudes, etc….
 
-![Figure [Res/003_014]: Raycasts](Res/003_014.png)
+![Figure [res/003_014]: Raycasts](res/003_014.png)
 
 Combinando Steering Behaviors
 --------------------------------------------------------------
@@ -734,7 +734,7 @@ El comportamiento *flocking* es un caso típico para el uso de comportamientos c
 
 Una bandada la forman un conjunto de personajes, esta bandada tiene un objetivo común, un destino, al cual todos los personajes quieren moverse usando el comportamiento *seek*. A continuación, para cada personaje se ejecutan los tres comportamientos *alignment*, *cohesion* y *separation*, que toman en cuenta tanto la posición del propio personaje como las del resto de miembros de la bandada. Al resultado del *seek* entonces se suman los resultados de los otros tres comportamientos, pero cada uno con un peso específico, para dar como resultado una aceleración que moverá al personaje. Esos tres pesos son los que configurarán cómo se comporta la bandada.
 
-![Figure [Res/003_015]: Los tres Comportamientos que forman el Flocking](Res/003_015.png)
+![Figure [res/003_015]: Los tres Comportamientos que forman el Flocking](res/003_015.png)
 
 PathFinding
 ==============================================================
@@ -752,7 +752,7 @@ Los algoritmos de *pathfinding* se basan en una versión simplificada del nivel 
 
 Un grafo es una estructura matemática que se suele representar con un diagrama. Consiste en dos tipos de elementos, nodos (dibujados como círculos) y conexiones que enlazan nodos (dibujados como líneas).
 
-![Figure [Res/003_016]: Grafo no Dirigido](Res/003_016.png)
+![Figure [res/003_016]: Grafo no Dirigido](res/003_016.png)
 
 Formalmente, un grafo consiste de un conjunto de nodos y un conjunto de conexiones, donde una conexión es simplemente un par de nodos no ordenados. Para *pathfinding*, cada nodo suele representar una región del nivel, como una habitación, la sección de un pasillo, … Si una habitación se conecta a un pasillo, entonces el nodo representando a la habitación se conectará al nodo que representa al pasillo, de esta manera el nivel de juego se divide en regiones que están conectadas entre sí.
 
@@ -762,7 +762,7 @@ Para ir de una región a otra se usan conexiones. Un camino a través del grafo 
 
 Un grafo ponderado es como un grafo convencional, pero para cada conexión se añade un valor numérico. Esto se llama peso, y en videojuegos se suele llamar coste.
 
-![Figure [Res/003_017]: Grafo Ponderado](Res/003_017.png)
+![Figure [res/003_017]: Grafo Ponderado](res/003_017.png)
 
 El coste en un grafo de *pathfinding* normalmente representa tiempo o distancia. Si un nodo representa una región del nivel, y está conectado a otro nodo, el coste de la conexión suele ser la distancia o el tiempo que se necesita para moverse de uno a otro nodo.
 
@@ -772,7 +772,7 @@ Usualmente se miden las distancias o tiempos entre los nodos a partir de puntos 
 
 En muchos casos un grafo ponderado es suficiente para representar un nivel de juego, pero se puede usar un grafo que aporta aún más información, un grafo dirigido.
 
-![Figure [Res/003_018]: Grafo Ponderado Dirigido](Res/003_018.png)
+![Figure [res/003_018]: Grafo Ponderado Dirigido](res/003_018.png)
 
 Usar un grafo de este tipo implica por un lado que se puede ir de un nodo a otro, pero no volver, y además que los costes pueden ser diferentes en ambas direcciones. Esto abre nuevas posibilidades, como, por ejemplo, si se tiene una escalera que une dos zonas, puede tener un coste distinto ir escaleras arriba que escaleras abajo.
 
@@ -780,7 +780,7 @@ Matemáticamente la única diferencia es que ahora la pareja de nodos que determ
 
 Es muy habitual representar estos grafos dirigidos ponderados como matrices de adyacencia. Suelen ser matrices cuadradas en las cuales cada columna/fila representa a un nodo, y el valor de cada celda es el coste para ir del nodo que está en la fila al nodo que está en la columna.
 
-![Figure [Res/003_019]: Matriz de Adyacencia](Res/003_019.png)
+![Figure [res/003_019]: Matriz de Adyacencia](res/003_019.png)
 
 Dijkstra
 --------------------------------------------------------------
@@ -789,7 +789,7 @@ El algoritmo de *Dijkstra* coge el nombre de *Edsger Dijkstra*, matemático que 
 
 Dado un grafo y dos nodos (origen y destino) en ese grafo, se desea generar un camino con un coste mínimo. Cuando hay varios caminos con el mismo coste mínimo, no importa cual se coge.
 
-![Figure [Res/003_020]: Grafo Dirigido Ponderado](Res/003_020.png)
+![Figure [res/003_020]: Grafo Dirigido Ponderado](res/003_020.png)
 
 El camino en sí consistirá en un conjunto de conexiones, dos nodos pueden estar conectados por más de una conexión, y cada una puede tener un coste distinto. Con lo cual, se necesita saber que conexiones usar, una lista de nodos no suele ser suficiente.
 
@@ -797,11 +797,11 @@ El algoritmo trabaja en iteraciones, en cada una de ellas considera un nodo del 
 
 Durante una iteración considera cada conexión saliente del nodo actual, para cada conexión encuentra el nodo final y almacena el coste total del camino hasta ese punto (coste temporal) junto con la conexión a través de la cual ha llegado.
 
-![Figure [Res/003_021]: Situación Inicial](Res/003_021.png)
+![Figure [res/003_021]: Situación Inicial](res/003_021.png)
 
 En la primera iteración, donde el nodo inicial es el nodo actual, el coste temporal de cada conexión final del nodo es simplemente el coste de cada conexión. Cada nodo conectado al nodo inicial tiene un coste temporal igual al coste de la conexión que lo llevó hasta allí, así como un registro de a través de que conexión fue.
 
-![Figure [Res/003_022]: Situación tras una Iteración](Res/003_022.png)
+![Figure [res/003_022]: Situación tras una Iteración](res/003_022.png)
 
 Para iteraciones a partir de la primera, el coste temporal de cada nodo final de cada conexión es la suma del coste de la conexión y el coste temporal del nodo actual. No hay distinción para el algoritmo entre la primera y sucesivas iteraciones, poniendo el coste temporal del nodo inicial como 0 se puede reusar el código para todas las iteraciones.
 
@@ -811,7 +811,7 @@ En cada iteración el algoritmo elige el nodo de la lista abierta que tiene el c
 
 Si se llega a un nodo abierto o cerrado durante una iteración, el nodo ya tendrá un coste temporal asociado y un registro de la conexión que llevó hasta él. Se verifica si el camino que se ha encontrado ahora es mejor que el anterior, se calcula el coste temporal, y si es mayor no se actualiza el nodo, pero si el nuevo coste temporal es menor entonces se actualiza con el nuevo valor y la conexión de llegada. El nodo entonces se debe poner en la lista abierta (si estaba en la cerrada se mueve de allí).
 
-![Figure [Res/003_023]: Situación tras Varias Iteraciones](Res/003_023.png)
+![Figure [res/003_023]: Situación tras Varias Iteraciones](res/003_023.png)
 
 El algoritmo básico acaba cuando la lista abierta está vacía, ha considerado todos los nodos en el grafo que se pueden alcanzar desde el nodo inicial, y están todos en la lista cerrada.
 
@@ -885,7 +885,7 @@ El camino final se consigue de la misma manera que en *Dijkstra*, empezando en e
 
 Se quiere ir del punto A (verde) al B (rojo). Hay una pared (azul) que separa los dos puntos. Se ha dividido el área de búsqueda en una rejilla cuadrada, para simplificar la búsqueda, eso suele ser el primer paso de cualquier algoritmo de *pathfinding*, en este ejemplo se simplifica a un array bidimensional. Cada ítem en el array representa uno de los cuadrados de la rejilla, y su situación es transitable o no. El camino se determina averiguando que cuadrados hay que pisar para llegar de A a B. Una vez que el camino se ha encontrado, el personaje se mueve del centro de un cuadrado al siguiente hasta llegar al destino. Se puede usar cualquier sistema para simplificar el área de búsqueda, pueden ser rectángulos, hexágonos, triángulos, o cualquier forma geométrica. Estos puntos centrales son los nodos.
 
-![Figure [Res/003_024]: Situación Inicial](Res/003_024.png)
+![Figure [res/003_024]: Situación Inicial](res/003_024.png)
 
 Se empieza la búsqueda empezando en el punto A y se añade a la lista abierta.
 
@@ -894,7 +894,7 @@ En esta lista ahora solo hay un elemento, pero se tendrán más luego. Contiene 
 Se mira a todos los cuadrados alcanzables que son transitables adyacentes al punto de salida, ignorando cuadrados con paredes, agua, o cualquier terreno no transitable. Se añaden a la lista abierta. Para cada uno de esos cuadrados, se guarda al cuadrado A como su cuadrado padre. Este cuadrado padre es que servirá para rastrear el camino final de vuelta.
 Se elimina el cuadrado A de la lista abierta, y se añade a la lista cerrada de cuadrados que no hay que volver a mirar por ahora.
 
-![Figure [Res/003_025]: Situación tras Primer Paso](Res/003_025.png)
+![Figure [res/003_025]: Situación tras Primer Paso](res/003_025.png)
 
 En este punto, se tiene un cuadrado (verde) como origen, está marcado azul porque ya está en la lista cerrada, todos los cuadrados adyacentes están en la lista abierta, cada uno tiene un puntero que apunta a su padre, el cual es el cuadrado inicial.
 
@@ -920,7 +920,7 @@ La heurística es simplemente una estimación aproximada de la distancia restant
 
 F se calcula sumando G y H. Los resultados del primer paso en la búsqueda están escritos en cada cuadrado, F arriba a la izquierda, G abajo a la izquierda y H abajo a la derecha.
 
-![Figure [Res/003_026]: Situación tras Primer Paso, con los Costes Calculados](Res/003_026.png)
+![Figure [res/003_026]: Situación tras Primer Paso, con los Costes Calculados](res/003_026.png)
 
 En el cuadrado inmediatamente a la derecha, se tiene G = 10, porque solo está a un cuadrado de distancia en horizontal, los que están arriba y abajo también tienen G = 10, y los diagonales un G = 14.
 
@@ -943,7 +943,7 @@ Se va a lista abierta de cuadrados, que ahora tiene 7 elementos, y se elige el q
 
 Se elige el que está justo debajo y a la derecha del punto inicial.
 
-![Figure [Res/003_027]: Situación tras Segundo Paso](Res/003_027.png)
+![Figure [res/003_027]: Situación tras Segundo Paso](res/003_027.png)
 
 Esta vez se verifican los cuadrados adyacentes, el de la derecha es una pared, se ignora, igual que el de arriba. Se ignora también el de debajo de la pared porque no se puede llegar a ese cuadrado directamente desde el cuadrado actual sin cortar la esquina de la pared cercana, se debe bajar primero y luego ir a la derecha para rodear una esquina (este comportamiento de no dejar cortar esquinas es opcional).
 
@@ -951,13 +951,13 @@ Esto deja cuatro cuadrados. Los de abajo no están aún en la lista abierta, as�
 
 Se repite el proceso hasta que se añade el cuadrado destino a la lista cerrada.
 
-![Figure [Res/003_028]: Situación tras Varios Pasos, al Añadir a la Lista Cerrada el Destino](Res/003_028.png)
+![Figure [res/003_028]: Situación tras Varios Pasos, al Añadir a la Lista Cerrada el Destino](res/003_028.png)
 
 Es importante darse cuenta de un pequeño hecho, el cuadrado padre para el cuadrado que está dos por debajo del cuadrado inicial ha cambiado desde la figura 39. Antes tenía un valor de G = 28 y apuntaba al cuadrado diagonal arriba a la derecha. Ahora tiene un valor de G = 20 y apunta al cuadrado de arriba. Esto ha pasado en algún momento del algoritmo en la búsqueda, cuando el valor de G ha sido verificado y ha resultado que era menor usando un camino nuevo, así que se han actualizado sus valores de G y F, y su padre. Este cambio no parece importante en este ejemplo, pero hay muchas situaciones donde esta verificación constante puede ser una diferencia importante determinando el mejor camino al destino.
 
 Una vez se alcanza el destino, se calcula el camino. Se empieza en el cuadrado rojo destino, y se va hacia atrás desde un cuadrado a su padre, siguiendo las flechas. Esto llevara eventualmente al cuadrado inicial, ese es el camino. Mover el personaje desde A a B, es simplemente cuestión de moverse desde el centro de un cuadrado al centro del siguiente siguiendo el camino hasta que se alcanza el destino.
 
-![Figure [Res/003_029]: Situación Final con el Camino](Res/003_029.png)
+![Figure [res/003_029]: Situación Final con el Camino](res/003_029.png)
 
 En resumen:
 
@@ -1049,7 +1049,7 @@ El algoritmo calculará el camino más corto, de menor coste, pero no será el m
 
 En el ejemplo se han usado áreas cuadradas, pero no es necesario. Se pueden usar áreas de formas hexagonales o incluso irregulares. Es habitual que se creen mallas de navegación que discretizan el suelo de los niveles buscando conectar las esquinas de la geometría para formar polígonos simples que serán los nodos del grafo donde se ejecuta el *pathfinding*.
 
-![Figure [Res/003_030]: Malla de Navegación](Res/003_030.png width="400px")
+![Figure [res/003_030]: Malla de Navegación](res/003_030.png width="400px")
 
 ### Pathfinding Jerárquico
 
@@ -1076,7 +1076,7 @@ La toma de decisiones suele ser una pequeña parte del esfuerzo necesario para c
 
 El personaje procesa un conjunto de datos y los usa para generar una acción que quiere realizar. La entrada al sistema de toma de decisiones es el conocimiento que posee un personaje y la salida es la petición de la acción. El conocimiento puede ser dividido en conocimiento externo o interno. El conocimiento externo son los datos que el personaje sabe acerca del entorno de juego a su alrededor, la posición de otros personajes, la disposición del nivel, … El conocimiento interno es información acerca del estado interno del personaje o su proceso de pensamiento, su salud, sus objetivos, lo que estaba haciendo hace unos segundos, …
 
-![Figure [Res/003_031]: Toma de Decisiones](Res/003_031.png width="400px")
+![Figure [res/003_031]: Toma de Decisiones](res/003_031.png width="400px")
 
 Las acciones, también tienen dos componentes, se puede solicitar una acción que cambie el estado externo del personaje (moverse a un punto, disparar un arma, …) o que solo afecte a su estado interno. Estos últimos cambios son menos obvios en los juegos, pero son significativos para los algoritmos de toma de decisiones. Pueden corresponder a un cambio de la opinión que tiene un personaje sobre el jugador, cambiar su estado emocional, o cambiar su objetivo. Los algoritmos tendrán unas acciones internas propias, mientras que las externas se pueden generar de manera que sean idénticas para cada algoritmo.
 
@@ -1089,7 +1089,7 @@ Los árboles de decisión son rápidos, fáciles de implementar y fáciles de en
 
 Dado un conjunto de conocimiento, se necesita generar una acción equivalente entre un conjunto de acciones posibles. Un árbol de decisión está hecho de puntos de decisión conectados. El árbol tiene una decisión inicial, la raíz, y para cada decisión, desde la raíz, una de las opciones de salida es elegida.
 
-![Figure [Res/003_032]: Árbol de Decisión](Res/003_032.png width="400px")
+![Figure [res/003_032]: Árbol de Decisión](res/003_032.png width="400px")
 
 Cada elección se hace basándose en el conocimiento del personaje. Puesto que los árboles de decisión son usados a menudo como mecanismos de decisión rápidos y simples, los personajes se suelen referir directamente al estado global del juego, en lugar de tener una representación de lo que personalmente conocen.
 
@@ -1105,7 +1105,7 @@ El árbol de decisiones es eficiente porque las decisiones suelen ser muy simple
 
 Para relacionar dos decisiones con un *AND*, se deberían incluir las dos decisiones en serie en el árbol, tomando el camino del sí. Y para relacionarlas con un *OR* se ponen también en serie, pero tomando el camino del no.
 
-![Figure [Res/003_033]: Decisiones Combinadas](Res/003_033.png)
+![Figure [res/003_033]: Decisiones Combinadas](res/003_033.png)
 
 Puesto que las decisiones están construidas en un árbol, el número de decisiones que efectivamente se necesitan considerar suele ser mucho más pequeña que el número de decisiones totales del árbol. Suelen ser simples de construir y se puede hacer en etapas, es decir, se pueden añadir fácilmente decisiones adicionales conforme se avanza en el desarrollo añadiendo nuevos comportamientos.
 
@@ -1115,7 +1115,7 @@ La mayoría de decisiones se suelen elegir entre dos opciones, estos son los ár
 
 Se puede tener a un guarda que necesita tomar una decisión basándose en el nivel de alerta de la base militar, y ese nivel puede estar dentro de un conjunto de estados (verde, amarillo, rojo, negro), se puede simplificar el árbol si pueden haber más de dos ramas tras cada punto de decisión. La estructura es más plana, solo se requiere una decisión y es más eficiente.
 
-![Figure [Res/003_034]: Decisiones binarias vs múltiples](Res/003_034.png)
+![Figure [res/003_034]: Decisiones binarias vs múltiples](res/003_034.png)
 
 Pese a las ventajas obvias, es común encontrar árboles de decisión que usan solo decisiones binarias. El código para dar soporte a múltiples ramas normalmente simplifica a una serie de tests binarios (sentencias *if*), y pese a que el árbol es más simple con múltiples ramas, la mejora de velocidad no suele ser significativa. Además, los arboles binarios se pueden optimizas más fácilmente, y muchos algoritmos de aprendizaje requieren que los arboles sean binarios.
 
@@ -1127,7 +1127,7 @@ Los árboles de decisión trabajan con tipos de datos primitivos, se pueden basa
 
 Los árboles de decisión funcionan más rápido cuando el árbol está balanceado. Un árbol balanceado tiene aproximadamente el mismo número de hojas en cada rama.
 
-![Figure [Res/003_035]: Árbol Balanceado](Res/003_035.png)
+![Figure [res/003_035]: Árbol Balanceado](res/003_035.png)
 
 En un árbol no balanceado llegar a una hoja puede requerir tomar muchas decisiones, mientras que en uno balanceado ese número es mucho menor y puede ser casi constante. Con lo cual el coste de evaluarlo es predecible. En cambio, si se puede predecir que gran parte de las evaluaciones van a acabar en una hoja, quizás un árbol no balanceado que favorece esa hoja pueda resultar más óptimo.
 
@@ -1139,7 +1139,7 @@ Se puede permitir que varias ramas se fusionen en una nueva decisión, haciendo 
 
 Hay que tener cuidado de no introducir posibles bucles en el árbol, el proceso de decisión se podría quedar atascado en un bucle para siempre, sin encontrar una hoja. Estrictamente, la estructura valida es un grafo acíclico dirigido.
 
-![Figure [Res/003_036]: Bucle en un árbol](Res/003_036.png width="300px")
+![Figure [res/003_036]: Bucle en un árbol](res/003_036.png width="300px")
 
 ### Árboles aleatorios
 
@@ -1156,7 +1156,7 @@ Las máquinas de estado son la técnica más usada para este tipo de toma de dec
 
 En una máquina de estados cada personaje vive en un estado. Normalmente, las acciones o comportamientos están asociados con cada estado, así, mientras el personaje se mantenga en ese estado, continuará realizando la misma acción.
 
-![Figure [Res/003_037]: Máquina de Estados simple](Res/003_037.png)
+![Figure [res/003_037]: Máquina de Estados simple](res/003_037.png)
 
 Los estados están conectados por transiciones. Cada transición lleva de un estado a otro, el estado destino, y cada uno tiene un conjunto de condiciones asociadas. Si el juego determina que las condiciones de una transición se cumplen, entonces el personaje cambia su estado al estado del destino de la transición.
 
@@ -1448,7 +1448,7 @@ Esto significa que un nodo aislado tiene un contrato definido para el éxito o e
 
 Con esta funcionalidad compartida en común, hay tres arquetipos principales de nodos en un árbol de comportamiento, compuesto (*composite*), decorador (*decorator*) y hoja (*leaf*).
 
-![Figure [Res/003_038]: Nodos Arquetipo](Res/003_038.png)
+![Figure [res/003_038]: Nodos Arquetipo](res/003_038.png)
 
 ### Composite
 
@@ -1484,7 +1484,7 @@ Un nodo secuencia visita todos sus nodos hijos en orden, empezando por el primer
 
 Es importante aclarar que los tipos de los nodos en los árboles de comportamiento tienen un amplio rango de aplicaciones. El uso más obvio de los nodos secuencia es definir una secuencia de tareas que deben ser todas completadas, y donde el fallo de una significa que el procesamiento del resto de la secuencia es redundante.
 
-![Figure [Res/003_039]: Nodo Sequence](Res/003_039.png)
+![Figure [res/003_039]: Nodo Sequence](res/003_039.png)
 
 Esta secuencia de ejemplo, hará que el personaje atraviese una puerta, cerrándola tras de sí. El orden de procesamiento seria:
 
@@ -1502,11 +1502,11 @@ Al final la secuencia devuelve éxito al padre. Si un personaje falla al andar h
 
 El hecho de que las secuencias de manera natural se presten a secuencias de acciones del personaje, y puesto que los árboles de comportamiento tienden a sugerir que este es su único uso, quizás sea confuso que haya muchas maneras de hacer uso de secuencias más allá de que el personaje haga una lista de cosas secuencial.
 
-![Figure [Res/003_040]: Nodo Sequence](Res/003_040.png)
+![Figure [res/003_040]: Nodo Sequence](res/003_040.png)
 
 En este ejemplo, no hay una lista de acciones, sino una lista de pruebas. Los nodos hijo verifican si el personaje tiene hambre, si tiene comida, si está en un sitio seguro y solo si todo esto ha devuelto éxito al padre secuencia, entonces el personaje se come la comida. Usando secuencias de esta manera permite verificar una o más condiciones antes de llevar a cabo una acción. Puesto que todos los hijos necesitan tener éxito, y esos hijos pueden ser cualquier combinación de nodos *composite*, *decorators* u hojas, permite una verificación condicional muy potente dentro del cerebro de la IA.
 
-![Figure [Res/003_041]: Nodo Inverter](Res/003_041.png)
+![Figure [res/003_041]: Nodo Inverter](res/003_041.png)
 
 En este ejemplo se puede ver el uso de un decorador para negar cualquier verificación y hacer una puerta *not*. Esto significa que se puede recortar la cantidad de nodos que se necesitan para probar las condiciones del personaje o mundo de juego.
 
@@ -1516,7 +1516,7 @@ Mientras que una secuencia actúa como una puerta *and*, requiriendo que todos l
 
 Su mayor potencia viene de su capacidad para representar diversas trayectorias de acción, en orden de prioridad de la más favorable a la menos favorable, y devolver éxito si ha conseguido un éxito en cualquiera de ellas. Las implicaciones son importantes, y se pueden desarrollar IA sofisticadas a través del uso de selectores.
 
-![Figure [Res/003_042]: Nodo Selector](Res/003_042.png)
+![Figure [res/003_042]: Nodo Selector](res/003_042.png)
 
 Se puede tratar con puertas cerradas de manera inteligente, solo con el uso de un puñado de nuevos nodos.
 
@@ -1524,7 +1524,7 @@ Cuando se llega al segundo nodo de la secuencia, el personaje ya está delante d
 
 Yendo un paso más lejos, quizás haya un selector por encima que intenta otro curso de acción basándose en el fallo de esta secuencia.
 
-![Figure [Res/003_043]: Nodo Selector](Res/003_043.png)
+![Figure [res/003_043]: Nodo Selector](res/003_043.png)
 
 En el lado izquierdo, el lado preferido, se intenta atravesar la puerta, si falla, intenta entrar por la ventana. En resumen, hay un comportamiento, entrar en edificio, en el cual se puede confiar que conseguirá entrar o informar al padre que ha fallado, quizás no haya ventanas, en ese caso el selector de encima fallará, y quizás el selector padre le dirá a la IA que vaya a otro edificio.
 
@@ -1598,7 +1598,7 @@ Por ejemplo, *PushToStack*, crea una nueva pila si no existe y la almacena en la
 
 Con estos nodos, se tiene la capacidad de iterar a través de una pila de objetos.
 
-![Figure [Res/003_044]: Pila](Res/003_044.png)
+![Figure [res/003_044]: Pila](res/003_044.png)
 
 Usando un decorador *RepeatUntilFail*, se puede sacar un elemento de la pila repetidamente y operar sobre él, hasta que la pila esté vacía, en ese punto el *pop* devolverá fallo, *sequence* devolverá fallo también y el decorador también devolverá la ejecución.
 
@@ -1614,7 +1614,7 @@ Permiten poner valores a variables arbitrarias en el árbol en circunstancias do
 
 Si se añade al árbol un nodo *GetDoorStackFromBuilding*, al que se le pasa un objeto edificio, y este obtiene una lista de todas las puertas exteriores de un edificio, creando y llenando una pila con los objetos y poniendo la variable destino.
 
-![Figure [Res/003_045]: Ejemplo de uso](Res/003_045.png)
+![Figure [res/003_045]: Ejemplo de uso](res/003_045.png)
 
 Inicialmente puede parecer complejo entender este árbol, pero una vez familiarizado con la manera que los nodos operan y como los éxitos y fallos atraviesan el árbol todo empieza a tener sentido.
 
