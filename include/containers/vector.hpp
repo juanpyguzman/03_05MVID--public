@@ -5,6 +5,7 @@
 
 template <class T>
 class Vector {
+  public:
     Vector() {}                                             //Constructor
     ~Vector() {}                                            //Destructor
 
@@ -35,6 +36,7 @@ class Vector {
 
     void swapElement(size_t pos, T* other) {}          	    //Swaps an element of the vector
     void swap(Vector& other) {}                             //Swaps the whole vector
+  private:
 };
 
 #endif
