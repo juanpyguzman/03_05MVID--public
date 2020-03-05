@@ -25,4 +25,4 @@ add_executable(01_MultiThreading
     ${CONTAINERS_HEADER_FILES})
 target_include_directories(01_MultiThreading PRIVATE ${CMAKE_CURRENT_LIST_DIR}/include)
 configure_compiler(01_MultiThreading)
-target_compile_features(01_MultiThreading PRIVATE cxx_std_14)
+target_compile_features(01_MultiThreading PRIVATE cxx_std_17)
