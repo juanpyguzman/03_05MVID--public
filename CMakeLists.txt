@@ -18,11 +18,19 @@ set(CONTAINERS_HEADER_FILES
     ${CMAKE_CURRENT_LIST_DIR}/include/containers/vector.hpp)
 
 #****************************************************
-# Activity 01 - Multithreading
+# AG01 - Multithreading
 #****************************************************
-add_executable(01_MultiThreading
-    ${PROJECTS_PATH}/01_MultiThreading/main.cpp
+add_executable(AG01
+    ${PROJECTS_PATH}/AG01/main.cpp)
+configure_compiler(AG01)
+target_compile_features(AG01 PRIVATE cxx_std_17)
+
+#****************************************************
+# ACT01 - Multithreading
+#****************************************************
+add_executable(ACT01
+    ${PROJECTS_PATH}/ACT01/main.cpp
     ${CONTAINERS_HEADER_FILES})
-target_include_directories(01_MultiThreading PRIVATE ${CMAKE_CURRENT_LIST_DIR}/include)
-configure_compiler(01_MultiThreading)
-target_compile_features(01_MultiThreading PRIVATE cxx_std_17)
+target_include_directories(ACT01 PRIVATE ${CMAKE_CURRENT_LIST_DIR}/include)
+configure_compiler(ACT01)
+target_compile_features(ACT01 PRIVATE cxx_std_17)
