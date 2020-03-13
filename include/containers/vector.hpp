@@ -2,6 +2,8 @@
 #define __VECTOR_H__
 
 #include <functional>
+#include <mutex>
+#include <vector>
 
 template <class T>
 class Vector {
@@ -9,8 +11,16 @@ class Vector {
     Vector() {}                                             //Constructor
     ~Vector() {}                                            //Destructor
 
-    T& push_back(const T& v) {}	                            //Add element at the end
-    T& push_back(T&& v) {}
+	//Add element at the end
+    T& push_back(const T& v) {
+		std::lock_guard<std::mutex> guard(_mutex);
+		std::vector<T>::push_back(v);
+	}	                          
+
+    T& push_back(T&& v) {
+		std::lock_guard<std::mutex> guard(_mutex);
+		std::vector<T>::push_back(v);
+	}
 
     T& emplace_back(T&& v) {}                               //Construct and insert element
 
@@ -37,6 +47,8 @@ class Vector {
     void swapElement(size_t pos, T* other) {}          	    //Swaps an element of the vector
     void swap(Vector& other) {}                             //Swaps the whole vector
   private:
+	  std::mutex _mutex;
+
 };
 
 #endif
