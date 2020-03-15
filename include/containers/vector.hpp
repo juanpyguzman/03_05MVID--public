@@ -4,6 +4,7 @@
 #include <functional>
 #include <mutex>
 #include <vector>
+#include <thread>
 #include <algorithm>
 
 template <class T>
