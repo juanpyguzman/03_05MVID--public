@@ -8,14 +8,14 @@
 #ifndef __KINEMATIC_WANDER_H__
 #define __KINEMATIC_WANDER_H__ 1
 
-#include <engine/math.h>
+#include "engine/math.h"
 
 class KinematicWander {
   public:
     KinematicWander() {}
     ~KinematicWander() {}
 
-    void calculate(const KinematicStatus& character, const KinematicStatus*, KinematicSteering* steering) {
+    void calculate(const KinematicStatus& character, const KinematicStatus*, KinematicSteering* steering) const {
       MathLib::Vec2 orientation;
       //orientation of character as vector
       orientation.fromPolar(1.0f, character.orientation);

@@ -38,4 +38,6 @@ int main() {
   }
 
   SocketUtils::shutdown();
+
+  return 0;
 }

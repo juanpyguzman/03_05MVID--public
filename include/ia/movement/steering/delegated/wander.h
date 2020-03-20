@@ -8,7 +8,7 @@
 #ifndef __WANDER_H__
 #define __WANDER_H__ 1
 
-#include <ia/defines.h>
+#include "ia/defines.h"
 #include "ia/movement/steering/delegated/face.h"
 
 class Wander : public Face {
@@ -16,12 +16,12 @@ class Wander : public Face {
     Wander() {}
     ~Wander() {}
 
-    virtual void calculate(const KinematicStatus& character, const KinematicStatus* target, Steering* steering) {
+    void calculate(const KinematicStatus& character, const KinematicStatus* target, Steering* steering) override {
       //update wander orientation, rate * binomial distribution
       wander_orientation_ += wander_rate_ * (randomFloat(0.0f, 1.0f) - randomFloat(0.0f, 1.0f));
 
       KinematicStatus new_target;
-      //orientation of new target facing combinated orientation
+      //orientation of new target facing combined orientation
       new_target.orientation = wander_orientation_ + character.orientation;
 
       MathLib::Vec2 char_orient;   //orientation of character as vector

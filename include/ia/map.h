@@ -18,16 +18,16 @@ class Map {
   public:
 
     void loadMap() {
-      SDL_Surface* map_image = NULL;
+      SDL_Surface* map_image;
       if ((map_image = SDL_LoadBMP("../assets/images/costes.bmp")) == false)
         return;
 
       SDL_LockSurface(map_image);
 
-      uint8_t stride = map_image->pitch >> 2;
+      const uint8_t stride = map_image->pitch >> 2;
 
       {
-        uint32_t* pixels = (uint32_t*)map_image->pixels;
+        uint32_t* pixels = static_cast<uint32_t*>(map_image->pixels);
         for (int i = 0; i < MAP_L1_HEIGHT; ++i) {
           uint32_t* step_pixels = pixels;
           for (int j = 0; j < MAP_L1_WIDTH; ++j) {

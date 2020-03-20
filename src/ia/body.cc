@@ -5,10 +5,10 @@
 //                                                       |___/___/\____/
 //----------------------------------------------------------------------------
 
-#include <ia/body.h>
-#include <ia/agent.h>
-#include <ia/defines.h>
-#include <engine/debug_draw.h>
+#include "ia/body.h"
+#include "engine/debug_draw.h"
+#include "ia/agent.h"
+#include "ia/defines.h"
 
 void Body::init(const Color color, const Type type) {
   type_ = type;
@@ -125,7 +125,7 @@ void Body::setTarget(Agent* target) {
 }
 
 void Body::updateKinematic(const uint32_t dt, const KinematicSteering& steering) {
-  float time = dt * 0.001f;             //dt comes in miliseconds
+  const float time = dt * 0.001f;             //dt comes in miliseconds
 
   state_.velocity = steering.velocity;
   state_.position += steering.velocity * time;
@@ -140,7 +140,7 @@ void Body::updateKinematic(const uint32_t dt, const KinematicSteering& steering)
 }
 
 void Body::updateSteering(const uint32_t dt, const Steering& steering) {
-  float time = dt * 0.001f;             //dt comes in miliseconds
+  const float time = dt * 0.001f;             //dt comes in miliseconds
 
   state_.velocity += steering.linear;
   state_.position += state_.velocity * time;
@@ -156,7 +156,7 @@ void Body::updateSteering(const uint32_t dt, const Steering& steering) {
 }
 
 void Body::updateManual(const uint32_t dt) {
-  float time = dt * 0.001f;             //dt comes in miliseconds
+  const float time = dt * 0.001f;             //dt comes in miliseconds
 
   MathLib::Vec2 orientation;
   orientation.fromPolar(1.0f, state_.orientation);

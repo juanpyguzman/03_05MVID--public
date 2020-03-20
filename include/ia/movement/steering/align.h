@@ -8,12 +8,12 @@
 #ifndef __ALIGN_H__
 #define __ALIGN_H__ 1
 
-#include <ia/defines.h>
+#include "ia/defines.h"
 
 class Align {
   public:
     Align() {}
-    ~Align() {}
+    virtual ~Align() {}
 
     virtual void calculate(const KinematicStatus& character, const KinematicStatus* target, Steering* steering) {
       //rotation between character and target wrapped to (-PI, PI)

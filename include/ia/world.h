@@ -8,11 +8,9 @@
 #ifndef __WORLD_H__
 #define __WORLD_H__ 1
 
-#include <mathlib/vec2.h>
-#include <ia/defines.h>
-
-#include <cstdio>
-#include <ia/agent.h>
+#include "ia/agent.h"
+#include "ia/defines.h"
+#include "mathlib/vec2.h"
 
 using MathLib::Vec2;
 
@@ -29,7 +27,7 @@ class World {
     };
 
     void update(const float dt) { target_.update(dt); ia_.update(dt); }
-    void render() { target_.render(); ia_.render(); }
+    void render() const { target_.render(); ia_.render(); }
 
     Agent* target() { return &target_; }
     Agent* ia() { return &ia_; }

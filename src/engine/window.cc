@@ -5,7 +5,7 @@
 //                                                       |___/___/\____/
 //----------------------------------------------------------------------------
 
-#include <engine/window.h>
+#include "engine/window.h"
 
 #include <cstdio>
 #include <SDL/SDL_image.h>
@@ -34,7 +34,7 @@ bool Window::init(const char* name, const uint32_t width, const uint32_t height)
       } else {
         SDL_SetRenderDrawColor(renderer_, 0xFF, 0xFF, 0xFF, 0xFF);
 
-        int imgFlags = IMG_INIT_PNG;
+        const int imgFlags = IMG_INIT_PNG;
         if (!(IMG_Init(imgFlags) & imgFlags)) {
           printf("SDL_image could not initialize! SDL_image Error: %s\n", IMG_GetError());
           return false;

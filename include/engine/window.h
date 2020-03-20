@@ -21,7 +21,7 @@ class Window {
       return  instance;
     }
 
-    bool init(const char* name, const uint32_t width, const uint32_t height);
+    bool init(const char* name, uint32_t width, uint32_t height);
     void shutdown();
 
     SDL_Window* getWindow() const { return window_; }

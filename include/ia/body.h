@@ -8,22 +8,22 @@
 #ifndef __BODY_H__
 #define __BODY_H__ 1
 
-#include <engine/sprite.h>
-#include <ia/defines.h>
-#include <mathlib/vec2.h>
-#include <ia/movement/kinematic/kinematicseek.h>
-#include <ia/movement/kinematic/kinematicflee.h>
-#include <ia/movement/kinematic/kinematicarrive.h>
-#include <ia/movement/kinematic/kinematicwander.h>
-#include <ia/movement/steering/seek.h>
-#include <ia/movement/steering/flee.h>
-#include <ia/movement/steering/arrive.h>
-#include <ia/movement/steering/align.h>
-#include <ia/movement/steering/velocity_matching.h>
-#include <ia/movement/steering/delegated/pursue.h>
-#include <ia/movement/steering/delegated/face.h>
-#include <ia/movement/steering/delegated/lookgoing.h>
-#include <ia/movement/steering/delegated/wander.h>
+#include "engine/sprite.h"
+#include "ia/defines.h"
+#include "ia/movement/kinematic/kinematicarrive.h"
+#include "ia/movement/kinematic/kinematicflee.h"
+#include "ia/movement/kinematic/kinematicseek.h"
+#include "ia/movement/kinematic/kinematicwander.h"
+#include "ia/movement/steering/align.h"
+#include "ia/movement/steering/arrive.h"
+#include "ia/movement/steering/delegated/face.h"
+#include "ia/movement/steering/delegated/lookgoing.h"
+#include "ia/movement/steering/delegated/pursue.h"
+#include "ia/movement/steering/delegated/wander.h"
+#include "ia/movement/steering/flee.h"
+#include "ia/movement/steering/seek.h"
+#include "ia/movement/steering/velocity_matching.h"
+#include "mathlib/vec2.h"
 
 class Agent;
 
@@ -60,8 +60,8 @@ class Body {
     Body() {};
     ~Body() {};
 
-    void init(const Color color, const Type type);
-    void update(const uint32_t dt);
+    void init(Color color, Type type);
+    void update(uint32_t dt);
     void render() const;
 
     void setTarget(Agent* target);
@@ -69,9 +69,9 @@ class Body {
     const KinematicStatus* getKinematic() const { return &state_; }
     KinematicStatus* getKinematic() { return &state_; }
   private:
-    void updateKinematic(const uint32_t dt, const KinematicSteering& steering);
-    void updateSteering(const uint32_t dt, const Steering& steering);
-    void updateManual(const uint32_t);
+    void updateKinematic(uint32_t dt, const KinematicSteering& steering);
+    void updateSteering(uint32_t dt, const Steering& steering);
+    void updateManual(uint32_t);
     void setOrientation(const MathLib::Vec2& velocity);
     void keepInSpeed();
     void keepInBounds();

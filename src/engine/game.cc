@@ -5,11 +5,11 @@
 //                                                       |___/___/\____/
 //----------------------------------------------------------------------------
 
-#include <engine/game.h>
-#include <engine/window.h>
-#include <ia/defines.h>
-#include <ia/scene_steering.h>
-#include <engine/debug_draw.h>
+#include "engine/game.h"
+#include "engine/debug_draw.h"
+#include "engine/window.h"
+#include "ia/defines.h"
+#include "ia/scene_steering.h"
 
 #include <cstdio>
 
@@ -48,15 +48,15 @@ void Game::start() {
 
     render();
 
-    uint32_t c_time = SDL_GetTicks();
+    const uint32_t c_time = SDL_GetTicks();
     fps_time_acc += (c_time - fps_time);
     fps_time = c_time;
     ++render_loops;
     if (render_loops > 100) {        //show stats each 100 frames
       const float fps = 1000.0f / (fps_time_acc / 100.0f);
-      const float ratio = (float)render_loops / (float)update_loops;
+      const float ratio = static_cast<float>(render_loops) / static_cast<float>(update_loops);
       char text[255];
-      sprintf_s(text, "%d RFPS      %d UFPS", (uint32_t)fps, (uint32_t)(fps / ratio));
+      sprintf_s(text, "%d RFPS      %d UFPS", static_cast<uint32_t>(fps), static_cast<uint32_t>(fps / ratio));
       fps_sprite_.loadFromRenderedText(text, SDL_Color FOREGROUND_COLOR, font_, true);
       fps_sprite_.setVisible(true);
 
@@ -128,6 +128,7 @@ void Game::handleInput() {
           world_.target()->getKinematic()->orientation += 0.2f;
           break;
         }
+        default:{}
       }
       scenes_[curr_scene_]->handleKeyEvent(e.key.keysym.sym);
     }

@@ -8,12 +8,12 @@
 #ifndef __ARRIVE_H__
 #define __ARRIVE_H__ 1
 
-#include <ia/defines.h>
+#include "ia/defines.h"
 
 class Arrive {
   public:
     Arrive() {}
-    ~Arrive() {}
+    virtual ~Arrive() {}
 
     virtual void calculate(const KinematicStatus& character, const KinematicStatus* target, Steering* steering) {
       //direction to the target

@@ -19,10 +19,10 @@ class Mind {
     ~Mind() {};
 
     void init(World* world, Body* body);
-    void update(const uint32_t dt);
+    void update(uint32_t dt) const;
   private:
-    World* world_;
-    Body* body_;
+    World* world_ = nullptr;
+    Body* body_ = nullptr;
 };
 
 #endif

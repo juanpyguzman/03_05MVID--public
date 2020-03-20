@@ -8,9 +8,9 @@
 #ifndef __DEFINES_H__
 #define __DEFINES_H__ 1
 
-#include <mathlib/vec2.h>
+#include "mathlib/vec2.h"
 
-#define GAME_NAME "Steering Behaviors Demo"
+#define GAME_NAME "05MVID"
 
 #define WINDOW_WIDTH 1024
 #define WINDOW_HEIGHT 1024

@@ -5,11 +5,9 @@
 //                                                       |___/___/\____/
 //----------------------------------------------------------------------------
 
-#include <ia/scene_steering.h>
-#include <ia/defines.h>
+#include "ia/scene_steering.h"
 
 #include <cstdio>
-
 
 void SceneSteering::init(World* world) {
   printf("Steering Scene Is Being Initialized\n");
@@ -79,6 +77,7 @@ void SceneSteering::handleKeyEvent(const SDL_Keycode key) {
       world_->ia()->setSteering(Body::SteeringMode::Wander);
       printf("Behavior Of Agent Changed To Wander\n");
       break;
+    default:{}
   }
 }
 

@@ -8,7 +8,7 @@
 #ifndef __FACE_H__
 #define __FACE_H__ 1
 
-#include <ia/defines.h>
+#include "ia/defines.h"
 #include "ia/movement/steering/align.h"
 
 class Face : public Align {
@@ -16,7 +16,7 @@ class Face : public Align {
     Face() {}
     ~Face() {}
 
-    virtual void calculate(const KinematicStatus& character, const KinematicStatus* target, Steering* steering) {
+    void calculate(const KinematicStatus& character, const KinematicStatus* target, Steering* steering) override {
       //direction to target
       const MathLib::Vec2 direction = target->position - character.position;
 

@@ -5,9 +5,9 @@
 //                                                       |___/___/\____/
 //----------------------------------------------------------------------------
 
-#include <engine/debug_draw.h>
-#include <engine/window.h>
-#include <engine/math.h>
+#include "engine/debug_draw.h"
+#include "engine/math.h"
+#include "engine/window.h"
 
 float DebugDraw::delta_ = 0.01f;
 bool DebugDraw::enabled_ = false;
@@ -58,7 +58,7 @@ void DebugDraw::renderPositionHist() {
     for (uint16_t i = 0; i < MAX_HIST; ++i) {
       SDL_Renderer* renderer = Window::instance().getRenderer();
       SDL_SetRenderDrawColor(renderer, 0x00, 0x00, 0x00, 0xFF);
-      SDL_RenderDrawPoint(renderer, (uint32_t)hist_[i].x(), (uint32_t)hist_[i].y());
+      SDL_RenderDrawPoint(renderer, static_cast<uint32_t>(hist_[i].x()), static_cast<uint32_t>(hist_[i].y()));
     }
   }
 }

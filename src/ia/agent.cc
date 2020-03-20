@@ -5,8 +5,8 @@
 //                                                       |___/___/\____/
 //----------------------------------------------------------------------------
 
-#include <ia/agent.h>
-#include <ia/world.h>
+#include "ia/agent.h"
+#include "ia/world.h"
 
 void Agent::init(World* world, const Body::Color color, const Body::Type type) {
   world_ = world;

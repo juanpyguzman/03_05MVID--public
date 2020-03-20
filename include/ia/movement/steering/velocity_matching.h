@@ -8,12 +8,12 @@
 #ifndef __VELOCITY_MATCHING_H__
 #define __VELOCITY_MATCHING_H__ 1
 
-#include <ia/defines.h>
+#include "ia/defines.h"
 
 class VelocityMatching {
 public:
   VelocityMatching() {}
-  ~VelocityMatching() {}
+  virtual ~VelocityMatching() {}
 
   void calculate(const KinematicStatus& character, const KinematicStatus* target, Steering* steering) {
     //linear acceleration adjusted to time

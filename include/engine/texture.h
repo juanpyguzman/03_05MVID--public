@@ -17,15 +17,15 @@ class Texture {
     ~Texture();
 
     bool loadFromFile(const char* path);
-    bool loadFromRenderedText(const char* textureText, const SDL_Color& textColor, TTF_Font* font, const bool shadow = false, const bool wrapped = false);
+    bool loadFromRenderedText(const char* textureText, const SDL_Color& textColor, TTF_Font* font, bool shadow = false, bool wrapped = false);
     void free();
-    void setColor(const uint8_t red, const uint8_t green, const uint8_t blue) const;
-    void setBlendMode(const SDL_BlendMode blending) const;
-    void setAlpha(const uint8_t alpha) const;
+    void setColor(uint8_t red, uint8_t green, uint8_t blue) const;
+    void setBlendMode(SDL_BlendMode blending) const;
+    void setAlpha(uint8_t alpha) const;
     int getWidth() const { return width_; };
     int getHeight() const { return height_; };
   protected:
-    void renderText(const uint32_t x, const uint32_t y, const SDL_Rect* clip = nullptr, const float angle = 0.0, const SDL_Point* center = nullptr, const SDL_RendererFlip flip = SDL_FLIP_NONE) const;
+    void renderText(uint32_t x, uint32_t y, const SDL_Rect* clip = nullptr, float angle = 0.0, const SDL_Point* center = nullptr, SDL_RendererFlip flip = SDL_FLIP_NONE) const;
   private:
     SDL_Texture * texture_ = nullptr;
     int width_ = 0;

@@ -8,14 +8,14 @@
 #ifndef __KINEMATIC_ARRIVE_H__
 #define __KINEMATIC_ARRIVE_H__ 1
 
-#include <ia/defines.h>
+#include "ia/defines.h"
 
 class KinematicArrive {
   public:
     KinematicArrive() {}
     ~KinematicArrive() {}
 
-    void calculate(const KinematicStatus& character, const KinematicStatus* target, KinematicSteering* steering) {
+    void calculate(const KinematicStatus& character, const KinematicStatus* target, KinematicSteering* steering) const {
       //direction to the target
       steering->velocity = (target->position - character.position);
       if (steering->velocity.length2() < sq_radius_) {  //inside the radius

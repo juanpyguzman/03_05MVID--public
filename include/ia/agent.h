@@ -8,8 +8,8 @@
 #ifndef __AGENT_H__
 #define __AGENT_H__ 1
 
-#include <ia/body.h>
-#include <ia/mind.h>
+#include "ia/body.h"
+#include "ia/mind.h""
 
 #include <cstdint>
 
@@ -20,8 +20,8 @@ class Agent {
     Agent() {};
     ~Agent() {};
 
-    void init(World* world, const Body::Color color, const Body::Type type);
-    void update(const uint32_t dt);
+    void init(World* world, Body::Color color, Body::Type type);
+    void update(uint32_t dt);
     void render() const;
     void shutdown();
 
@@ -29,7 +29,7 @@ class Agent {
     const KinematicStatus* getKinematic() const { return body_.getKinematic(); }
     KinematicStatus* getKinematic() { return body_.getKinematic(); }
   private:
-    World * world_;
+    World * world_ = nullptr;
 
     Body body_;
     Mind mind_;

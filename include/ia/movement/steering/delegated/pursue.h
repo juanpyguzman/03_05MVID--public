@@ -8,23 +8,23 @@
 #ifndef __PURSUE_H__
 #define __PURSUE_H__ 1
 
-#include <ia/defines.h>
-#include <ia/movement/steering/seek.h>
-#include <engine/debug_draw.h>
+#include "engine/debug_draw.h"
+#include "ia/defines.h"
+#include "ia/movement/steering/seek.h"
 
 class Pursue: public Seek {
   public:
     Pursue() {}
     ~Pursue() {}
 
-    virtual void calculate(const KinematicStatus& character, const KinematicStatus* target, Steering* steering) {
+    void calculate(const KinematicStatus& character, const KinematicStatus* target, Steering* steering) override {
       //distance to the target
       const float distance = (target->position - character.position).length();
-      float speed = character.velocity.length();    //speed of character
+      const float speed = character.velocity.length();    //speed of character
 
       float prediction = max_prediction_;           //max prediction
-      if (speed > (distance / max_prediction_)) {   //reasonable predicion
-        prediction = distance / speed;              //calc predicion time
+      if (speed > (distance / max_prediction_)) {   //reasonable prediction
+        prediction = distance / speed;              //calc prediction time
       }
 
       KinematicStatus new_target = *target;         //new target

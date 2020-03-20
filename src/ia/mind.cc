@@ -5,15 +5,15 @@
 //                                                       |___/___/\____/
 //----------------------------------------------------------------------------
 
-#include <ia/mind.h>
-#include <ia/body.h>
-#include <ia/world.h>
+#include "ia/mind.h"
+#include "ia/body.h"
+#include "ia/world.h"
 
 void Mind::init(World* world, Body* body) {
   world_ = world;
   body_ = body;
 }
 
-void Mind::update(const uint32_t dt) {
+void Mind::update(const uint32_t) const {
   body_->setTarget(world_->target());
 }

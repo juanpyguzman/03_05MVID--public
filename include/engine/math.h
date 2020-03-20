@@ -8,8 +8,9 @@
 #ifndef __ENGINE_DEFINES_H__
 #define __ENGINE_DEFINES_H__ 1
 
+#include "mathlib/vec2.h"
+
 #include <algorithm>
-#include <mathlib/vec2.h>
 #include <corecrt_math_defines.h>
 #define NOMINMAX
 
@@ -28,11 +29,11 @@ inline MathLib::Vec2 rotate2D(const MathLib::Vec2& pivot, const MathLib::Vec2& p
 
 //random value between two numbers
 inline float randomFloat(float a, float b) {
-  const float random = ((float)rand()) / (float)RAND_MAX;
+  const float random = static_cast<float>(rand()) / static_cast<float>(RAND_MAX);
   return a + (random * (b - a));
 }
 
-//wrap an angle between [-PI, PI)
+//wrap an angle between [-PI, PI)z
 inline float wrapAnglePI(double x) {
   x = fmod(x + M_PI, M_PI * 2.0f);
   if (x < 0) x += M_PI * 2.0f;

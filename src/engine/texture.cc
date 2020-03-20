@@ -5,13 +5,12 @@
 //                                                       |___/___/\____/
 //----------------------------------------------------------------------------
 
-#include <engine/texture.h>
-#include <engine/window.h>
-#include <ia/defines.h>
+#include "engine/texture.h"
+#include "engine/window.h"
+#include "ia/defines.h"
 
-#include <SDL/SDL_image.h>
 #include <cstdio>
-
+#include <SDL/SDL_image.h>
 
 Texture::Texture() {
 #if SDL_BYTEORDER == SDL_BIG_ENDIAN
@@ -69,7 +68,7 @@ bool Texture::loadFromRenderedText(const char* textureText, const SDL_Color& tex
     shadowOffset = 2;
   }
 
-  SDL_Surface* textSurface = nullptr;
+  SDL_Surface* textSurface;
   if (shadow) {
     SDL_Surface* textS;
     SDL_Surface* shadowS;

@@ -8,12 +8,12 @@
 #ifndef __FLEE_H__
 #define __FLEE_H__ 1
 
-#include <ia/defines.h>
+#include "ia/defines.h"
 
 class Flee {
   public:
     Flee() {}
-    ~Flee() {}
+    virtual ~Flee() {}
 
     virtual void calculate(const KinematicStatus& character, const KinematicStatus* target, Steering* steering) {
       //acceleration opposite to the target

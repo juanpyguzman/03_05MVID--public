@@ -8,10 +8,10 @@
 #ifndef __GAME_H__
 #define __GAME_H__ 1
 
-#include <engine/sprite.h>
-#include <engine/scene.h>
-#include <ia/defines.h>
-#include <ia/world.h>
+#include "engine/scene.h""
+#include "engine/sprite.h"
+#include "ia/defines.h""
+#include "ia/world.h""
 
 #include <SDL/SDL_ttf.h>
 
@@ -25,11 +25,11 @@ class Game {
     void shutdown();
   private:
     void handleInput();
-    void update(const uint32_t dt);
+    void update(uint32_t dt);
     void render();
 
     void createScenes();
-    void nextScene(const int8_t sign);
+    void nextScene(int8_t sign);
 
     bool quit_ = false;
     Sprite fps_sprite_;
