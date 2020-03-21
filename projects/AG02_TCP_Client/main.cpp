@@ -13,7 +13,7 @@ int main() {
     socket->connectTo(*address.get());
 
     constexpr size_t bufferLength = 255;
-    char buffer[bufferLength];
+    char buffer[bufferLength] = "\0";
 
     for (uint8_t i = 1; i < 10; ++i) {
       sprintf(buffer, "%d\0", i);
@@ -29,4 +29,6 @@ int main() {
   }
 
   SocketUtils::shutdown();
+
+  return 0;
 }
