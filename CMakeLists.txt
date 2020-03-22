@@ -48,6 +48,7 @@ set(ENGINE_HEADER_FILES
   ${CMAKE_CURRENT_LIST_DIR}/include/engine/game.h
   ${CMAKE_CURRENT_LIST_DIR}/include/engine/math.h
   ${CMAKE_CURRENT_LIST_DIR}/include/engine/scene.h
+  ${CMAKE_CURRENT_LIST_DIR}/include/engine/sprite.h
   ${CMAKE_CURRENT_LIST_DIR}/include/engine/texture.h
   ${CMAKE_CURRENT_LIST_DIR}/include/engine/window.h)
 
