@@ -6,6 +6,7 @@
 
 enum possibilities { end, piedra, papel, tijera, lagarto, spock };
 enum resultados { empate, serverWin, clientWin };
+std::mutex mutex;
 
 inline const char* enumToString(possibilities val)
 {
@@ -153,7 +154,6 @@ void game(TCPSocketPtr const& _connSocket)
     int serverPoints = 0;
     int clientPoints = 0;
 
-    std::mutex _mutex;
 
     for (;;)
     {
@@ -164,6 +164,16 @@ void game(TCPSocketPtr const& _connSocket)
         {
             break;
         }
+        if (serverPoints == 11)
+        {
+            break;
+        } 
+        else if (clientPoints == 11)
+        {
+            break;
+        }
+        
+        std::lock_guard<std::mutex> guard(mutex);
 
         //Servidor saca su jugada
         server = 1 + rand() % 5;
@@ -178,7 +188,6 @@ void game(TCPSocketPtr const& _connSocket)
 
         std::cout << "Cliente juega: " << enumToString(valClient) << " ------ Servidor juega: " << enumToString(valServer) << std::endl;
 
-        std::lock_guard<std::mutex> guard(_mutex);
         result(valServer, valClient, serverPoints, clientPoints);
 
     }
@@ -206,7 +215,7 @@ int main() {
             SocketAddress addressIn;
             connSockets.push_back(socket->acceptCon(addressIn));
             threads.push_back(std::thread(game, std::ref(connSockets.back())));
-            threads.back().detach();
+            threads.back().join();
         }
 
         /*SocketAddress addressIn;

@@ -178,7 +178,7 @@ int main() {
         int serverPoints = 0;
         int clientPoints = 0;
 
-        for (int i = 0; i < 5; ++i)
+        for (int i = 0; i < 20; ++i)
         {
             //Cliente saca su jugada
             //int hand = rand() % 5;
@@ -188,6 +188,14 @@ int main() {
             socket->sendTo(&hand, sizeof(int));
 
             if (hand == 0)
+            {
+                break;
+            }
+            if (serverPoints == 11)
+            {
+                break;
+            }
+            else if (clientPoints == 11)
             {
                 break;
             }
@@ -201,7 +209,7 @@ int main() {
             std::this_thread::sleep_for(std::chrono::milliseconds(500));
 
             std::cout << "Cliente juega: " << enumToString(valClient) << " ------ Servidor juega: " << enumToString(valServer) << std::endl;
-            if (i == 4) {
+            if (i == 19) {
                 hand = 0;
                 socket->sendTo(&hand, sizeof(int));
             }
