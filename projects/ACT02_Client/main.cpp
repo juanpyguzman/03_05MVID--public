@@ -18,6 +18,22 @@ inline const char* enumToString(possibilities val)
     }
 }
 
+void instructions() {
+    std::cout << "Piedra, papel, tijera, lagarto, Spock" << std::endl;
+    std::cout << "Juego jugador VS ordenador" << std::endl << std::endl;
+    std::cout << ".-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-." << std::endl;
+    std::cout << "En cada ronda introduce:" << std::endl;
+    std::cout << "1. Para jugar Piedra" << std::endl;
+    std::cout << "2. Para jugar Papel" << std::endl;
+    std::cout << "3. Para jugar Tijera" << std::endl;
+    std::cout << "4. Para jugar Lagarto" << std::endl;
+    std::cout << "5. Para jugar Spock" << std::endl;
+    std::cout << ".-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-." << std::endl;
+    std::cout << "Gana el primero en llegar a 11 puntos" << std::endl;
+    std::cout << "¡Buena Suerte!" << std::endl;
+    std::cout << ".-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-." << std::endl << std::endl << std::endl;   
+}
+
 void result(possibilities valServer, possibilities valClient, int& serverPoints, int& clientPoints) {
     resultados resultado;
 
@@ -147,6 +163,8 @@ int main() {
     SocketUtils::init();
 
     {
+        instructions();
+
         TCPSocketPtr socket = SocketUtils::createTCPSocket(SocketUtils::INET);
 
         SocketAddress addressFrom;

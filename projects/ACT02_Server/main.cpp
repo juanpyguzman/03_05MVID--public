@@ -153,6 +153,8 @@ void game(TCPSocketPtr const& _connSocket)
     int serverPoints = 0;
     int clientPoints = 0;
 
+    std::mutex _mutex;
+
     for (;;)
     {
         std::cout << "Esperando jugada desde el cliente" << std::endl;
@@ -176,6 +178,7 @@ void game(TCPSocketPtr const& _connSocket)
 
         std::cout << "Cliente juega: " << enumToString(valClient) << " ------ Servidor juega: " << enumToString(valServer) << std::endl;
 
+        std::lock_guard<std::mutex> guard(_mutex);
         result(valServer, valClient, serverPoints, clientPoints);
 
     }
@@ -185,6 +188,8 @@ void game(TCPSocketPtr const& _connSocket)
 }
 
 int main() {
+    std::vector<std::thread> threads;
+
     SocketUtils::init();
 
     {
@@ -195,10 +200,19 @@ int main() {
         socket->bindTo(*address.get());
         socket->listenTo();
 
-        SocketAddress addressIn;
+        std::vector<TCPSocketPtr> connSockets;
+        
+        for (;;) {
+            SocketAddress addressIn;
+            connSockets.push_back(socket->acceptCon(addressIn));
+            threads.push_back(std::thread(game, std::ref(connSockets.back())));
+            threads.back().detach();
+        }
+
+        /*SocketAddress addressIn;
         TCPSocketPtr connSocket = socket->acceptCon(addressIn);
         std::thread thread(game, std::ref(connSocket));
-        thread.join();
+        thread.join();*/
     }
 
     SocketUtils::shutdown();
