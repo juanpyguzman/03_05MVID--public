@@ -5,6 +5,7 @@
 #include <vector>
 
 enum possibilities { end, piedra, papel, tijera, lagarto, spock };
+enum resultados { empate, serverWin, clientWin };
 
 inline const char* enumToString(possibilities val)
 {
@@ -19,10 +20,138 @@ inline const char* enumToString(possibilities val)
     }
 }
 
-void game(TCPSocketPtr& _connSocket)
+void result(possibilities valServer, possibilities valClient, int &serverPoints, int &clientPoints) {
+    resultados resultado;
+    
+    switch (valServer) {
+    case piedra: {
+        if (valClient == piedra) {
+            resultado = empate;
+        }
+        else if (valClient == tijera) {
+            resultado = serverWin;
+        }
+        else if (valClient == lagarto) {
+            resultado = serverWin;
+        }
+        else if (valClient == papel) {
+            resultado = clientWin;
+        }
+        else if (valClient == spock) {
+            resultado = clientWin;
+        }
+        break;
+    }
+
+    case papel: {
+        if (valClient == papel) {
+            resultado = empate;
+        }
+        else if (valClient == piedra) {
+            resultado = serverWin;
+        }
+        else if (valClient == spock) {
+            resultado = serverWin;
+        }
+        else if (valClient == tijera) {
+            resultado = clientWin;
+        }
+        else if (valClient == lagarto) {
+            resultado = clientWin;
+        }
+        break;
+    }
+
+    case tijera: {
+        if (valClient == tijera) {
+            resultado = empate;
+        }
+        else if (valClient == papel) {
+            resultado = serverWin;
+        }
+        else if (valClient == lagarto) {
+            resultado = serverWin;
+        }
+        else if (valClient == piedra) {
+            resultado = clientWin;
+        }
+        else if (valClient == spock) {
+            resultado = clientWin;
+        }
+        break;
+    }
+
+    case lagarto: {
+        if (valClient == lagarto) {
+            resultado = empate;
+        }
+        else if (valClient == papel) {
+            resultado = serverWin;
+        }
+        else if (valClient == spock) {
+            resultado = serverWin;
+        }
+        else if (valClient == tijera) {
+            resultado = clientWin;
+        }
+        else if (valClient == piedra) {
+            resultado = clientWin;
+        }
+        break;
+    }
+
+    case spock: {
+        if (valClient == spock) {
+            resultado = empate;
+        }
+        else if (valClient == piedra) {
+            resultado = serverWin;
+        }
+        else if (valClient == tijera) {
+            resultado = serverWin;
+        }
+        else if (valClient == papel) {
+            resultado = clientWin;
+        }
+        else if (valClient == lagarto) {
+            resultado = clientWin;
+        }
+        break;
+    }
+
+    }
+
+    switch (resultado)
+    {
+    case empate: {
+        std::cout << "Empate en esta ronda" << std::endl;
+        break;
+    }
+
+    case serverWin: {
+        ++serverPoints;
+        std::cout << "Gana Server esta ronda" << std::endl;
+        break;
+    }
+
+    case clientWin: {
+        ++clientPoints;
+        std::cout << "Gana Client esta ronda" << std::endl;
+        break;
+    }
+    }
+
+    std::cout << "Puntuacion: " << "Client -> " << clientPoints << "   ----------- Server -> " << serverPoints << std::endl << std::endl << std::endl;
+
+}
+
+void game(TCPSocketPtr const& _connSocket)
 {
     int server;
     int client;
+
+    int serverPoints = 0;
+    int clientPoints = 0;
 
     for (;;)
     {
@@ -47,6 +176,7 @@ void game(TCPSocketPtr& _connSocket)
 
         std::cout << "Cliente juega: " << enumToString(valClient) << " ------ Servidor juega: " << enumToString(valServer) << std::endl;
 
+        result(valServer, valClient, serverPoints, clientPoints);
 
     }
 
@@ -56,7 +186,6 @@ void game(TCPSocketPtr& _connSocket)
 
 int main() {
     SocketUtils::init();
-    //std::vector<std::thread> threadsVector;
 
     {
         TCPSocketPtr socket = SocketUtils::createTCPSocket(SocketUtils::INET);
@@ -68,10 +197,8 @@ int main() {
 
         SocketAddress addressIn;
         TCPSocketPtr connSocket = socket->acceptCon(addressIn);
-       // std::thread thread = std::thread(game, connSocket);
-       // thread.detach();
-
-        game(connSocket);
+        std::thread thread(game, std::ref(connSocket));
+        thread.join();
     }
 
     SocketUtils::shutdown();
