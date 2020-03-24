@@ -182,8 +182,14 @@ int main() {
         {
             //Cliente saca su jugada
             //int hand = rand() % 5;
-            std::cout << "Introduzca su jugada del 1 al 5: ";
+            std::cout << "Introduzca su jugada del 1 al 5 o introduzca 0 para salir: ";
             std::cin >> hand;
+
+            if (hand < 0 || hand > 5)
+            {
+                std::cout << "Jugada incorrecta, introduzca una cifra del 1 al 5 o introduzca 0 para salir: ";
+                std::cin >> hand;
+            }
 
             socket->sendTo(&hand, sizeof(int));
 

@@ -193,7 +193,7 @@ void game(TCPSocketPtr const& _connSocket)
     }
 
     std::cout << "Partida finalizada";
-
+    
 }
 
 int main() {
@@ -218,10 +218,6 @@ int main() {
             threads.back().join();
         }
 
-        /*SocketAddress addressIn;
-        TCPSocketPtr connSocket = socket->acceptCon(addressIn);
-        std::thread thread(game, std::ref(connSocket));
-        thread.join();*/
     }
 
     SocketUtils::shutdown();
