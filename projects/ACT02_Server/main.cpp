@@ -172,8 +172,7 @@ void game(TCPSocketPtr const& _connSocket)
         {
             break;
         }
-        
-        std::lock_guard<std::mutex> guard(mutex);
+       
 
         //Servidor saca su jugada
         server = 1 + rand() % 5;
@@ -184,6 +183,7 @@ void game(TCPSocketPtr const& _connSocket)
 
         std::this_thread::sleep_for(std::chrono::milliseconds(500));
 
+        std::lock_guard<std::mutex> guard(mutex);
         _connSocket->sendTo(&server, sizeof(int));
 
         std::cout << "Cliente juega: " << enumToString(valClient) << " ------ Servidor juega: " << enumToString(valServer) << std::endl;
@@ -196,10 +196,9 @@ void game(TCPSocketPtr const& _connSocket)
     
 }
 
-int main() {
-    std::vector<std::thread> threads;
-
-    SocketUtils::init();
+void serverConnection()
+{
+    std::vector<std::thread> clientThreads;
 
     {
         TCPSocketPtr socket = SocketUtils::createTCPSocket(SocketUtils::INET);
@@ -207,20 +206,35 @@ int main() {
         SocketAddressPtr address = SocketUtils::createIPv4FromString("127.0.0.1:9090");
 
         socket->bindTo(*address.get());
-        socket->listenTo();
 
         std::vector<TCPSocketPtr> connSockets;
-        
+
         for (;;) {
+            socket->listenTo();
             SocketAddress addressIn;
             connSockets.push_back(socket->acceptCon(addressIn));
-            threads.push_back(std::thread(game, std::ref(connSockets.back())));
-            threads.back().join();
+            clientThreads.push_back(std::thread(game, std::ref(connSockets.back())));
+            clientThreads.back().detach();
         }
 
     }
 
+}
+
+void serverManage()
+{
+    SocketUtils::init();
+
+    std::thread socketThread(serverConnection);
+
+    socketThread.join();
+
     SocketUtils::shutdown();
+}
+
+int main() {
+
+    serverManage();
 
     return 0;
 }
