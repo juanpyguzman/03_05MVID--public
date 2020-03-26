@@ -146,8 +146,7 @@ void result(possibilities valServer, possibilities valClient, int &serverPoints,
 
 }
 
-void game(TCPSocketPtr const& _connSocket)
-{
+void game(TCPSocketPtr _connSocket) {
     int server;
     int client;
 
@@ -198,8 +197,6 @@ void game(TCPSocketPtr const& _connSocket)
 
 void serverConnection()
 {
-    std::vector<std::thread> clientThreads;
-
     {
         TCPSocketPtr socket = SocketUtils::createTCPSocket(SocketUtils::INET);
 
@@ -207,18 +204,14 @@ void serverConnection()
 
         socket->bindTo(*address.get());
 
-        std::vector<TCPSocketPtr> connSockets;
-
         for (;;) {
             socket->listenTo();
             SocketAddress addressIn;
-            connSockets.push_back(socket->acceptCon(addressIn));
-            clientThreads.push_back(std::thread(game, std::ref(connSockets.back())));
-            clientThreads.back().detach();
+            TCPSocketPtr sock = socket->acceptCon(addressIn);
+            std::thread t = std::thread(game, std::move(sock));
+            t.detach();
         }
-
     }
-
 }
 
 void serverManage()
