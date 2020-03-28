@@ -88,6 +88,13 @@ void SceneSteering::handleKeyEvent(const SDL_Keycode key) {
         }
       printf("Behavior Of Agent Changed To Velocity_Matching\n");
       break;
+    case SDLK_o:
+        for (uint16_t i = 0; i < world_->numIA(); ++i)
+        {
+            world_->ia(i)->setSteering(Body::SteeringMode::Separation);
+        }
+        printf("Behavior Of Agent Changed To Velocity_Matching\n");
+        break;
     case SDLK_a:
         for (uint16_t i = 0; i < world_->numIA(); ++i)
         {

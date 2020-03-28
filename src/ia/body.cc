@@ -81,6 +81,12 @@ void Body::update(const uint32_t dt) {
         updateSteering(dt, steer);
         setOrientation(state_.velocity);
         break; }
+      case SteeringMode::Separation: {
+          Steering steer;
+          separation_.calculate(state_, target_->getKinematic(), &steer);
+          updateSteering(dt, steer);
+          setOrientation(state_.velocity);
+          break; }
       case SteeringMode::Pursue: {
         Steering steer;
         pursue_.calculate(state_, target_->getKinematic(), &steer);

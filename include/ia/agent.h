@@ -29,7 +29,7 @@ class Agent {
     const KinematicStatus* getKinematic() const { return body_.getKinematic(); }
     KinematicStatus* getKinematic() { return body_.getKinematic(); }
   private:
-    World * world_ = nullptr;
+    World* world_ = nullptr;
 
     Body body_;
     Mind mind_;

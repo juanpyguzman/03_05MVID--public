@@ -78,7 +78,8 @@ set(IA_HEADER_FILES
   ${CMAKE_CURRENT_LIST_DIR}/include/ia/movement/steering/arrive.h
   ${CMAKE_CURRENT_LIST_DIR}/include/ia/movement/steering/flee.h
   ${CMAKE_CURRENT_LIST_DIR}/include/ia/movement/steering/seek.h
-  ${CMAKE_CURRENT_LIST_DIR}/include/ia/movement/steering/velocity_matching.h)
+  ${CMAKE_CURRENT_LIST_DIR}/include/ia/movement/steering/velocity_matching.h
+  ${CMAKE_CURRENT_LIST_DIR}/include/ia/movement/steering/separation.h)
 
 source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR}/src
   PREFIX "Source Files"

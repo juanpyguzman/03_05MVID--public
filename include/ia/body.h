@@ -23,6 +23,7 @@
 #include "ia/movement/steering/flee.h"
 #include "ia/movement/steering/seek.h"
 #include "ia/movement/steering/velocity_matching.h"
+#include "ia/movement/steering/separation.h"
 #include "mathlib/vec2.h"
 
 class Agent;
@@ -51,6 +52,7 @@ class Body {
       Arrive,                 //e
       Align,                  //r
       Velocity_Matching,      //t
+      Separation,             //o
       Pursue,                 //a       Steering Delegated
       Face,                   //s
       LookGoing,              //d
@@ -103,6 +105,7 @@ class Body {
     Arrive arrive_;
     Align align_;
     VelocityMatching vel_matching_;
+    Separation separation_;
 
     Pursue pursue_;
     Face face_;
