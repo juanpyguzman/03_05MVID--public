@@ -13,11 +13,13 @@ public:
     Separation() {}
     virtual ~Separation() {}
 
-    virtual void calculate(Agent* thisAgent, World* world, Steering* steering);
+    virtual void calculate(Agent* thisAgent, World* world, Steering* steering, const float separationComponent);
 
 private:
     const float max_acceleration_ = 5.0f;
-    const float radius_ = 5000.0f;
+    float separationComponent_;
+    const float radius_ = 10000.0f;
+    Vec2 steeringLinear;
     uint16_t neighboursNum = 0;
     const KinematicStatus* target_;
     World* world_ = nullptr;

@@ -1,12 +1,13 @@
 
 #include "ia/world.h"
 
-void Cohesion::calculate(Agent* thisAgent, World* world, Steering* steering) {
+void Cohesion::calculate(Agent* thisAgent, World* world, Steering* steering, const float cohesionComponent) {
     /*//acceleration opposite to the neighbour
     steering->linear = (character.position - target->position).normalized() * max_acceleration_;
     steering->angular = 0.0f;   //no angular*/
     world_ = world;
     neighboursNum = 0;
+    cohesionComponent_ = cohesionComponent;
     centerOfMass = thisAgent->getKinematic()->position;
     for (uint16_t i = 0; i < world_->numIA(); ++i)
     {
@@ -28,7 +29,7 @@ void Cohesion::calculate(Agent* thisAgent, World* world, Steering* steering) {
         steering->angular = 0.0f;   //no angular
     }
     else {
-        steering->linear += (centerOfMass/neighboursNum - thisAgent->getKinematic()->position).normalized() * max_acceleration_;
+        steering->linear += (centerOfMass/neighboursNum - thisAgent->getKinematic()->position).normalized() * cohesionComponent_* max_acceleration_;
         steering->angular = 0.0f;   //no angular
     }
 

@@ -83,21 +83,9 @@ void Body::update(const uint32_t dt) {
         updateSteering(dt, steer);
         setOrientation(state_.velocity);
         break; }
-      case SteeringMode::Separation: {
+      case SteeringMode::Flocking: {
           Steering steer;
-          separation_.calculate(thisAgent_, world_, &steer);
-          updateSteering(dt, steer);
-          setOrientation(state_.velocity);
-          break; }
-      case SteeringMode::Cohesion: {
-          Steering steer;
-          cohesion_.calculate(thisAgent_, world_, &steer);
-          updateSteering(dt, steer);
-          setOrientation(state_.velocity);
-          break; }
-      case SteeringMode::Alignment: {
-          Steering steer;
-          alignment_.calculate(thisAgent_, world_, &steer);
+          flocking_.calculate(thisAgent_, world_, target_->getKinematic(), &steer);
           updateSteering(dt, steer);
           setOrientation(state_.velocity);
           break; }

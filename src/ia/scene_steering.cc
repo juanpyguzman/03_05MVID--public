@@ -91,23 +91,9 @@ void SceneSteering::handleKeyEvent(const SDL_Keycode key) {
     case SDLK_o:
         for (uint16_t i = 0; i < world_->numIA(); ++i)
         {
-            world_->ia(i)->setSteering(Body::SteeringMode::Separation);
+            world_->ia(i)->setSteering(Body::SteeringMode::Flocking);
         }
-        printf("Behavior Of Agent Changed To Separation\n");
-        break;
-    case SDLK_p:
-        for (uint16_t i = 0; i < world_->numIA(); ++i)
-        {
-            world_->ia(i)->setSteering(Body::SteeringMode::Cohesion);
-        }
-        printf("Behavior Of Agent Changed To Cohesion\n");
-        break;
-    case SDLK_i:
-        for (uint16_t i = 0; i < world_->numIA(); ++i)
-        {
-            world_->ia(i)->setSteering(Body::SteeringMode::Alignment);
-        }
-        printf("Behavior Of Agent Changed To Alignment\n");
+        printf("Behavior Of Agents Changed To Flocking\n");
         break;
     case SDLK_a:
         for (uint16_t i = 0; i < world_->numIA(); ++i)
