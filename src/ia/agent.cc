@@ -10,7 +10,7 @@
 
 void Agent::init(World* world, const Body::Color color, const Body::Type type) {
   world_ = world;
-  body_.init(color, type);
+  body_.init(this, world, color, type);
   mind_.init(world, &body_);
 }
 

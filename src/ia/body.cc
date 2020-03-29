@@ -10,9 +10,11 @@
 #include "ia/agent.h"
 #include "ia/defines.h"
 
-void Body::init(const Color color, const Type type) {
+void Body::init(Agent* thisAgent, World* world, const Color color, const Type type) {
   type_ = type;
   color_ = color;
+  world_ = world;
+  thisAgent_ = thisAgent;
 
   switch(color) {
     case Color::Green: sprite_.loadFromFile(AGENT_GREEN_PATH); break;
@@ -83,7 +85,19 @@ void Body::update(const uint32_t dt) {
         break; }
       case SteeringMode::Separation: {
           Steering steer;
-          separation_.calculate(state_, target_->getKinematic(), &steer);
+          separation_.calculate(thisAgent_, world_, &steer);
+          updateSteering(dt, steer);
+          setOrientation(state_.velocity);
+          break; }
+      case SteeringMode::Cohesion: {
+          Steering steer;
+          cohesion_.calculate(thisAgent_, world_, &steer);
+          updateSteering(dt, steer);
+          setOrientation(state_.velocity);
+          break; }
+      case SteeringMode::Alignment: {
+          Steering steer;
+          alignment_.calculate(thisAgent_, world_, &steer);
           updateSteering(dt, steer);
           setOrientation(state_.velocity);
           break; }

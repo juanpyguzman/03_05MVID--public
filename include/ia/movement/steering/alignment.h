@@ -1,5 +1,5 @@
-#ifndef __SEPARATION_H__
-#define __SEPARATION_H__ 1
+#ifndef __ALIGNMENT_H__
+#define __ALIGNMENT_H__ 1
 
 #include "ia/defines.h"
 #include <cstdint>
@@ -8,10 +8,10 @@ class World;
 class Body;
 class Agent;
 
-class Separation {
+class Alignment {
 public:
-    Separation() {}
-    virtual ~Separation() {}
+    Alignment() {}
+    virtual ~Alignment() {}
 
     virtual void calculate(Agent* thisAgent, World* world, Steering* steering);
 

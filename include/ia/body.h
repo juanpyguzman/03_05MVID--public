@@ -24,9 +24,13 @@
 #include "ia/movement/steering/seek.h"
 #include "ia/movement/steering/velocity_matching.h"
 #include "ia/movement/steering/separation.h"
+#include "ia/movement/steering/cohesion.h"
+#include "ia/movement/steering/alignment.h"
 #include "mathlib/vec2.h"
 
 class Agent;
+
+class World;
 
 class Body {
   public:
@@ -53,6 +57,8 @@ class Body {
       Align,                  //r
       Velocity_Matching,      //t
       Separation,             //o
+      Cohesion,               //p
+      Alignment,              //i
       Pursue,                 //a       Steering Delegated
       Face,                   //s
       LookGoing,              //d
@@ -62,7 +68,7 @@ class Body {
     Body() {};
     ~Body() {};
 
-    void init(Color color, Type type);
+    void init(Agent* thisAgent, World* world, Color color, Type type);
     void update(uint32_t dt);
     void render() const;
 
@@ -83,6 +89,8 @@ class Body {
     Color color_;
     SteeringMode steering_mode_;
     Agent* target_;
+    Agent* thisAgent_;
+    World* world_;
 
     const float max_speed_ = 100.0f;
 
@@ -106,6 +114,8 @@ class Body {
     Align align_;
     VelocityMatching vel_matching_;
     Separation separation_;
+    Cohesion cohesion_;
+    Alignment alignment_;
 
     Pursue pursue_;
     Face face_;

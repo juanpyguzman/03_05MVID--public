@@ -53,6 +53,8 @@ class World {
 
     Agent* target() { return &target_; }
     Agent* ia(uint16_t i) { return &ia_[i]; }
+    Agent* agentsIA() { return ia_; }
+
   private:
     Agent target_;
     Agent ia_[10]; //Definimos aquí el número de Agentes de la IA

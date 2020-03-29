@@ -56,7 +56,10 @@ set(IA_SRC_FILES
   ${CMAKE_CURRENT_LIST_DIR}/src/ia/agent.cc
   ${CMAKE_CURRENT_LIST_DIR}/src/ia/body.cc
   ${CMAKE_CURRENT_LIST_DIR}/src/ia/mind.cc
-  ${CMAKE_CURRENT_LIST_DIR}/src/ia/scene_steering.cc)
+  ${CMAKE_CURRENT_LIST_DIR}/src/ia/scene_steering.cc
+  ${CMAKE_CURRENT_LIST_DIR}/src/ia/movement/steering/separation.cc
+  ${CMAKE_CURRENT_LIST_DIR}/src/ia/movement/steering/cohesion.cc
+  ${CMAKE_CURRENT_LIST_DIR}/src/ia/movement/steering/alignment.cc)
 
 set(IA_HEADER_FILES
   ${CMAKE_CURRENT_LIST_DIR}/include/ia/agent.h
@@ -79,7 +82,9 @@ set(IA_HEADER_FILES
   ${CMAKE_CURRENT_LIST_DIR}/include/ia/movement/steering/flee.h
   ${CMAKE_CURRENT_LIST_DIR}/include/ia/movement/steering/seek.h
   ${CMAKE_CURRENT_LIST_DIR}/include/ia/movement/steering/velocity_matching.h
-  ${CMAKE_CURRENT_LIST_DIR}/include/ia/movement/steering/separation.h)
+  ${CMAKE_CURRENT_LIST_DIR}/include/ia/movement/steering/separation.h
+  ${CMAKE_CURRENT_LIST_DIR}/include/ia/movement/steering/cohesion.h
+  ${CMAKE_CURRENT_LIST_DIR}/include/ia/movement/steering/alignment.h)
 
 source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR}/src
   PREFIX "Source Files"
