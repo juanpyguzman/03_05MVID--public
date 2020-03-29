@@ -13,17 +13,37 @@ void Alignment::calculate(Agent* thisAgent, World* world, Steering* steering) {
         if (world->ia(i) != thisAgent) {
             if ((thisAgent->getKinematic()->position - target_->position).length2() < radius_)
             {
-                steering->linear += (thisAgent->getKinematic()->position - target_->position).normalized() * max_acceleration_;
-                steering->angular = 0.0f;   //no angular
                 neighboursNum++;
+                const float rotation = wrapAnglePI(target_->orientation - thisAgent->getKinematic()->orientation);
+                const float rotation_size = abs(rotation);
+
+                float target_rotation = max_rotation_;
+
+                if (rotation_size < slow_radius_) {           
+            
+                    target_rotation = (max_rotation_ * rotation_size) / slow_radius_;
+                }
+
+                target_rotation *= sign(rotation);      //positive or negative
+                //angular acceleration adjusted to time
+                steering->angular = (target_rotation - thisAgent->getKinematic()->orientation) / time_to_target_;
+                if (abs(steering->angular) > max_ang_acc_) {   //too fast
+                  //normalized to max
+                    steering->angular += sign(steering->angular) * max_ang_acc_;
+                }
+
+                steering->linear = MathLib::Vec2(0.0f, 0.0f);     //no linear
             }
         }
 
     }
 
+    steering->angular = steering->angular / neighboursNum;
+
     if (neighboursNum == 0)
     {
         steering->linear = Vec2(0.0f, 0.0f);
+        steering->angular = 0.0f;   //no angular
     }
 
 }

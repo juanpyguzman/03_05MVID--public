@@ -59,7 +59,8 @@ set(IA_SRC_FILES
   ${CMAKE_CURRENT_LIST_DIR}/src/ia/scene_steering.cc
   ${CMAKE_CURRENT_LIST_DIR}/src/ia/movement/steering/separation.cc
   ${CMAKE_CURRENT_LIST_DIR}/src/ia/movement/steering/cohesion.cc
-  ${CMAKE_CURRENT_LIST_DIR}/src/ia/movement/steering/alignment.cc)
+  ${CMAKE_CURRENT_LIST_DIR}/src/ia/movement/steering/alignment.cc
+  ${CMAKE_CURRENT_LIST_DIR}/src/ia/movement/steering/delegated/flocking.cc)
 
 set(IA_HEADER_FILES
   ${CMAKE_CURRENT_LIST_DIR}/include/ia/agent.h
@@ -77,6 +78,7 @@ set(IA_HEADER_FILES
   ${CMAKE_CURRENT_LIST_DIR}/include/ia/movement/steering/delegated/lookgoing.h
   ${CMAKE_CURRENT_LIST_DIR}/include/ia/movement/steering/delegated/pursue.h
   ${CMAKE_CURRENT_LIST_DIR}/include/ia/movement/steering/delegated/wander.h
+  ${CMAKE_CURRENT_LIST_DIR}/include/ia/movement/steering/delegated/flocking.h
   ${CMAKE_CURRENT_LIST_DIR}/include/ia/movement/steering/align.h
   ${CMAKE_CURRENT_LIST_DIR}/include/ia/movement/steering/arrive.h
   ${CMAKE_CURRENT_LIST_DIR}/include/ia/movement/steering/flee.h

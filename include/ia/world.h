@@ -57,7 +57,7 @@ class World {
 
   private:
     Agent target_;
-    Agent ia_[10]; //Definimos aquí el número de Agentes de la IA
+    Agent ia_[5]; //Definimos aquí el número de Agentes de la IA
 };
 
 #endif

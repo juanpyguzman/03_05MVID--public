@@ -16,12 +16,14 @@ public:
     virtual void calculate(Agent* thisAgent, World* world, Steering* steering);
 
 private:
-    const float max_acceleration_ = 5.0f;
-    const float radius_ = 10.0f;
+    const float radius_ = 5000.0f;
+    const float max_ang_acc_ = 2.0f;
+    const float max_rotation_ = 2.0f;
+    const float slow_radius_ = 0.2f;
+    const float time_to_target_ = 0.1f;
     uint16_t neighboursNum = 0;
     const KinematicStatus* target_;
     World* world_ = nullptr;
-    
     
 };
 #endif

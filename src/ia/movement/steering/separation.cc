@@ -11,6 +11,7 @@ void Separation::calculate(Agent* thisAgent, World* world, Steering* steering) {
     {
         target_ = world_->ia(i)->getKinematic();
         if (world->ia(i) != thisAgent) {
+            //std::cout << (thisAgent->getKinematic()->position - target_->position).length2() << std::endl;
             if ((thisAgent->getKinematic()->position - target_->position).length2() < radius_)
             {
                 steering->linear += (thisAgent->getKinematic()->position - target_->position).normalized() * max_acceleration_;
