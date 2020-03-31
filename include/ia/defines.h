@@ -26,6 +26,7 @@
 #define AGENT_RED_PATH "../assets/images/agent_red.png"
 #define AGENT_GREEN_PATH "../assets/images/agent_green.png"
 #define AGENT_PURPLE_PATH "../assets/images/agent_purple.png"
+#define BACKGROUND_MAP "../assets/images/mapa.bmp"
 
 #define FPS_FONT_SIZE 12
 

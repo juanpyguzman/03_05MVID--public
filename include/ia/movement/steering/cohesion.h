@@ -16,9 +16,14 @@ public:
     virtual void calculate(Agent* thisAgent, World* world, Steering* steering, const float cohesionComponent);
 
 private:
-    const float max_acceleration_ = 5.0f;
     float cohesionComponent_;
+
+    const float max_acceleration_ = 5.0f;
     const float radius_ = 10000.0f;
+    const float max_speed_ = 100.0f;
+    const float slow_radius_ = 100.0f;
+    const float time_to_target_ = 1.0f;
+
     Vec2 centerOfMass;
     uint16_t neighboursNum = 0;
     const KinematicStatus* target_;

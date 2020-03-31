@@ -23,6 +23,7 @@ void Game::init() {
 
   createScenes();
   world_.target()->getKinematic()->position = MathLib::Vec2(0.0f, 0.0f);
+  background_sprite_.loadFromFile(BACKGROUND_MAP);
 }
 
 void Game::start() {
@@ -144,6 +145,8 @@ void Game::render() {
   SDL_Renderer* renderer = Window::instance().getRenderer();
   SDL_SetRenderDrawColor(renderer, 0xD0, 0xD0, 0xD0, 0xFF);
   SDL_RenderClear(renderer);
+  background_sprite_.setVisible(true);
+  background_sprite_.render();
 
   fps_sprite_.render();
   scenes_[curr_scene_]->render();

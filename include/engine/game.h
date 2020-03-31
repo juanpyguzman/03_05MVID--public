@@ -33,6 +33,7 @@ class Game {
 
     bool quit_ = false;
     Sprite fps_sprite_;
+    Sprite background_sprite_;
     TTF_Font* font_ = nullptr;
 
     int8_t curr_scene_ = 0;

@@ -29,7 +29,16 @@ void Cohesion::calculate(Agent* thisAgent, World* world, Steering* steering, con
         steering->angular = 0.0f;   //no angular
     }
     else {
-        steering->linear += (centerOfMass/neighboursNum - thisAgent->getKinematic()->position).normalized() * cohesionComponent_* max_acceleration_;
+        const MathLib::Vec2 direction = centerOfMass - thisAgent->getKinematic()->position;
+        const float distance = direction.length();
+        float target_speed = max_speed_;      //max speed
+        if (distance < slow_radius_) {        //inside the slow zone
+          //speed slowing down
+            target_speed = (max_speed_ * distance) / slow_radius_;
+        }
+        //velocity towards the target
+        const MathLib::Vec2 target_velocity = direction.normalized() * target_speed;
+        steering->linear += ((target_velocity/neighboursNum - thisAgent->getKinematic()->velocity)/time_to_target_).normalized() * cohesionComponent_* max_acceleration_;
         steering->angular = 0.0f;   //no angular
     }
 
