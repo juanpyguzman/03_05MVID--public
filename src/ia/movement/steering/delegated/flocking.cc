@@ -3,11 +3,16 @@
 void Flocking::calculate(Agent* thisAgent, World* world, const KinematicStatus* target, Steering* steering) {
 	world_ = world;
 
-	separation_.calculate(thisAgent, world, steering, separationComponent_);
-	cohesion_.calculate(thisAgent, world, steering, cohesionComponent_);
-	alignment_.calculate(thisAgent, world, steering, alignmentComponent_);
+	separation_.calculate(thisAgent, world, steering);
+	cohesion_.calculate(thisAgent, world, steering);
 
-	//Seek component
-	steering->linear = (target->position - thisAgent->getKinematic()->position).normalized() *seekComponent_ * max_acceleration_;
+	alignment_.calculate(thisAgent, world, steering);
+	seek_ = (target->position - thisAgent->getKinematic()->position).normalized() * max_acceleration_;
+	
 
+	steering->linear = seek_*seekComponent_ 
+						+ cohesion_.getSteeringLinear() * cohesionComponent_
+						+ separation_.getSteeringLinear() * separationComponent_;
+
+	steering->angular = alignment_.getSteeringAngular();
 }

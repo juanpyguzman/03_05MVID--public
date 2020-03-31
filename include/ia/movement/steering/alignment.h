@@ -13,7 +13,9 @@ public:
     Alignment() {}
     virtual ~Alignment() {}
 
-    virtual void calculate(Agent* thisAgent, World* world, Steering* steering, const float alignmentComponent);
+    virtual void calculate(Agent* thisAgent, World* world, Steering* steering);
+
+    float getSteeringAngular();
 
 private:
     const float radius_ = 10000.0f;
@@ -21,8 +23,9 @@ private:
     const float max_rotation_ = 2.0f;
     const float slow_radius_ = 0.2f;
     const float time_to_target_ = 0.1f;
-    float alignmentComponent_;
-    float steeringAngular;
+    
+    float steeringAngular_;
+    
     uint16_t neighboursNum = 0;
     const KinematicStatus* target_;
     World* world_ = nullptr;

@@ -1,13 +1,12 @@
 
 #include "ia/world.h"
 
-void Cohesion::calculate(Agent* thisAgent, World* world, Steering* steering, const float cohesionComponent) {
+void Cohesion::calculate(Agent* thisAgent, World* world, Steering* steering) {
     /*//acceleration opposite to the neighbour
     steering->linear = (character.position - target->position).normalized() * max_acceleration_;
     steering->angular = 0.0f;   //no angular*/
     world_ = world;
     neighboursNum = 0;
-    cohesionComponent_ = cohesionComponent;
     centerOfMass = thisAgent->getKinematic()->position;
     for (uint16_t i = 0; i < world_->numIA(); ++i)
     {
@@ -25,8 +24,8 @@ void Cohesion::calculate(Agent* thisAgent, World* world, Steering* steering, con
 
     if (neighboursNum == 0)
     {
-        steering->linear = Vec2(0.0f, 0.0f);
-        steering->angular = 0.0f;   //no angular
+        steeringLinear_ = Vec2(0.0f, 0.0f);
+        //steering->angular = 0.0f;   //no angular
     }
     else {
         const MathLib::Vec2 direction = centerOfMass - thisAgent->getKinematic()->position;
@@ -38,8 +37,14 @@ void Cohesion::calculate(Agent* thisAgent, World* world, Steering* steering, con
         }
         //velocity towards the target
         const MathLib::Vec2 target_velocity = direction.normalized() * target_speed;
-        steering->linear += ((target_velocity/neighboursNum - thisAgent->getKinematic()->velocity)/time_to_target_).normalized() * cohesionComponent_* max_acceleration_;
-        steering->angular = 0.0f;   //no angular
+        //steering->linear += ((target_velocity/neighboursNum - thisAgent->getKinematic()->velocity)/time_to_target_).normalized() * cohesionComponent_* max_acceleration_;
+        //steering->angular = 0.0f;   //no angular
+
+        steeringLinear_ = ((target_velocity / neighboursNum - thisAgent->getKinematic()->velocity) / time_to_target_).normalized() * max_acceleration_;
     }
 
+}
+
+Vec2 Cohesion::getSteeringLinear() {
+    return steeringLinear_;
 }

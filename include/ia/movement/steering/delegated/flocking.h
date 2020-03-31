@@ -24,11 +24,12 @@ private:
     Separation separation_;
     Cohesion cohesion_;
     Alignment alignment_;
+    Vec2 seek_;
 
-    const float separationComponent_ = 0.4f;
-    const float cohesionComponent_ = 0.15f;
-    const float alignmentComponent_ = 0.10f;
-    const float seekComponent_ = 0.35f;
+    const float separationComponent_ = 0.15f;
+    const float cohesionComponent_ = 0.30f;
+    const float alignmentComponent_ = 0.10;
+    const float seekComponent_ = 0.45f;
 
     const float max_acceleration_ = 5.0f;
     World* world_ = nullptr;

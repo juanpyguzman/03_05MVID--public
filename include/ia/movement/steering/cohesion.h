@@ -13,10 +13,13 @@ public:
     Cohesion() {}
     virtual ~Cohesion() {}
 
-    virtual void calculate(Agent* thisAgent, World* world, Steering* steering, const float cohesionComponent);
+    virtual void calculate(Agent* thisAgent, World* world, Steering* steering);
+
+    Vec2 getSteeringLinear();
 
 private:
-    float cohesionComponent_;
+    Vec2 steeringLinear_;
+    float steeringAngular_;
 
     const float max_acceleration_ = 5.0f;
     const float radius_ = 10000.0f;

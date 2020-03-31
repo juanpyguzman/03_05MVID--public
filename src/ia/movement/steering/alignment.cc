@@ -1,14 +1,13 @@
 
 #include "ia/world.h"
 
-void Alignment::calculate(Agent* thisAgent, World* world, Steering* steering, const float alignmentComponent) {
+void Alignment::calculate(Agent* thisAgent, World* world, Steering* steering) {
     /*//acceleration opposite to the neighbour
     steering->linear = (character.position - target->position).normalized() * max_acceleration_;
     steering->angular = 0.0f;   //no angular*/
     world_ = world;
     neighboursNum = 0;
-    alignmentComponent_ = alignmentComponent;
-    steeringAngular = 0.0f;
+    steeringAngular_ = 0.0f;
     for (uint16_t i = 0; i < world_->numIA(); ++i)
     {
         target_ = world_->ia(i)->getKinematic();
@@ -31,7 +30,7 @@ void Alignment::calculate(Agent* thisAgent, World* world, Steering* steering, co
                 steering->angular = (target_rotation - thisAgent->getKinematic()->orientation) / time_to_target_;
                 if (abs(steering->angular) > max_ang_acc_) {   //too fast
                   //normalized to max
-                    steeringAngular += sign(steering->angular) * max_ang_acc_;
+                    steeringAngular_ += sign(steering->angular) * max_ang_acc_;
                 }
             }
         }
@@ -40,13 +39,15 @@ void Alignment::calculate(Agent* thisAgent, World* world, Steering* steering, co
 
     if (neighboursNum == 0)
     {
-        steering->linear = Vec2(0.0f, 0.0f);
-        steering->angular = 0.0f;   //no angular
+        steeringAngular_ = 0.0f;   //no angular
     }
 
     else {
-        steering->angular = (steeringAngular / neighboursNum) * alignmentComponent_;
-        steering->linear = MathLib::Vec2(0.0f, 0.0f);     //no linear
+        steeringAngular_ = (steeringAngular_ / neighboursNum);
     }
 
+}
+
+float Alignment::getSteeringAngular() {
+    return steeringAngular_;
 }

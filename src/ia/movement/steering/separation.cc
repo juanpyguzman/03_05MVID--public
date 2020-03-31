@@ -1,14 +1,13 @@
 
 #include "ia/world.h"
 
-void Separation::calculate(Agent* thisAgent, World* world, Steering* steering, const float separationComponent) {
+void Separation::calculate(Agent* thisAgent, World* world, Steering* steering) {
     /*//acceleration opposite to the neighbour
     steering->linear = (character.position - target->position).normalized() * max_acceleration_;
     steering->angular = 0.0f;   //no angular*/
     world_ = world;
-    separationComponent_ = separationComponent;
     neighboursNum = 0;
-    steeringLinear = Vec2(0.0f, 0.0f);
+    steeringLinear_ = Vec2(0.0f, 0.0f);
     for (uint16_t i = 0; i < world_->numIA(); ++i)
     {
         target_ = world_->ia(i)->getKinematic();
@@ -16,7 +15,7 @@ void Separation::calculate(Agent* thisAgent, World* world, Steering* steering, c
             //std::cout << (thisAgent->getKinematic()->position - target_->position).length2() << std::endl;
             if ((thisAgent->getKinematic()->position - target_->position).length2() < radius_)
             {
-                steeringLinear += (thisAgent->getKinematic()->position - target_->position).normalized() * max_acceleration_;
+                steeringLinear_ += (thisAgent->getKinematic()->position - target_->position).normalized() * max_acceleration_;
                 neighboursNum++;
             }
         }
@@ -25,13 +24,21 @@ void Separation::calculate(Agent* thisAgent, World* world, Steering* steering, c
 
     if (neighboursNum == 0)
     {
-        steering->linear = Vec2(0.0f, 0.0f);
+        //steering->linear = Vec2(0.0f, 0.0f);
+        steeringLinear_ = Vec2(0.0f, 0.0f);
     }
 
     else
     {
-        steering->linear = (steeringLinear / neighboursNum) * separationComponent_;   //no angular;
-        steering->angular = 0.0f;   //no angular
+        //steering->linear = (steeringLinear / neighboursNum) * separationComponent_;   //no angular;
+        //steering->angular = 0.0f;   //no angular
+
+        steeringLinear_ = (steeringLinear_ / neighboursNum);
     }
 
+}
+
+Vec2 Separation::getSteeringLinear()
+{
+    return steeringLinear_;
 }
