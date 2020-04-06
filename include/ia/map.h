@@ -17,9 +17,8 @@
 class Map {
   public:
 
-    void loadMap() {
-      SDL_Surface* map_image;
-      if ((map_image = SDL_LoadBMP("../assets/images/costes.bmp")) == false)
+    void loadMap(SDL_Surface* map_image) {
+        if ((map_image = SDL_LoadBMP("../assets/images/costes.bmp")) == false)
         return;
 
       SDL_LockSurface(map_image);
@@ -44,6 +43,10 @@ class Map {
       }
 
       SDL_UnlockSurface(map_image);
+    }
+
+    uint8_t getMap(int i, int j) {
+        return map_l1[i][j];
     }
 
   private:

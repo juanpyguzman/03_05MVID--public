@@ -15,5 +15,5 @@ void Mind::init(World* world, Body* body) {
 }
 
 void Mind::update(const uint32_t) const {
-  body_->setTarget(world_->target());
+  //body_->setTarget(world_->target());
 }

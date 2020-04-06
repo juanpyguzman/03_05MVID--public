@@ -24,7 +24,7 @@ void SceneSteering::update(const uint32_t dt) {}
 void SceneSteering::handleMouseEvent(const SDL_Event e) {}
 
 void SceneSteering::handleKeyEvent(const SDL_Keycode key) {
-  switch (key) {
+  /*switch (key) {
     case SDLK_1:
       world_->ia()->setSteering(Body::SteeringMode::Kinematic_Seek);
       printf("Behavior Of Agent Changed To Kinematic_Seek\n");
@@ -78,7 +78,7 @@ void SceneSteering::handleKeyEvent(const SDL_Keycode key) {
       printf("Behavior Of Agent Changed To Wander\n");
       break;
     default:{}
-  }
+  }*/
 }
 
 void SceneSteering::render() {}

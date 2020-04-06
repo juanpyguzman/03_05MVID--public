@@ -17,22 +17,26 @@ using MathLib::Vec2;
 class World {
   public:
     World() {
-      target_.init(this, Body::Color::Red, Body::Type::Manual);
-      ia_.init(this, Body::Color::Green, Body::Type::Autonomous);
-      ia_.getKinematic()->position = Vec2(WINDOW_WIDTH / 2, WINDOW_HEIGHT / 2);
+      //target_.init(this, Body::Color::Red, Body::Type::Manual);
+      //ia_.init(this, Body::Color::Green, Body::Type::Autonomous);
+     // ia_.getKinematic()->position = Vec2(WINDOW_WIDTH / 2, WINDOW_HEIGHT / 2);
     };
     ~World() {
-      target_.shutdown();
-      ia_.shutdown();
+      //target_.shutdown();
+      //ia_.shutdown();
     };
 
-    void update(const float dt) { target_.update(dt); ia_.update(dt); }
-    void render() const { target_.render(); ia_.render(); }
+    void update(const float dt) { 
+        //target_.update(dt); ia_.update(dt); 
+    }
+    void render() const { 
+        //target_.render(); ia_.render(); 
+    }
 
-    Agent* target() { return &target_; }
-    Agent* ia() { return &ia_; }
+    //Agent* target() { return &target_; }
+    //Agent* ia() { return &ia_; }
   private:
-    Agent target_, ia_;
+    //Agent target_, ia_;
 };
 
 #endif

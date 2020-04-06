@@ -10,8 +10,8 @@
 #include "engine/window.h"
 #include "ia/defines.h"
 #include "ia/scene_steering.h"
+#include <chrono>
 
-#include <cstdio>
 
 void Game::init() {
   font_ = TTF_OpenFont(FONT_FILE, FPS_FONT_SIZE);
@@ -22,7 +22,8 @@ void Game::init() {
   fps_sprite_.setVisible(false);
 
   createScenes();
-  world_.target()->getKinematic()->position = MathLib::Vec2(0.0f, 0.0f);
+  //world_.target()->getKinematic()->position = MathLib::Vec2(0.0f, 0.0f);
+  background_sprite_.loadFromFile(BACKGROUND_MAP);
 }
 
 void Game::start() {
@@ -33,12 +34,16 @@ void Game::start() {
   uint32_t update_loops = 0;
   uint32_t render_loops = 0;
 
+  uint16_t counter = 0;
+
   const uint32_t skip_ticks = 1000 / TICKS_PER_SECOND;
 
   while (!quit_) {
-    uint32_t loops = 0;
+    uint32_t loops = 0; 
     while ((SDL_GetTicks() > next_game_tick) && (loops < MAX_FRAME_SKIP)) {
-      handleInput();
+      
+      handleInput(counter);
+
       update(skip_ticks);
 
       next_game_tick += skip_ticks;
@@ -74,7 +79,7 @@ void Game::shutdown() {
   }
 }
 
-void Game::handleInput() {
+void Game::handleInput(uint16_t& counter) {
   SDL_Event e;
   while (SDL_PollEvent(&e) != 0) {
     if (e.type == SDL_QUIT) {
@@ -82,11 +87,36 @@ void Game::handleInput() {
     }
 
     if (e.type == SDL_MOUSEMOTION || e.type == SDL_MOUSEBUTTONDOWN || e.type == SDL_MOUSEBUTTONUP) {
-      if (e.type == SDL_MOUSEBUTTONUP) {
+        if (e.type == SDL_MOUSEBUTTONUP) {
         int x, y;
         SDL_GetMouseState(&x, &y);
+        if (counter % 2 == 0)
+        {
+            std::cout << "Inicio de pathfinding -->  ";
+            std::cout << "X: " << x << "          Y: " << y << std::endl;
+            pathfinding_.setStart(x, y);
+        }
+        else
+        {
+            std::cout << "Final de pathfinding -->  ";
+            std::cout << "X: " << x << "          Y: " << y << std::endl;
+            pathfinding_.setEnd(x, y);
+            
+            auto t0 = std::chrono::steady_clock::now();
+            
+            pathfinding_.calculateA_Star();
+            
+            auto tf = std::chrono::steady_clock::now();
+            
+            std::cout << "Tiempo empleado: " << std::chrono::duration_cast<std::chrono::microseconds>(tf - t0).count() << " microsegundos" << std::endl;
+            
+            pathfinding_.enableRenderPathfinding();
+            pathfinding_.render();
+            pathfinding_.clear();
+        }
 
-        world_.target()->getKinematic()->position = Vec2(x, y);
+        counter++;
+        //world_.target()->getKinematic()->position = Vec2(x, y);
       }
       scenes_[curr_scene_]->handleMouseEvent(e);
     }
@@ -96,7 +126,7 @@ void Game::handleInput() {
         case SDLK_ESCAPE: quit_ = true; break;
         case SDLK_F1:   nextScene(-1); break;
         case SDLK_F2:  nextScene(+1); break;
-        case SDLK_F3:
+        /*case SDLK_F3:
           slo_mo_ = clamp<int8_t>(++slo_mo_, 1, 10);
           printf("Slow Motion Set To %d\n", slo_mo_);
         break;
@@ -127,7 +157,7 @@ void Game::handleInput() {
         case SDLK_RIGHT: {
           world_.target()->getKinematic()->orientation += 0.2f;
           break;
-        }
+        }*/
         default:{}
       }
       scenes_[curr_scene_]->handleKeyEvent(e.key.keysym.sym);
@@ -145,10 +175,14 @@ void Game::render() {
   SDL_SetRenderDrawColor(renderer, 0xD0, 0xD0, 0xD0, 0xFF);
   SDL_RenderClear(renderer);
 
+  background_sprite_.setVisible(true);
+  background_sprite_.render();
+
   fps_sprite_.render();
   scenes_[curr_scene_]->render();
   world_.render();
   DebugDraw::render();
+  pathfinding_.render();
 
   SDL_RenderPresent(renderer);
 }
