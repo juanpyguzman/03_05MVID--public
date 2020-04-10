@@ -96,7 +96,7 @@ void Game::handleInput(uint16_t& counter) {
             std::cout << "X: " << x << "          Y: " << y << std::endl;
             world_.agent()->mind_.setStartPoints(x, y);
             world_.agent()->getKinematic()->position = Vec2(x, y);
-            world_.agent()->mind_.setDoors(doors[0],doors[1],doors[2],doors[3]);
+            world_.agent()->mind_.setDoors(doors_[0],doors_[1],doors_[2],doors_[3]);
         }
         else
         {
@@ -118,20 +118,20 @@ void Game::handleInput(uint16_t& counter) {
         case SDLK_F1:   nextScene(-1); break;
         case SDLK_F2:  nextScene(+1); break;
         case SDLK_1:
-            doors[0].open = !doors[0].open;
-            world_.agent()->mind_.changeDoor(doors[0]);
+            doors_[0].open = !doors_[0].open;
+            world_.agent()->mind_.changeDoor(doors_[0]);
             break;
         case SDLK_2:
-            doors[1].open = !doors[1].open;
-            world_.agent()->mind_.changeDoor(doors[1]);
+            doors_[1].open = !doors_[1].open;
+            world_.agent()->mind_.changeDoor(doors_[1]);
             break;
         case SDLK_3:
-            doors[2].open = !doors[2].open;
-            world_.agent()->mind_.changeDoor(doors[2]);
+            doors_[2].open = !doors_[2].open;
+            world_.agent()->mind_.changeDoor(doors_[2]);
             break;
         case SDLK_4:
-            doors[3].open = !doors[3].open;
-            world_.agent()->mind_.changeDoor(doors[3]);
+            doors_[3].open = !doors_[3].open;
+            world_.agent()->mind_.changeDoor(doors_[3]);
             break;
         default:{}
       }
@@ -157,6 +157,12 @@ void Game::render() {
   scenes_[curr_scene_]->render();
   world_.render();
   DebugDraw::render();
+
+  //Renderizamos el estado de las puertas
+  doors_[0].renderDoor(doors_[0], renderer);
+  doors_[1].renderDoor(doors_[1], renderer);
+  doors_[2].renderDoor(doors_[2], renderer);
+  doors_[3].renderDoor(doors_[3], renderer);
 
   SDL_RenderPresent(renderer);
 }

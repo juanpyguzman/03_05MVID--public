@@ -9,6 +9,7 @@
 #define __DEFINES_H__ 1
 
 #include "mathlib/vec2.h"
+#include <SDL/SDL_ttf.h>
 
 #define GAME_NAME "05MVID"
 
@@ -76,12 +77,38 @@ public:
     Node() {}
 };
 
-struct doors {
+class doors {
+public:
     int startX;
     int startY;
     int endX;
     int endY;
     bool open;
+
+
+    void renderDoor(doors door, SDL_Renderer* renderer) {
+    if (door.open) {
+        SDL_SetRenderDrawColor(renderer, 0x00, 0xFF, 0x00, 0xFF);
+    }
+    else {
+        SDL_SetRenderDrawColor(renderer, 0x00, 0x00, 0x00, 0x00);
+    }
+
+    for (int i = door.startX; i <= door.endX; i++)
+    {
+        for (int j = door.startY; j <= door.endY; j++)
+        {
+            SDL_Rect rect;
+            rect.x = i*8;
+            rect.y = j*8;
+            rect.h = 8;
+            rect.w = 8;
+
+            SDL_RenderFillRect(renderer, &rect);
+        }
+    }
+}
+
 };
 
 #endif

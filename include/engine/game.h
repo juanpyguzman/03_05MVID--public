@@ -31,6 +31,7 @@ class Game {
 
     void createScenes();
     void nextScene(int8_t sign);
+    void renderDoor(doors door, SDL_Renderer* renderer);
 
     bool quit_ = false;
     Sprite background_sprite_;
@@ -45,7 +46,7 @@ class Game {
 
     int8_t slo_mo_ = 1;
 
-    doors doors[4]{
+    doors doors_[4]{
         { 111,3,117,3, true },
         { 19,30,19,37, true },
         { 51,82,51,87, true },
