@@ -12,6 +12,7 @@
 #include "engine/sprite.h"
 #include "ia/defines.h""
 #include "ia/world.h""
+#include "ia/pathfinding/pathfinding.h"
 
 #include <SDL/SDL_ttf.h>
 
@@ -24,7 +25,7 @@ class Game {
     void start();
     void shutdown();
   private:
-    void handleInput();
+    void handleInput(uint16_t& counter);
     void update(uint32_t dt);
     void render();
 
@@ -32,16 +33,24 @@ class Game {
     void nextScene(int8_t sign);
 
     bool quit_ = false;
-    Sprite fps_sprite_;
     Sprite background_sprite_;
+    Sprite fps_sprite_;
     TTF_Font* font_ = nullptr;
 
     int8_t curr_scene_ = 0;
     Scene* scenes_[SCENE_NUMBER];
 
     World world_;
+    Map* map_;
 
     int8_t slo_mo_ = 1;
+
+    doors doors[4]{
+        { 111,3,117,3, true },
+        { 19,30,19,37, true },
+        { 51,82,51,87, true },
+        { 84,54,84,57, true },
+    };
 };
 
 #endif

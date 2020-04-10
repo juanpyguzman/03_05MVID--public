@@ -10,8 +10,8 @@
 #include "engine/window.h"
 #include "ia/defines.h"
 #include "ia/scene_steering.h"
+#include <chrono>
 
-#include <cstdio>
 
 void Game::init() {
   font_ = TTF_OpenFont(FONT_FILE, FPS_FONT_SIZE);
@@ -22,7 +22,7 @@ void Game::init() {
   fps_sprite_.setVisible(false);
 
   createScenes();
-  world_.target()->getKinematic()->position = MathLib::Vec2(0.0f, 0.0f);
+  //world_.agent()->getKinematic()->position = MathLib::Vec2(0.0f, 0.0f);
   background_sprite_.loadFromFile(BACKGROUND_MAP);
 }
 
@@ -34,12 +34,16 @@ void Game::start() {
   uint32_t update_loops = 0;
   uint32_t render_loops = 0;
 
+  uint16_t counter = 0;
+
   const uint32_t skip_ticks = 1000 / TICKS_PER_SECOND;
 
   while (!quit_) {
-    uint32_t loops = 0;
+    uint32_t loops = 0; 
     while ((SDL_GetTicks() > next_game_tick) && (loops < MAX_FRAME_SKIP)) {
-      handleInput();
+      
+      handleInput(counter);
+
       update(skip_ticks);
 
       next_game_tick += skip_ticks;
@@ -75,7 +79,7 @@ void Game::shutdown() {
   }
 }
 
-void Game::handleInput() {
+void Game::handleInput(uint16_t& counter) {
   SDL_Event e;
   while (SDL_PollEvent(&e) != 0) {
     if (e.type == SDL_QUIT) {
@@ -83,11 +87,27 @@ void Game::handleInput() {
     }
 
     if (e.type == SDL_MOUSEMOTION || e.type == SDL_MOUSEBUTTONDOWN || e.type == SDL_MOUSEBUTTONUP) {
-      if (e.type == SDL_MOUSEBUTTONUP) {
+        if (e.type == SDL_MOUSEBUTTONUP) {
         int x, y;
         SDL_GetMouseState(&x, &y);
+        if (counter % 2 == 0)
+        {
+            std::cout << "Inicio de pathfinding -->  ";
+            std::cout << "X: " << x << "          Y: " << y << std::endl;
+            world_.agent()->mind_.setStartPoints(x, y);
+            world_.agent()->getKinematic()->position = Vec2(x, y);
+            world_.agent()->mind_.setDoors(doors[0],doors[1],doors[2],doors[3]);
+        }
+        else
+        {
+            std::cout << "Final de pathfinding -->  ";
+            std::cout << "X: " << x << "          Y: " << y << std::endl;
+            world_.agent()->setBehaviour(Body::Behaviour::Path);
+            world_.agent()->getKinematic()->speed = 20.0f;
+            world_.agent()->mind_.setEndPoints(x, y);
+        }
 
-        world_.target()->getKinematic()->position = Vec2(x, y);
+        counter++;
       }
       scenes_[curr_scene_]->handleMouseEvent(e);
     }
@@ -97,38 +117,22 @@ void Game::handleInput() {
         case SDLK_ESCAPE: quit_ = true; break;
         case SDLK_F1:   nextScene(-1); break;
         case SDLK_F2:  nextScene(+1); break;
-        case SDLK_F3:
-          slo_mo_ = clamp<int8_t>(++slo_mo_, 1, 10);
-          printf("Slow Motion Set To %d\n", slo_mo_);
-        break;
-        case SDLK_F4:
-          slo_mo_ = clamp<int8_t>(--slo_mo_, 1, 10);
-          printf("Slow Motion Set To %d\n", slo_mo_);
-        break;
-        case SDLK_F5:
-          DebugDraw::toggleEnabled();
-          printf("Debug Draw Mode Changed\n");
-        break;
-        case SDLK_UP: {
-          world_.target()->getKinematic()->speed += 20.0f;
-          if (world_.target()->getKinematic()->speed > 140.0f) {
-            world_.target()->getKinematic()->speed = 140.0f;
-          }
-          break; }
-        case SDLK_DOWN: {
-          world_.target()->getKinematic()->speed -= 20.0f;
-          if (world_.target()->getKinematic()->speed <= 0.0f) {
-            world_.target()->getKinematic()->speed = 0.0f;
-          }
-          break; }
-        case SDLK_LEFT: {
-          world_.target()->getKinematic()->orientation -= 0.2f;
-          break;
-        }
-        case SDLK_RIGHT: {
-          world_.target()->getKinematic()->orientation += 0.2f;
-          break;
-        }
+        case SDLK_1:
+            doors[0].open = !doors[0].open;
+            world_.agent()->mind_.changeDoor(doors[0]);
+            break;
+        case SDLK_2:
+            doors[1].open = !doors[1].open;
+            world_.agent()->mind_.changeDoor(doors[1]);
+            break;
+        case SDLK_3:
+            doors[2].open = !doors[2].open;
+            world_.agent()->mind_.changeDoor(doors[2]);
+            break;
+        case SDLK_4:
+            doors[3].open = !doors[3].open;
+            world_.agent()->mind_.changeDoor(doors[3]);
+            break;
         default:{}
       }
       scenes_[curr_scene_]->handleKeyEvent(e.key.keysym.sym);
@@ -145,6 +149,7 @@ void Game::render() {
   SDL_Renderer* renderer = Window::instance().getRenderer();
   SDL_SetRenderDrawColor(renderer, 0xD0, 0xD0, 0xD0, 0xFF);
   SDL_RenderClear(renderer);
+
   background_sprite_.setVisible(true);
   background_sprite_.render();
 

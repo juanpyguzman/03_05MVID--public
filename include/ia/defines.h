@@ -27,6 +27,7 @@
 #define AGENT_GREEN_PATH "../assets/images/agent_green.png"
 #define AGENT_PURPLE_PATH "../assets/images/agent_purple.png"
 #define BACKGROUND_MAP "../assets/images/mapa.bmp"
+#define COSTES_MAP "../assets/images/costes.bmp"
 
 #define FPS_FONT_SIZE 12
 
@@ -49,6 +50,38 @@ struct KinematicStatus {
   float rotation{0.0f};               //angular velocity
 
   float speed{ 0.0f };
+};
+
+
+//Estructura para el camino
+struct pathPoints {
+    int x;
+    int y;
+};
+
+//Estructura para los nodos
+class Node {
+public:
+    int x;
+    int y;
+
+    int g;
+    int f;
+    int h;
+
+    int parentX;
+    int parentY;
+
+    Node(int x, int y) : x(x), y(y) {}
+    Node() {}
+};
+
+struct doors {
+    int startX;
+    int startY;
+    int endX;
+    int endY;
+    bool open;
 };
 
 #endif

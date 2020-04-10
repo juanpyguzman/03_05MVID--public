@@ -24,107 +24,61 @@ void SceneSteering::update(const uint32_t dt) {}
 void SceneSteering::handleMouseEvent(const SDL_Event e) {}
 
 void SceneSteering::handleKeyEvent(const SDL_Keycode key) {
-  switch (key) {
+  /*switch (key) {
     case SDLK_1:
-        for (uint16_t i = 0; i < world_->numIA(); ++i)
-        {
-            world_->ia(i)->setSteering(Body::SteeringMode::Kinematic_Seek);
-        }
+      world_->ia()->setSteering(Body::SteeringMode::Kinematic_Seek);
       printf("Behavior Of Agent Changed To Kinematic_Seek\n");
     break;
     case SDLK_2:
-        for (uint16_t i = 0; i < world_->numIA(); ++i)
-        {
-            world_->ia(i)->setSteering(Body::SteeringMode::Kinematic_Flee);
-        }
+      world_->ia()->setSteering(Body::SteeringMode::Kinematic_Flee);
       printf("Behavior Of Agent Changed To Kinematic_Flee\n");
     break;
     case SDLK_3:
-        for (uint16_t i = 0; i < world_->numIA(); ++i)
-        {
-            world_->ia(i)->setSteering(Body::SteeringMode::Kinematic_Arrive);
-        }
+      world_->ia()->setSteering(Body::SteeringMode::Kinematic_Arrive);
       printf("Behavior Of Agent Changed To Kinematic_Arrive\n");
       break;
     case SDLK_4:
-        for (uint16_t i = 0; i < world_->numIA(); ++i)
-        {
-            world_->ia(i)->setSteering(Body::SteeringMode::Kinematic_Wander);
-        }
+      world_->ia()->setSteering(Body::SteeringMode::Kinematic_Wander);
       printf("Behavior Of Agent Changed To Kinematic_Wander\n");
       break;
     case SDLK_q:
-        for (uint16_t i = 0; i < world_->numIA(); ++i)
-        {
-            world_->ia(i)->setSteering(Body::SteeringMode::Seek);
-        }
+      world_->ia()->setSteering(Body::SteeringMode::Seek);
       printf("Behavior Of Agent Changed To Seek\n");
       break;
     case SDLK_w:
-        for (uint16_t i = 0; i < world_->numIA(); ++i)
-        {
-            world_->ia(i)->setSteering(Body::SteeringMode::Flee);
-        }
+      world_->ia()->setSteering(Body::SteeringMode::Flee);
       printf("Behavior Of Agent Changed To Flee\n");
       break;
     case SDLK_e:
-        for (uint16_t i = 0; i < world_->numIA(); ++i)
-        {
-            world_->ia(i)->setSteering(Body::SteeringMode::Arrive);
-        }
+      world_->ia()->setSteering(Body::SteeringMode::Arrive);
       printf("Behavior Of Agent Changed To Arrive\n");
       break;
     case SDLK_r:
-        for (uint16_t i = 0; i < world_->numIA(); ++i)
-        {
-            world_->ia(i)->setSteering(Body::SteeringMode::Align);
-        }
+      world_->ia()->setSteering(Body::SteeringMode::Align);
       printf("Behavior Of Agent Changed To Align\n");
       break;
     case SDLK_t:
-        for (uint16_t i = 0; i < world_->numIA(); ++i)
-        {
-            world_->ia(i)->setSteering(Body::SteeringMode::Velocity_Matching);
-        }
+      world_->ia()->setSteering(Body::SteeringMode::Velocity_Matching);
       printf("Behavior Of Agent Changed To Velocity_Matching\n");
       break;
-    case SDLK_o:
-        for (uint16_t i = 0; i < world_->numIA(); ++i)
-        {
-            world_->ia(i)->setSteering(Body::SteeringMode::Flocking);
-        }
-        printf("Behavior Of Agents Changed To Flocking\n");
-        break;
     case SDLK_a:
-        for (uint16_t i = 0; i < world_->numIA(); ++i)
-        {
-            world_->ia(i)->setSteering(Body::SteeringMode::Pursue);
-        }
+      world_->ia()->setSteering(Body::SteeringMode::Pursue);
       printf("Behavior Of Agent Changed To Pursue\n");
       break;
     case SDLK_s:
-        for (uint16_t i = 0; i < world_->numIA(); ++i)
-        {
-            world_->ia(i)->setSteering(Body::SteeringMode::Face);
-        }
+      world_->ia()->setSteering(Body::SteeringMode::Face);
       printf("Behavior Of Agent Changed To Face\n");
       break;
     case SDLK_d:
-        for (uint16_t i = 0; i < world_->numIA(); ++i)
-        {
-            world_->ia(i)->setSteering(Body::SteeringMode::LookGoing);
-        }
+      world_->ia()->setSteering(Body::SteeringMode::LookGoing);
       printf("Behavior Of Agent Changed To LookGoing\n");
       break;
     case SDLK_f:
-        for (uint16_t i = 0; i < world_->numIA(); ++i)
-        {
-            world_->ia(i)->setSteering(Body::SteeringMode::Wander);
-        }
+      world_->ia()->setSteering(Body::SteeringMode::Wander);
       printf("Behavior Of Agent Changed To Wander\n");
       break;
     default:{}
-  }
+  }*/
 }
 
 void SceneSteering::render() {}

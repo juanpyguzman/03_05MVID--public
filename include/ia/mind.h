@@ -9,6 +9,7 @@
 #define __MIND_H__ 1
 
 #include <cstdint>
+#include <ia\pathfinding\pathfinding.h>
 
 class Body;
 class World;
@@ -20,9 +21,25 @@ class Mind {
 
     void init(World* world, Body* body);
     void update(uint32_t dt) const;
+    void changeDoor(doors door);
+    void setDoors(doors door0, doors door1, doors door2, doors door3);
+    void setStartPoints(int x0, int y0);
+    void setEndPoints(int xf, int yf);
+    void getNextIter();
+
   private:
     World* world_ = nullptr;
     Body* body_ = nullptr;
+    doors doors_[4];
+    std::list<pathPoints>* pathPointList_;
+    std::list<pathPoints>::iterator list_iter;
+
+    int x0_, y0_, xf_, yf_;
+    Pathfinding pathfinding_;
+    bool endPath = true;
+
+    void CalculatePathFinding();
+
 };
 
 #endif

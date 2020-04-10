@@ -25,14 +25,16 @@ class Agent {
     void render() const;
     void shutdown();
 
-    void setSteering(Body::SteeringMode steering) { body_.setSteering(steering); }   
+    void setSteering(Body::SteeringMode steering) { body_.setSteering(steering); } 
+    void setBehaviour(Body::Behaviour behaviour) { body_.setBehaviour(behaviour); }
     const KinematicStatus* getKinematic() const { return body_.getKinematic(); }
     KinematicStatus* getKinematic() { return body_.getKinematic(); }
-  private:
-    World* world_ = nullptr;
-
+    
     Body body_;
     Mind mind_;
+
+private:
+    World * world_ = nullptr;
 };
 
 #endif

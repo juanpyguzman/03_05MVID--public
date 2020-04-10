@@ -17,47 +17,29 @@ using MathLib::Vec2;
 class World {
   public:
     World() {
-      target_.init(this, Body::Color::Red, Body::Type::Manual);
-      for (uint16_t i = 0; i < (sizeof(ia_) / sizeof(*ia_)); ++i)
-      {
-          ia_[i].init(this, Body::Color::Green, Body::Type::Autonomous);
-          ia_[i].getKinematic()->position = Vec2(WINDOW_WIDTH / (2+i), WINDOW_HEIGHT / (2+i));
-      }
+      agent_.init(this, Body::Color::Red, Body::Type::Autonomous);
+      //ia_.init(this, Body::Color::Green, Body::Type::Autonomous);
+     // ia_.getKinematic()->position = Vec2(WINDOW_WIDTH / 2, WINDOW_HEIGHT / 2);
     };
     ~World() {
-      target_.shutdown();
-      for (uint16_t i = 0; i < (sizeof(ia_) / sizeof(*ia_)); ++i)
-      {
-          ia_[i].shutdown();
-      }
+      agent_.shutdown();
+      //ia_.shutdown();
     };
 
     void update(const float dt) { 
-        target_.update(dt); 
-        for (uint16_t i = 0; i < (sizeof(ia_) / sizeof(*ia_)); ++i)
-        {
-            ia_[i].update(dt);
-        }
+        agent_.update(dt); 
+        //ia_.update(dt); 
     }
-    
-    void render() const {
-        target_.render();
-        for (uint16_t i = 0; i < (sizeof(ia_) / sizeof(*ia_)); ++i)
-        {
-            ia_[i].render();
-        }
+    void render() const { 
+        agent_.render(); 
+        //ia_.render(); 
     }
 
-    uint16_t numIA() { return (sizeof(ia_) / sizeof(*ia_)); }
-
-
-    Agent* target() { return &target_; }
-    Agent* ia(uint16_t i) { return &ia_[i]; }
-    Agent* agentsIA() { return ia_; }
-
+    Agent* agent() { return &agent_; }
+    //Agent* ia() { return &ia_; }
   private:
-    Agent target_;
-    Agent ia_[10]; //Definimos aquí el número de Agentes de la IA
+      Agent agent_;
+      //Agent ia_;
 };
 
 #endif

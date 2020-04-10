@@ -10,6 +10,7 @@
 
 #include "engine/sprite.h"
 #include "ia/defines.h"
+#include "ia/mind.h"
 #include "ia/movement/kinematic/kinematicarrive.h"
 #include "ia/movement/kinematic/kinematicflee.h"
 #include "ia/movement/kinematic/kinematicseek.h"
@@ -23,12 +24,13 @@
 #include "ia/movement/steering/delegated/flocking.h"
 #include "ia/movement/steering/flee.h"
 #include "ia/movement/steering/seek.h"
+#include "ia/movement/steering/seekPath.h"
+#include "ia/movement/steering/seekPath.h"
 #include "ia/movement/steering/velocity_matching.h"
 #include "mathlib/vec2.h"
+#include <list>
 
 class Agent;
-
-class World;
 
 class Body {
   public:
@@ -44,32 +46,46 @@ class Body {
       Manual,
     };
 
+    enum class Character {
+        Slave,
+        Guard,
+        Soldier,
+    };
+
     enum class SteeringMode {
       Kinematic_Seek,         //1       Kinematics
       Kinematic_Flee,         //2
       Kinematic_Arrive,       //3
       Kinematic_Wander,       //4
       Seek,                   //q       Steering Basics
+      SeekPath,
       Flee,                   //w
       Arrive,                 //e
       Align,                  //r
       Velocity_Matching,      //t
-      Flocking,               //o 
       Pursue,                 //a       Steering Delegated
       Face,                   //s
       LookGoing,              //d
       Wander,                 //f
     };
 
+    enum class Behaviour {
+        Path,
+        Idle,
+    };
+
     Body() {};
     ~Body() {};
 
-    void init(Agent* thisAgent, World* world, Color color, Type type);
+    void init(Color color, Type type, Mind* mind);
     void update(uint32_t dt);
     void render() const;
 
     void setTarget(Agent* target);
+    void setPath(MathLib::Vec2 nextPoint);
+    void setNextPoint(MathLib::Vec2 nextPoint);
     void setSteering(const SteeringMode mode) { steering_mode_ = mode; };
+    void setBehaviour(const Behaviour behaviour) { behaviour_status_ = behaviour; };
     const KinematicStatus* getKinematic() const { return &state_; }
     KinematicStatus* getKinematic() { return &state_; }
   private:
@@ -84,9 +100,9 @@ class Body {
     Type type_;
     Color color_;
     SteeringMode steering_mode_;
+    Behaviour behaviour_status_;
     Agent* target_;
-    Agent* thisAgent_;
-    World* world_;
+    Mind* mind_ = nullptr;
 
     const float max_speed_ = 100.0f;
 
@@ -105,16 +121,18 @@ class Body {
     KinematicWander k_wander_;
 
     Seek seek_;
+    SeekPath seekPath_;
     Flee flee_;
     Arrive arrive_;
     Align align_;
     VelocityMatching vel_matching_;
-    Flocking flocking_;
 
     Pursue pursue_;
     Face face_;
     LookGoing look_going_;
     Wander wander_;
+
+    MathLib::Vec2 nextPoint_, previousPoint_;
 };
 
 #endif

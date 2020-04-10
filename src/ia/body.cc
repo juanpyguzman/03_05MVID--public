@@ -6,15 +6,15 @@
 //----------------------------------------------------------------------------
 
 #include "ia/body.h"
+#include "ia/mind.h"
 #include "engine/debug_draw.h"
 #include "ia/agent.h"
 #include "ia/defines.h"
 
-void Body::init(Agent* thisAgent, World* world, const Color color, const Type type) {
+void Body::init(const Color color, const Type type, Mind* mind) {
   type_ = type;
   color_ = color;
-  world_ = world;
-  thisAgent_ = thisAgent;
+  mind_ = mind;
 
   switch(color) {
     case Color::Green: sprite_.loadFromFile(AGENT_GREEN_PATH); break;
@@ -25,95 +25,34 @@ void Body::init(Agent* thisAgent, World* world, const Color color, const Type ty
   }
 
   steering_mode_ = SteeringMode::Kinematic_Seek;
+  behaviour_status_ = Behaviour::Idle;
+
 }
 
 void Body::update(const uint32_t dt) {
-  if (type_ == Type::Autonomous) {
-    switch (steering_mode_) {
-      case SteeringMode::Kinematic_Seek: {
+
+    KinematicStatus* target = nullptr;
+    
+    switch (behaviour_status_) {
+    case Behaviour::Path: {
         KinematicSteering steer;
-        k_seek_.calculate(state_, target_->getKinematic(), &steer);
-        updateKinematic(dt, steer);
         setOrientation(state_.velocity);
-        break; }
-      case SteeringMode::Kinematic_Flee: {
-        KinematicSteering steer;
-        k_flee_.calculate(state_, target_->getKinematic(), &steer);
-        updateKinematic(dt, steer);
-        setOrientation(state_.velocity);
-        break; }
-      case SteeringMode::Kinematic_Arrive: {
-        KinematicSteering steer;
-        k_arrive_.calculate(state_, target_->getKinematic(), &steer);
-        updateKinematic(dt, steer);
-        setOrientation(state_.velocity);
-        break; }
-      case SteeringMode::Kinematic_Wander: {
-        KinematicSteering steer;
-        k_wander_.calculate(state_, target_->getKinematic(), &steer);
+        if ((nextPoint_ - state_.position).length() <= ((previousPoint_ - state_.position).length()))
+        {
+            mind_->getNextIter();
+            previousPoint_ = nextPoint_;
+        }
+        target = new KinematicStatus();
+        target->position = nextPoint_;
+        k_seek_.calculate(state_, target, &steer);
         updateKinematic(dt, steer);
         break; }
-      case SteeringMode::Seek: {
-        Steering steer;
-        seek_.calculate(state_, target_->getKinematic(), &steer);
-        updateSteering(dt, steer);
-        setOrientation(state_.velocity);
-        break; }
-      case SteeringMode::Flee: {
-        Steering steer;
-        flee_.calculate(state_, target_->getKinematic(), &steer);
-        updateSteering(dt, steer);
-        setOrientation(state_.velocity);
-        break; }
-      case SteeringMode::Arrive: {
-        Steering steer;
-        arrive_.calculate(state_, target_->getKinematic(), &steer);
-        updateSteering(dt, steer);
-        setOrientation(state_.velocity);
-        break; }
-      case SteeringMode::Align: {
-        Steering steer;
-        align_.calculate(state_, target_->getKinematic(), &steer);
-        updateSteering(dt, steer);
-        //setOrientation(state_.velocity);
-        break; }
-      case SteeringMode::Velocity_Matching: {
-        Steering steer;
-        vel_matching_.calculate(state_, target_->getKinematic(), &steer);
-        updateSteering(dt, steer);
-        setOrientation(state_.velocity);
-        break; }
-      case SteeringMode::Flocking: {
-          Steering steer;
-          flocking_.calculate(thisAgent_, world_, target_->getKinematic(), &steer);
-          updateSteering(dt, steer);
-          setOrientation(state_.velocity);
-          break; }
-      case SteeringMode::Pursue: {
-        Steering steer;
-        pursue_.calculate(state_, target_->getKinematic(), &steer);
-        updateSteering(dt, steer);
-        setOrientation(state_.velocity);
-        break; }
-      case SteeringMode::Face: {
-        Steering steer;
-        face_.calculate(state_, target_->getKinematic(), &steer);
-        updateSteering(dt, steer);
-        break; }
-      case SteeringMode::LookGoing: {
-        Steering steer;
-        look_going_.calculate(state_, target_->getKinematic(), &steer);
-        updateSteering(dt, steer);
-        break; }
-      case SteeringMode::Wander: {
-        Steering steer;
-        wander_.calculate(state_, target_->getKinematic(), &steer);
-        updateSteering(dt, steer);
+    case Behaviour::Idle: {
+        KinematicSteering steer;
+        steer.velocity = MathLib::Vec2(0.0f, 0.0f);
         break; }
     }
-  } else {
-    updateManual(dt);
-  }
+
 
   sprite_.setPosition(state_.position.x(), state_.position.y());
   sprite_.setRotation(state_.orientation);
@@ -130,6 +69,11 @@ void Body::render() const {
 
 void Body::setTarget(Agent* target) {
   target_ = target;
+}
+
+void Body::setNextPoint(MathLib::Vec2 nextPoint)
+{
+    nextPoint_ = nextPoint;
 }
 
 void Body::updateKinematic(const uint32_t dt, const KinematicSteering& steering) {
