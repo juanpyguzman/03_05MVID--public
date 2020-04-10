@@ -17,7 +17,7 @@ using MathLib::Vec2;
 class World {
   public:
     World() {
-      agent_.init(this, Body::Color::Red, Body::Type::Autonomous);
+      agent_.init(this, Body::Role::Soldier, Body::Type::Autonomous);
       //ia_.init(this, Body::Color::Green, Body::Type::Autonomous);
      // ia_.getKinematic()->position = Vec2(WINDOW_WIDTH / 2, WINDOW_HEIGHT / 2);
     };

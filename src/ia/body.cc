@@ -11,17 +11,16 @@
 #include "ia/agent.h"
 #include "ia/defines.h"
 
-void Body::init(const Color color, const Type type, Mind* mind) {
+void Body::init(const Role role, const Type type, Mind* mind) {
   type_ = type;
-  color_ = color;
+  role_ = role;
   mind_ = mind;
 
-  switch(color) {
-    case Color::Green: sprite_.loadFromFile(AGENT_GREEN_PATH); break;
-    case Color::Blue: sprite_.loadFromFile(AGENT_BLUE_PATH); break;
-    case Color::Purple: sprite_.loadFromFile(AGENT_PURPLE_PATH); break;
-    case Color::Red: sprite_.loadFromFile(AGENT_RED_PATH); break;
-    default: sprite_.loadFromFile(AGENT_GREEN_PATH);
+  switch(role) {
+    case Role::Soldier: sprite_.loadFromFile(AGENT_SOLDIER); break;
+    case Role::Guard: sprite_.loadFromFile(AGENT_GUARD); break;
+    case Role::Slave: sprite_.loadFromFile(AGENT_SLAVE); break;
+    default: sprite_.loadFromFile(AGENT_SLAVE);
   }
 
   steering_mode_ = SteeringMode::Kinematic_Seek;

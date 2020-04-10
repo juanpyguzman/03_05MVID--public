@@ -8,9 +8,9 @@
 #include "ia/agent.h"
 #include "ia/world.h"
 
-void Agent::init(World* world, const Body::Color color, const Body::Type type) {
+void Agent::init(World* world, const Body::Role role, const Body::Type type) {
   world_ = world;
-  body_.init(color, type, &mind_);
+  body_.init(role, type, &mind_);
   mind_.init(world, &body_);
 }
 

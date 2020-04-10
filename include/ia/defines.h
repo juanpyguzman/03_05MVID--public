@@ -27,6 +27,9 @@
 #define AGENT_RED_PATH "../assets/images/agent_red.png"
 #define AGENT_GREEN_PATH "../assets/images/agent_green.png"
 #define AGENT_PURPLE_PATH "../assets/images/agent_purple.png"
+#define AGENT_SOLDIER "../assets/images/soldier.bmp"
+#define AGENT_GUARD "../assets/images/guard.bmp"
+#define AGENT_SLAVE "../assets/images/slave.bmp"
 #define BACKGROUND_MAP "../assets/images/mapa.bmp"
 #define COSTES_MAP "../assets/images/costes.bmp"
 

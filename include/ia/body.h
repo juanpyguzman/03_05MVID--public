@@ -46,7 +46,7 @@ class Body {
       Manual,
     };
 
-    enum class Character {
+    enum class Role {
         Slave,
         Guard,
         Soldier,
@@ -77,7 +77,7 @@ class Body {
     Body() {};
     ~Body() {};
 
-    void init(Color color, Type type, Mind* mind);
+    void init(Role role, Type type, Mind* mind);
     void update(uint32_t dt);
     void render() const;
 
@@ -98,7 +98,7 @@ class Body {
 
     Sprite sprite_;
     Type type_;
-    Color color_;
+    Role role_;
     SteeringMode steering_mode_;
     Behaviour behaviour_status_;
     Agent* target_;
