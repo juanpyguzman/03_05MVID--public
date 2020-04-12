@@ -25,7 +25,7 @@ void Game::init() {
 
   loadZonesMap(SDL_LoadBMP("../assets/images/zonas.bmp"));
 
-  world_.setZones(zones);
+  world_.setZones(zonas_);
   world_.init();
 
   createScenes();
@@ -205,33 +205,41 @@ void Game::loadZonesMap(SDL_Surface* map_image) {
             if ((r == 239) && (g == 228) && (b == 176))
             {
                 zones.push_back(zone::Exterior);
+                zonas_.exterior.push_back(MathLib::Vec2(i, j));
             }
             //Interior del castillo
             else if ((r == 163) && (g == 73) && (b == 164)) {
                 zones.push_back(zone::Interior);
+                zonas_.interior.push_back(MathLib::Vec2(i, j));
             }
             //햞ea de descanso
             else if ((r == 181) && (g == 230) && (b == 29)) {
                 zones.push_back(zone::Rest);
+                zonas_.rest.push_back(MathLib::Vec2(i, j));
             }
             //햞ea de trabajo
             else if ((r == 255) && (g == 216) && (b == 0)) {
                 zones.push_back(zone::Work);
+                zonas_.work.push_back(MathLib::Vec2(i, j));
             }
             //햞ea de carga (izquierda)
             else if ((r == 36) && (g == 255) && (b == 0)) {
                 zones.push_back(zone::Loading);
+                zonas_.loading.push_back(MathLib::Vec2(i, j));
             }
             //햞ea de descarga (derecha)
             else if ((r == 18) && (g == 0) && (b == 255)) {
                 zones.push_back(zone::Unloading);
+                zonas_.unloading.push_back(MathLib::Vec2(i, j));
             }
             //Cuarteles (base de los soldados)
             else if ((r == 0) && (g == 198) && (b == 255)) {
                 zones.push_back(zone::Base);
+                zonas_.base.push_back(MathLib::Vec2(i, j));
             }
             else {
                 zones.push_back(zone::Impossible);
+                zonas_.impossible.push_back(MathLib::Vec2(i, j));
             }
         }
     }

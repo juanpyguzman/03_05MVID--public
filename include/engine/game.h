@@ -46,14 +46,15 @@ class Game {
     Map* map_;
     SDL_Surface* map_image_;
     std::vector<zone> zones;
+    zonas zonas_;
 
     int8_t slo_mo_ = 1;
 
     doors doors_[4]{
-        { 111,3,117,3, true },
-        { 19,30,19,37, true },
-        { 51,82,51,87, true },
-        { 84,54,84,57, true },
+        { 111,3,117,3, false },
+        { 19,30,19,37, false },
+        { 51,82,51,87, false },
+        { 84,54,84,57, false },
     };
 };
 

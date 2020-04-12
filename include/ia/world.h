@@ -37,16 +37,17 @@ class World {
         //ia_.render(); 
     }
 
-    void setZones(std::vector<zone> zones) {
-        zones_ = zones;
+    void setZones(zonas zonasMapa) {
+        zonas_ = zonasMapa;
+        //zones_ = zones;
 
-        for (int i = 0; i < WINDOW_WIDTH/8; i++) {
+        /*for (int i = 0; i < WINDOW_WIDTH/8; i++) {
             for (int j = 0; j < WINDOW_HEIGHT / 8; j++) {
                 if (zones_[i * WINDOW_WIDTH/8 + j] == zone::Exterior) {
                     std::cout << "Zona X: " << i << "      Y: " << j << "----> Exterior" << std::endl;
                 }
             }
-        }
+        }*/
 
     }
     
@@ -59,6 +60,7 @@ class World {
   private:
       Agent agent_;
       std::vector<zone> zones_;
+      zonas zonas_;
       //Agent ia_;
 };
 
