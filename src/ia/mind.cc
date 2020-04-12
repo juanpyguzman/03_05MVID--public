@@ -27,8 +27,8 @@ void Mind::changeDoor(doors door)
     pathfinding_.changeDoor(door);
 }
 
-void Mind::setDoors(doors door0, doors door1, doors door2, doors door3) {
-    pathfinding_.setDoors(door0, door1, door2, door3);
+void Mind::setDoors(std::vector<doors> doorsState) {
+    pathfinding_.setDoors(doorsState);
 }
 
 void Mind::setStartPoints(int x0, int y0) {

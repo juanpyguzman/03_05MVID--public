@@ -25,7 +25,7 @@ public:
     void setStart(int x, int y);
     void setEnd(int x, int y);
     void changeDoor(doors door);
-    void setDoors(doors door0, doors door1, doors door2, doors door3);
+    void setDoors(std::vector<doors> doorsState);
     void calculateLinearPath();
     void calculateA_Star();
     std::list<pathPoints>* getPathPointList();

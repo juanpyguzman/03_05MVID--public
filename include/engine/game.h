@@ -50,11 +50,11 @@ class Game {
 
     int8_t slo_mo_ = 1;
 
-    doors doors_[4]{
-        { 111,3,117,3, false },
-        { 19,30,19,37, false },
-        { 51,82,51,87, false },
-        { 84,54,84,57, false },
+    std::vector<doors> doors_{
+        { 111,3,117,3, false, false },
+        { 19,30,19,37, false, false },
+        { 51,82,51,87, false, false },
+        { 84,54,84,57, false, false },
     };
 };
 

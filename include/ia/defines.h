@@ -88,6 +88,7 @@ public:
     int endX;
     int endY;
     bool open;
+    bool discovered;
 
 
     void renderDoor(doors door, SDL_Renderer* renderer) {

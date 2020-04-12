@@ -43,11 +43,16 @@
 
     }
 
-    void Pathfinding::setDoors(doors door0, doors door1, doors door2, doors door3) {
-        doors_[0] = door0;
-        doors_[1] = door1;
-        doors_[2] = door2;
-        doors_[3] = door3;
+    void Pathfinding::setDoors(std::vector<doors> doorsState) {
+        doors_[0] = doorsState[0];
+        doors_[1] = doorsState[1];
+        doors_[2] = doorsState[2];
+        doors_[3] = doorsState[3];
+
+        changeDoor(doors_[0]);
+        changeDoor(doors_[1]);
+        changeDoor(doors_[2]);
+        changeDoor(doors_[3]);
     }
 
     void Pathfinding::calculateLinearPath() {

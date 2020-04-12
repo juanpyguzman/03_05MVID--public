@@ -22,7 +22,7 @@ class Mind {
     void init(World* world, Body* body);
     void update(uint32_t dt) const;
     void changeDoor(doors door);
-    void setDoors(doors door0, doors door1, doors door2, doors door3);
+    void setDoors(std::vector<doors> doorsState);
     void setStartPoints(int x0, int y0);
     void setEndPoints(int xf, int yf);
     void getNextIter();

@@ -20,8 +20,11 @@ void Body::init(const Role role, const Type type, Mind* mind, zonas zonasMapa) {
   switch(role) {
   case Role::Soldier: {
       sprite_.loadFromFile(AGENT_SOLDIER);
+
+      //Posicionamos de manera aleatoria a los soldados en sus bases en estado Idle
       int random = rand() % zonas_.base.size();
       state_.position = MathLib::Vec2(zonas_.base[random]*8);
+      behaviour_status_ = Behaviour::Idle;
       break; 
   }
     case Role::Guard: sprite_.loadFromFile(AGENT_GUARD); break;
@@ -30,7 +33,6 @@ void Body::init(const Role role, const Type type, Mind* mind, zonas zonasMapa) {
   }
 
   steering_mode_ = SteeringMode::Kinematic_Seek;
-  behaviour_status_ = Behaviour::Idle;
 
 }
 
@@ -69,6 +71,12 @@ void Body::update(const uint32_t dt) {
         case Behaviour::Idle: {
             KinematicSteering steer;
             steer.velocity = MathLib::Vec2(0.0f, 0.0f);
+            /*mind_->setStartPoints(state_.position.x, state_.position.y);
+            mind_->setDoors(doors_[0], doors_[1], doors_[2], doors_[3]);
+            int random = rand() % zonas_.exterior.size();
+            mind_->setEndPoints = MathLib::Vec2(zonas_.exterior[random] * 8);
+            setBehaviour(Body::Behaviour::Search);
+            //world_.agent()->getKinematic()->speed = 20.0f;*/
             break; }
         }
     }

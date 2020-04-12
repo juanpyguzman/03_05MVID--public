@@ -50,6 +50,11 @@ class World {
         }*/
 
     }
+
+    void setDoors(std::vector<doors> doorsState)
+    {
+        doors_ = doorsState;
+    }
     
     void init() {
         agent_.init(this, Body::Role::Soldier, Body::Type::Autonomous);
@@ -57,6 +62,7 @@ class World {
 
     Agent* agent() { return &agent_; }
     zonas zonas_;
+    std::vector<doors> doors_;
     //Agent* ia() { return &ia_; }
   private:
       Agent agent_;

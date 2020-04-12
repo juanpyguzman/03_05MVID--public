@@ -26,10 +26,11 @@ void Game::init() {
   loadZonesMap(SDL_LoadBMP("../assets/images/zonas.bmp"));
 
   world_.setZones(zonas_);
+  world_.setDoors(doors_);
   world_.init();
 
   createScenes();
-  //world_.agent()->getKinematic()->position = MathLib::Vec2(0.0f, 0.0f);
+
   background_sprite_.loadFromFile(BACKGROUND_MAP);
 }
 
@@ -101,9 +102,9 @@ void Game::handleInput(uint16_t& counter) {
         {
             std::cout << "Inicio de pathfinding -->  ";
             std::cout << "X: " << x << "          Y: " << y << std::endl;
+            world_.agent()->mind_.setDoors(doors_);
             world_.agent()->mind_.setStartPoints(x, y);
             world_.agent()->getKinematic()->position = Vec2(x, y);
-            world_.agent()->mind_.setDoors(doors_[0],doors_[1],doors_[2],doors_[3]);
         }
         else
         {
