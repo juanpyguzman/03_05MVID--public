@@ -10,7 +10,7 @@
 
 void Agent::init(World* world, const Body::Role role, const Body::Type type) {
   world_ = world;
-  body_.init(role, type, &mind_, world->zonas_);
+  body_.init(this, role, type, &mind_, world->zonas_, world->doors_);
   mind_.init(world, &body_);
 }
 

@@ -79,7 +79,7 @@ class Body {
     Body() {};
     ~Body() {};
 
-    void init(Role role, Type type, Mind* mind, zonas zonasMapa);
+    void init(Agent* thisAgent, Role role, Type type, Mind* mind, zonas zonasMapa, std::vector<doors> doorsState);
     void update(uint32_t dt);
     void render() const;
 
@@ -103,8 +103,10 @@ class Body {
     SteeringMode steering_mode_;
     Behaviour behaviour_status_;
     Agent* target_;
+    Agent* thisAgent_;
     Mind* mind_ = nullptr;
     zonas zonas_;
+    std::vector<doors> doors_;
 
     const float max_speed_ = 100.0f;
 

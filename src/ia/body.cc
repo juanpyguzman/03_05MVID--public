@@ -11,13 +11,16 @@
 #include "ia/agent.h"
 #include "ia/defines.h"
 
-void Body::init(const Role role, const Type type, Mind* mind, zonas zonasMapa) {
+void Body::init(Agent* thisAgent, const Role role, const Type type, Mind* mind, zonas zonasMapa, std::vector<doors> doorsState) {
+  thisAgent_ = thisAgent;
   type_ = type;
   role_ = role;
   mind_ = mind;
   zonas_ = zonasMapa;
+  doors_ = doorsState;
 
   switch(role) {
+  //Inicialización de Soldier
   case Role::Soldier: {
       sprite_.loadFromFile(AGENT_SOLDIER);
 
@@ -27,7 +30,9 @@ void Body::init(const Role role, const Type type, Mind* mind, zonas zonasMapa) {
       behaviour_status_ = Behaviour::Idle;
       break; 
   }
+  //Inicialización de Guard
     case Role::Guard: sprite_.loadFromFile(AGENT_GUARD); break;
+  //Inicialización de Slave
     case Role::Slave: sprite_.loadFromFile(AGENT_SLAVE); break;
     default: sprite_.loadFromFile(AGENT_SLAVE);
   }
@@ -45,6 +50,8 @@ void Body::update(const uint32_t dt) {
 
         switch (behaviour_status_) {
         case Behaviour::Search: {
+
+            thisAgent_->getKinematic()->speed = 20.0f;
             if (!mind_->pathfinding_.isPath)
             {
                 setBehaviour(Body::Behaviour::Idle);
@@ -71,12 +78,15 @@ void Body::update(const uint32_t dt) {
         case Behaviour::Idle: {
             KinematicSteering steer;
             steer.velocity = MathLib::Vec2(0.0f, 0.0f);
-            /*mind_->setStartPoints(state_.position.x, state_.position.y);
-            mind_->setDoors(doors_[0], doors_[1], doors_[2], doors_[3]);
+            mind_->setStartPoints(state_.position.x(), state_.position.y());
+            mind_->setDoors(doors_);
             int random = rand() % zonas_.exterior.size();
-            mind_->setEndPoints = MathLib::Vec2(zonas_.exterior[random] * 8);
+            mind_->setEndPoints(MathLib::Vec2(zonas_.exterior[random]).x()*8, MathLib::Vec2(zonas_.exterior[random]).y() * 8);
+            
+            std::cout << MathLib::Vec2(zonas_.exterior[random]).x()*8 << "   " << MathLib::Vec2(zonas_.exterior[random]).y()*8 << std::endl;
+
             setBehaviour(Body::Behaviour::Search);
-            //world_.agent()->getKinematic()->speed = 20.0f;*/
+
             break; }
         }
     }
