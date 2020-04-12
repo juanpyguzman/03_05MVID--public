@@ -11,10 +11,11 @@
 #include "ia/agent.h"
 #include "ia/defines.h"
 
-void Body::init(const Role role, const Type type, Mind* mind) {
+void Body::init(const Role role, const Type type, Mind* mind, zonas zonasMapa) {
   type_ = type;
   role_ = role;
   mind_ = mind;
+  zonas_ = zonasMapa;
 
   switch(role) {
   case Role::Soldier: {

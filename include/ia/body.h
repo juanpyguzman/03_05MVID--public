@@ -79,12 +79,11 @@ class Body {
     Body() {};
     ~Body() {};
 
-    void init(Role role, Type type, Mind* mind);
+    void init(Role role, Type type, Mind* mind, zonas zonasMapa);
     void update(uint32_t dt);
     void render() const;
 
     void setTarget(Agent* target);
-    void setPath(MathLib::Vec2 nextPoint);
     void setNextPoint(MathLib::Vec2 nextPoint);
     void setSteering(const SteeringMode mode) { steering_mode_ = mode; };
     void setBehaviour(const Behaviour behaviour) { behaviour_status_ = behaviour; };
@@ -105,6 +104,7 @@ class Body {
     Behaviour behaviour_status_;
     Agent* target_;
     Mind* mind_ = nullptr;
+    zonas zonas_;
 
     const float max_speed_ = 100.0f;
 
