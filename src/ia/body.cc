@@ -17,7 +17,12 @@ void Body::init(const Role role, const Type type, Mind* mind) {
   mind_ = mind;
 
   switch(role) {
-    case Role::Soldier: sprite_.loadFromFile(AGENT_SOLDIER); break;
+  case Role::Soldier: {
+      sprite_.loadFromFile(AGENT_SOLDIER);
+      //world_.agent()->getKinematic()->position = MathLib::Vec2(0.0f, 0.0f);
+      state_.position = MathLib::Vec2(100.0f, 50.0f);
+      break; 
+  }
     case Role::Guard: sprite_.loadFromFile(AGENT_GUARD); break;
     case Role::Slave: sprite_.loadFromFile(AGENT_SLAVE); break;
     default: sprite_.loadFromFile(AGENT_SLAVE);
@@ -32,36 +37,42 @@ void Body::update(const uint32_t dt) {
 
     KinematicStatus* target = nullptr;
     
-    switch (behaviour_status_) {
-    case Behaviour::Search: {
-        if (!mind_->pathfinding_.isPath)
-        {
-            setBehaviour(Body::Behaviour::Idle);
-        }
-        else {
-            KinematicSteering steer;
-            setOrientation(state_.velocity);
-            if ((nextPoint_ - state_.position).length() <= ((previousPoint_ - state_.position).length()))
-            {
-                mind_->getNextIter();
-                previousPoint_ = nextPoint_;
-            }
-            target = new KinematicStatus();
-            target->position = nextPoint_;
-            k_seek_.calculate(state_, target, &steer);
-            updateKinematic(dt, steer);
-            if (mind_->endPath)
+    if (role_ == Role::Soldier) {
+        
+
+        switch (behaviour_status_) {
+        case Behaviour::Search: {
+            if (!mind_->pathfinding_.isPath)
             {
                 setBehaviour(Body::Behaviour::Idle);
             }
-        }
+            else {
+                KinematicSteering steer;
+                setOrientation(state_.velocity);
+                if ((nextPoint_ - state_.position).length() <= ((previousPoint_ - state_.position).length()))
+                {
+                    mind_->getNextIter();
+                    previousPoint_ = nextPoint_;
+                }
+                target = new KinematicStatus();
+                target->position = nextPoint_;
+                k_seek_.calculate(state_, target, &steer);
+                updateKinematic(dt, steer);
+                if (mind_->endPath)
+                {
+                    setBehaviour(Body::Behaviour::Idle);
+                }
+            }
 
-        break; }
-    case Behaviour::Idle: {
-        KinematicSteering steer;
-        steer.velocity = MathLib::Vec2(0.0f, 0.0f);
-        break; }
+            break; }
+        case Behaviour::Idle: {
+            KinematicSteering steer;
+            steer.velocity = MathLib::Vec2(0.0f, 0.0f);
+            break; }
+        }
     }
+
+    
 
 
   sprite_.setPosition(state_.position.x(), state_.position.y());

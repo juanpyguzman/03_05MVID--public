@@ -56,11 +56,11 @@ class World {
     }
 
     Agent* agent() { return &agent_; }
+    zonas zonas_;
     //Agent* ia() { return &ia_; }
   private:
       Agent agent_;
       std::vector<zone> zones_;
-      zonas zonas_;
       //Agent ia_;
 };
 
