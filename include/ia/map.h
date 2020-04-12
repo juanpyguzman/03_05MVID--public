@@ -10,6 +10,8 @@
 
 #include <cstdint>
 #include <SDL/SDL.h>
+#include "ia/defines.h""
+
 
 #define MAP_L1_WIDTH 128                //Size of map in tiles
 #define MAP_L1_HEIGHT 128
@@ -48,10 +50,16 @@ class Map {
         return map_l1[i][j];
     }   
 
+
   private:
 
     //  Tile Map
     uint8_t map_l1[MAP_L1_WIDTH][MAP_L1_HEIGHT];
+    SDL_Surface* map_image_;
+
+    //uint8_t interior[MAP_L1_WIDTH][MAP_L1_HEIGHT];
+    //uint8_t rest[MAP_L1_WIDTH][MAP_L1_HEIGHT];
+
 };
 
 #endif

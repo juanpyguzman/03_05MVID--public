@@ -27,6 +27,9 @@ class Mind {
     void setEndPoints(int xf, int yf);
     void getNextIter();
 
+    bool endPath = true;
+    Pathfinding pathfinding_;
+
   private:
     World* world_ = nullptr;
     Body* body_ = nullptr;
@@ -35,8 +38,6 @@ class Mind {
     std::list<pathPoints>::iterator list_iter;
 
     int x0_, y0_, xf_, yf_;
-    Pathfinding pathfinding_;
-    bool endPath = true;
 
     void CalculatePathFinding();
 

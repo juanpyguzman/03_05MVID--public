@@ -20,9 +20,6 @@ void Mind::update(const uint32_t) const {
     {
         body_->setNextPoint(MathLib::Vec2(list_iter->x, list_iter->y));
     }
-    if (!pathfinding_.isPath) {
-        body_->setBehaviour(Body::Behaviour::Idle);
-    }
 }
 
 void Mind::changeDoor(doors door)
@@ -50,7 +47,7 @@ void Mind::getNextIter() {
     if (list_iter == pathPointList_->end())
     {
         endPath = true;
-        body_->setBehaviour(Body::Behaviour::Idle);
+
     }
 }
 

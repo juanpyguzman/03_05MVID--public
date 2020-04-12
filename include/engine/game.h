@@ -31,7 +31,8 @@ class Game {
 
     void createScenes();
     void nextScene(int8_t sign);
-    void renderDoor(doors door, SDL_Renderer* renderer);
+
+    void loadZonesMap(SDL_Surface* map_image);
 
     bool quit_ = false;
     Sprite background_sprite_;
@@ -43,6 +44,8 @@ class Game {
 
     World world_;
     Map* map_;
+    SDL_Surface* map_image_;
+    std::vector<zone> zones;
 
     int8_t slo_mo_ = 1;
 

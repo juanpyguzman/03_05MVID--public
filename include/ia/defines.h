@@ -8,6 +8,7 @@
 #ifndef __DEFINES_H__
 #define __DEFINES_H__ 1
 
+#include <vector>
 #include "mathlib/vec2.h"
 #include <SDL/SDL_ttf.h>
 
@@ -111,6 +112,30 @@ public:
         }
     }
 }
+
+};
+
+enum class zone {
+    Exterior,
+    Interior,
+    Rest,
+    Work,
+    Loading,
+    Unloading,
+    Base,
+    Impossible,
+};
+
+class zonas {
+public:
+    std::vector<MathLib::Vec2> exterior;
+    std::vector<MathLib::Vec2> interior;
+    std::vector<MathLib::Vec2> rest;
+    std::vector<MathLib::Vec2> work;
+    std::vector<MathLib::Vec2> loading;
+    std::vector<MathLib::Vec2> unloading;
+    std::vector<MathLib::Vec2> base;
+    std::vector<MathLib::Vec2> impossible;
 
 };
 

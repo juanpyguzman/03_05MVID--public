@@ -11,6 +11,8 @@
 #include "ia/defines.h"
 #include "ia/scene_steering.h"
 #include <chrono>
+#include <iostream>
+#include <stdlib.h>
 
 
 void Game::init() {
@@ -20,6 +22,11 @@ void Game::init() {
   }
 
   fps_sprite_.setVisible(false);
+
+  loadZonesMap(SDL_LoadBMP("../assets/images/zonas.bmp"));
+
+  world_.setZones(zones);
+  world_.init();
 
   createScenes();
   //world_.agent()->getKinematic()->position = MathLib::Vec2(0.0f, 0.0f);
@@ -102,7 +109,7 @@ void Game::handleInput(uint16_t& counter) {
         {
             std::cout << "Final de pathfinding -->  ";
             std::cout << "X: " << x << "          Y: " << y << std::endl;
-            world_.agent()->setBehaviour(Body::Behaviour::Path);
+            world_.agent()->setBehaviour(Body::Behaviour::Search);
             world_.agent()->getKinematic()->speed = 20.0f;
             world_.agent()->mind_.setEndPoints(x, y);
         }
@@ -177,4 +184,57 @@ void Game::nextScene(const int8_t sign) {
   curr_scene_ += sign;
   curr_scene_ = clamp<int8_t>(curr_scene_, 0, SCENE_NUMBER - 1);
   scenes_[curr_scene_]->init(&world_);
+}
+
+void Game::loadZonesMap(SDL_Surface* map_image) {
+    if ((map_image = SDL_LoadBMP("../assets/images/zonas.bmp")) == false)
+        return;
+
+    map_image_ = map_image;
+
+    SDL_LockSurface(map_image);
+    Uint32* pixels = (Uint32*)map_image->pixels;
+    Uint32 pixel;
+    Uint8 r, g, b;
+
+    for (int i = 0; i < MAP_L1_WIDTH; ++i) {
+        for (int j = 0; j < MAP_L1_HEIGHT; ++j) {
+            pixel = pixels[(j * map_image->w) + i];
+            SDL_GetRGB(pixel, map_image->format, &r, &g, &b);
+            //Exteriores del castillo
+            if ((r == 239) && (g == 228) && (b == 176))
+            {
+                zones.push_back(zone::Exterior);
+            }
+            //Interior del castillo
+            else if ((r == 163) && (g == 73) && (b == 164)) {
+                zones.push_back(zone::Interior);
+            }
+            //햞ea de descanso
+            else if ((r == 181) && (g == 230) && (b == 29)) {
+                zones.push_back(zone::Rest);
+            }
+            //햞ea de trabajo
+            else if ((r == 255) && (g == 216) && (b == 0)) {
+                zones.push_back(zone::Work);
+            }
+            //햞ea de carga (izquierda)
+            else if ((r == 36) && (g == 255) && (b == 0)) {
+                zones.push_back(zone::Loading);
+            }
+            //햞ea de descarga (derecha)
+            else if ((r == 18) && (g == 0) && (b == 255)) {
+                zones.push_back(zone::Unloading);
+            }
+            //Cuarteles (base de los soldados)
+            else if ((r == 0) && (g == 198) && (b == 255)) {
+                zones.push_back(zone::Base);
+            }
+            else {
+                zones.push_back(zone::Impossible);
+            }
+        }
+    }
+
+    SDL_UnlockSurface(map_image);
 }

@@ -70,8 +70,10 @@ class Body {
     };
 
     enum class Behaviour {
-        Path,
+        Search,
         Idle,
+        Hacking,
+        Back,
     };
 
     Body() {};

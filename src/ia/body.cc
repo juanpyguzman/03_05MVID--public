@@ -33,18 +33,29 @@ void Body::update(const uint32_t dt) {
     KinematicStatus* target = nullptr;
     
     switch (behaviour_status_) {
-    case Behaviour::Path: {
-        KinematicSteering steer;
-        setOrientation(state_.velocity);
-        if ((nextPoint_ - state_.position).length() <= ((previousPoint_ - state_.position).length()))
+    case Behaviour::Search: {
+        if (!mind_->pathfinding_.isPath)
         {
-            mind_->getNextIter();
-            previousPoint_ = nextPoint_;
+            setBehaviour(Body::Behaviour::Idle);
         }
-        target = new KinematicStatus();
-        target->position = nextPoint_;
-        k_seek_.calculate(state_, target, &steer);
-        updateKinematic(dt, steer);
+        else {
+            KinematicSteering steer;
+            setOrientation(state_.velocity);
+            if ((nextPoint_ - state_.position).length() <= ((previousPoint_ - state_.position).length()))
+            {
+                mind_->getNextIter();
+                previousPoint_ = nextPoint_;
+            }
+            target = new KinematicStatus();
+            target->position = nextPoint_;
+            k_seek_.calculate(state_, target, &steer);
+            updateKinematic(dt, steer);
+            if (mind_->endPath)
+            {
+                setBehaviour(Body::Behaviour::Idle);
+            }
+        }
+
         break; }
     case Behaviour::Idle: {
         KinematicSteering steer;
