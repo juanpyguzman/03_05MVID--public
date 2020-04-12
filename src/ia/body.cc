@@ -20,8 +20,8 @@ void Body::init(const Role role, const Type type, Mind* mind, zonas zonasMapa) {
   switch(role) {
   case Role::Soldier: {
       sprite_.loadFromFile(AGENT_SOLDIER);
-      //world_.agent()->getKinematic()->position = MathLib::Vec2(0.0f, 0.0f);
-      state_.position = MathLib::Vec2(100.0f, 50.0f);
+      int random = rand() % zonas_.base.size();
+      state_.position = MathLib::Vec2(zonas_.base[random]*8);
       break; 
   }
     case Role::Guard: sprite_.loadFromFile(AGENT_GUARD); break;
