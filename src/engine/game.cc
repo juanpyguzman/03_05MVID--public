@@ -205,8 +205,11 @@ void Game::loadZonesMap(SDL_Surface* map_image) {
             //Exteriores del castillo
             if ((r == 239) && (g == 228) && (b == 176))
             {
-                zones.push_back(zone::Exterior);
-                zonas_.exterior.push_back(MathLib::Vec2(i, j));
+                if (i != 0 && j != 0 && i != 127 && j != 127) {
+                    zones.push_back(zone::Exterior);
+                    zonas_.exterior.push_back(MathLib::Vec2(i, j));
+                }
+
             }
             //Interior del castillo
             else if ((r == 163) && (g == 73) && (b == 164)) {

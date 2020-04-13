@@ -107,6 +107,7 @@ class Body {
     Mind* mind_ = nullptr;
     zonas zonas_;
     std::vector<doors>* doors_;
+    std::vector<doors> doorsClosed_;
 
     const float max_speed_ = 100.0f;
 

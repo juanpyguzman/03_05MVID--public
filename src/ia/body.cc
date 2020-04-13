@@ -18,6 +18,7 @@ void Body::init(Agent* thisAgent, const Role role, const Type type, Mind* mind, 
   mind_ = mind;
   zonas_ = zonasMapa;
   doors_ = doorsState;
+  doorsClosed_ = *doorsState;
 
   switch(role) {
   //Inicialización de Soldier
@@ -86,7 +87,7 @@ void Body::update(const uint32_t dt) {
                             if (doors_->at(i).open == false) {
                                 //Generamos pathfinding hacia la puerta
                                 mind_->setStartPoints(state_.position.x(), state_.position.y());
-                                mind_->setDoors(*doors_);
+                                mind_->setDoors(doorsClosed_);
                                 mind_->setEndPoints(doors_->at(i).outsideX * 8, doors_->at(i).outsideY * 8);
                                 hackingDoorNumber_ = i;
                                 setBehaviour(Body::Behaviour::Hacking);
@@ -102,12 +103,16 @@ void Body::update(const uint32_t dt) {
         case Behaviour::Idle: {
             KinematicSteering steer;
             steer.velocity = MathLib::Vec2(0.0f, 0.0f);
-            mind_->setStartPoints(state_.position.x(), state_.position.y());
-            mind_->setDoors(*doors_);
-            int random = rand() % zonas_.exterior.size();
-            mind_->setEndPoints(MathLib::Vec2(zonas_.exterior[random]).x()*8, MathLib::Vec2(zonas_.exterior[random]).y() * 8);
+            int delay = rand() % 100;
+            if (delay == 99)
+            {
+                mind_->setStartPoints(state_.position.x(), state_.position.y());
+                mind_->setDoors(doorsClosed_);
+                int random = rand() % zonas_.exterior.size();
+                mind_->setEndPoints(MathLib::Vec2(zonas_.exterior[random]).x() * 8, MathLib::Vec2(zonas_.exterior[random]).y() * 8);
 
-            setBehaviour(Body::Behaviour::Search);
+                setBehaviour(Body::Behaviour::Search);
+            }
 
             break; }
 
@@ -133,7 +138,7 @@ void Body::update(const uint32_t dt) {
                 
                 //Pathfinding para volver a la base
                 mind_->setStartPoints(state_.position.x(), state_.position.y());
-                mind_->setDoors(*doors_);
+                mind_->setDoors(doorsClosed_);
 
                 int random = rand() % zonas_.base.size();
                 mind_->setEndPoints(MathLib::Vec2(zonas_.base[random]).x() * 8, MathLib::Vec2(zonas_.base[random]).y() * 8);
