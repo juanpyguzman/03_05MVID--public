@@ -11,7 +11,7 @@
 #include "ia/agent.h"
 #include "ia/defines.h"
 
-void Body::init(Agent* thisAgent, const Role role, const Type type, Mind* mind, zonas zonasMapa, std::vector<doors> doorsState) {
+void Body::init(Agent* thisAgent, const Role role, const Type type, Mind* mind, zonas zonasMapa, std::vector<doors>* doorsState) {
   thisAgent_ = thisAgent;
   type_ = type;
   role_ = role;
@@ -77,16 +77,17 @@ void Body::update(const uint32_t dt) {
                 //Comprobación de distancia a Puerta
                 for (int i = 0; i < 4; i++)
                 {
-                    if ((MathLib::Vec2(doors_[i].outsideX * 8, doors_[i].outsideY * 8) - state_.position).length() <= 200.0f) {
+                    //doors_->at(i).
+                    if ((MathLib::Vec2(doors_->at(i).outsideX * 8, doors_->at(i).outsideY * 8) - state_.position).length() <= 200.0f) {
                         //Comprobamos si estamos pasando por delante
-                        if ((doors_[i].startX * 8 < state_.position.x() && doors_[i].endX * 8 > state_.position.x())
-                            || (doors_[i].startY * 8 < state_.position.y() && doors_[i].endY * 8 > state_.position.y())) {
+                        if ((doors_->at(i).startX * 8 < state_.position.x() && doors_->at(i).endX * 8 > state_.position.x())
+                            || (doors_->at(i).startY * 8 < state_.position.y() && doors_->at(i).endY * 8 > state_.position.y())) {
                             //Si la puerta está cerrada
-                            if (doors_[i].open == false) {
+                            if (doors_->at(i).open == false) {
                                 //Generamos pathfinding hacia la puerta
                                 mind_->setStartPoints(state_.position.x(), state_.position.y());
-                                mind_->setDoors(doors_);
-                                mind_->setEndPoints(doors_[i].outsideX * 8, doors_[i].outsideY * 8);
+                                mind_->setDoors(*doors_);
+                                mind_->setEndPoints(doors_->at(i).outsideX * 8, doors_->at(i).outsideY * 8);
                                 hackingDoorNumber_ = i;
                                 setBehaviour(Body::Behaviour::Hacking);
                             }
@@ -102,7 +103,7 @@ void Body::update(const uint32_t dt) {
             KinematicSteering steer;
             steer.velocity = MathLib::Vec2(0.0f, 0.0f);
             mind_->setStartPoints(state_.position.x(), state_.position.y());
-            mind_->setDoors(doors_);
+            mind_->setDoors(*doors_);
             int random = rand() % zonas_.exterior.size();
             mind_->setEndPoints(MathLib::Vec2(zonas_.exterior[random]).x()*8, MathLib::Vec2(zonas_.exterior[random]).y() * 8);
             
@@ -129,9 +130,9 @@ void Body::update(const uint32_t dt) {
             updateKinematic(dt, steer);
             if (mind_->endPath)
             {
-                doors_[hackingDoorNumber_].open = !doors_[hackingDoorNumber_].open;
-                doors_[hackingDoorNumber_].discovered = true;
-                mind_->changeDoor(doors_[hackingDoorNumber_]);
+                doors_->at(hackingDoorNumber_).open = !doors_->at(hackingDoorNumber_).open;
+                doors_->at(hackingDoorNumber_).discovered = true;
+                mind_->changeDoor(doors_->at(hackingDoorNumber_));
                 setBehaviour(Body::Behaviour::Back);
             }
 

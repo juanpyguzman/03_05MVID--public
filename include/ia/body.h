@@ -79,7 +79,7 @@ class Body {
     Body() {};
     ~Body() {};
 
-    void init(Agent* thisAgent, Role role, Type type, Mind* mind, zonas zonasMapa, std::vector<doors> doorsState);
+    void init(Agent* thisAgent, Role role, Type type, Mind* mind, zonas zonasMapa, std::vector<doors>* doorsState);
     void update(uint32_t dt);
     void render() const;
 
@@ -106,7 +106,7 @@ class Body {
     Agent* thisAgent_;
     Mind* mind_ = nullptr;
     zonas zonas_;
-    std::vector<doors> doors_;
+    std::vector<doors>* doors_;
 
     const float max_speed_ = 100.0f;
 

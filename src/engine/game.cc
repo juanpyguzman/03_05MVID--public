@@ -26,7 +26,7 @@ void Game::init() {
   loadZonesMap(SDL_LoadBMP("../assets/images/zonas.bmp"));
 
   world_.setZones(zonas_);
-  world_.setDoors(doors_);
+  world_.setDoors(&doors_);
   world_.init();
 
   createScenes();

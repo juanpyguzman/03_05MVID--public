@@ -51,7 +51,7 @@ class World {
 
     }
 
-    void setDoors(std::vector<doors> doorsState)
+    void setDoors(std::vector<doors>* doorsState)
     {
         doors_ = doorsState;
     }
@@ -62,7 +62,7 @@ class World {
 
     Agent* agent() { return &agent_; }
     zonas zonas_;
-    std::vector<doors> doors_;
+    std::vector<doors>* doors_;
     //Agent* ia() { return &ia_; }
   private:
       Agent agent_;
