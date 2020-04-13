@@ -106,15 +106,12 @@ void Body::update(const uint32_t dt) {
             mind_->setDoors(*doors_);
             int random = rand() % zonas_.exterior.size();
             mind_->setEndPoints(MathLib::Vec2(zonas_.exterior[random]).x()*8, MathLib::Vec2(zonas_.exterior[random]).y() * 8);
-            
-            std::cout << MathLib::Vec2(zonas_.exterior[random]).x()*8 << "   " << MathLib::Vec2(zonas_.exterior[random]).y()*8 << std::endl;
 
             setBehaviour(Body::Behaviour::Search);
 
             break; }
 
         case Behaviour::Hacking: {
-            std::cout << "Hacking" << std::endl;
             thisAgent_->getKinematic()->speed = 20.0f;
             KinematicSteering steer;
 
@@ -133,24 +130,37 @@ void Body::update(const uint32_t dt) {
                 doors_->at(hackingDoorNumber_).open = !doors_->at(hackingDoorNumber_).open;
                 doors_->at(hackingDoorNumber_).discovered = true;
                 mind_->changeDoor(doors_->at(hackingDoorNumber_));
+                
+                //Pathfinding para volver a la base
+                mind_->setStartPoints(state_.position.x(), state_.position.y());
+                mind_->setDoors(*doors_);
+
+                int random = rand() % zonas_.base.size();
+                mind_->setEndPoints(MathLib::Vec2(zonas_.base[random]).x() * 8, MathLib::Vec2(zonas_.base[random]).y() * 8);
+
                 setBehaviour(Body::Behaviour::Back);
             }
 
             break; }
 
-        case Behaviour::Back: {
-
-            std::cout << "Hacked" << std::endl;
+        case Behaviour::Back: {            
+            thisAgent_->getKinematic()->speed = 20.0f;
             KinematicSteering steer;
-            steer.velocity = MathLib::Vec2(0.0f, 0.0f);
-            /*mind_->setStartPoints(state_.position.x(), state_.position.y());
-            mind_->setDoors(doors_);
-            int random = rand() % zonas_.exterior.size();
-            mind_->setEndPoints(MathLib::Vec2(zonas_.exterior[random]).x() * 8, MathLib::Vec2(zonas_.exterior[random]).y() * 8);
 
-            std::cout << MathLib::Vec2(zonas_.exterior[random]).x() * 8 << "   " << MathLib::Vec2(zonas_.exterior[random]).y() * 8 << std::endl;
-
-            setBehaviour(Body::Behaviour::Search);*/
+            setOrientation(state_.velocity);
+            if ((nextPoint_ - state_.position).length() <= ((previousPoint_ - state_.position).length()))
+            {
+                mind_->getNextIter();
+                previousPoint_ = nextPoint_;
+            }
+            target = new KinematicStatus();
+            target->position = nextPoint_;
+            k_seek_.calculate(state_, target, &steer);
+            updateKinematic(dt, steer);
+            if (mind_->endPath)
+            {
+                setBehaviour(Body::Behaviour::Idle);
+            }
 
             break; }
         }
