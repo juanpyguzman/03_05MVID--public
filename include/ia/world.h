@@ -28,6 +28,16 @@ class World {
         {
             soldiers_[i].shutdown();
         }
+
+        for (int i = 0; i < numGuards; i++)
+        {
+            guards_[i].shutdown();
+        }
+
+        for (int i = 0; i < numSlaves; i++)
+        {
+            slaves_[i].shutdown();
+        }
       //agent3_.shutdown();
       //ia_.shutdown();
     };
@@ -37,6 +47,16 @@ class World {
         {
             soldiers_[i].update(dt);
         }
+
+        for (int i = 0; i < numGuards; i++)
+        {
+            guards_[i].update(dt);
+        }
+
+        for (int i = 0; i < numSlaves; i++)
+        {
+            slaves_[i].update(dt);
+        }
         //agent3_.update(dt);
         //ia_.update(dt); 
     }
@@ -44,6 +64,16 @@ class World {
         for (int i = 0; i < numSoldiers; i++)
         {
             soldiers_[i].render();
+        }
+
+        for (int i = 0; i < numGuards; i++)
+        {
+            guards_[i].render();
+        }
+
+        for (int i = 0; i < numSlaves; i++)
+        {
+            slaves_[i].render();
         }
 
         //agent3_.render();
@@ -70,14 +100,38 @@ class World {
     }
     
     void init() {
+        
+        //Inicialización de soldados
         for (int i = 0; i < numSoldiers; i++)
         {
-            soldiers_.push_back(soldier_);
+            soldiers_.push_back(agent_);
         }
         
         for (int i = 0; i < numSoldiers; i++)
         {
             soldiers_[i].init(this, Body::Role::Soldier, Body::Type::Autonomous);
+        }
+
+        //Inicialización de guardias
+        for (int i = 0; i < numGuards; i++)
+        {
+            guards_.push_back(agent_);
+        }
+
+        for (int i = 0; i < numGuards; i++)
+        {
+            guards_[i].init(this, Body::Role::Guard, Body::Type::Autonomous);
+        }
+
+        //Inicialización de esclavos
+        for (int i = 0; i < numSlaves; i++)
+        {
+            slaves_.push_back(agent_);
+        }
+
+        for (int i = 0; i < numSlaves; i++)
+        {
+            slaves_[i].init(this, Body::Role::Slave, Body::Type::Autonomous);
         }
     }
 
@@ -86,9 +140,16 @@ class World {
     std::vector<doors>* doors_;
     //Agent* ia() { return &ia_; }
   private:
+      Agent agent_;
+      
       int numSoldiers = 10;
       std::vector<Agent> soldiers_;
-      Agent soldier_;
+
+      int numGuards = 10;
+      std::vector<Agent> guards_;
+
+      int numSlaves = 10;
+      std::vector<Agent> slaves_;
 
       std::vector<zone> zones_;
       //Agent ia_;
