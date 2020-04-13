@@ -136,6 +136,8 @@ class Body {
     LookGoing look_going_;
     Wander wander_;
 
+    int hackingDoorNumber_;
+
     MathLib::Vec2 nextPoint_, previousPoint_;
 };
 

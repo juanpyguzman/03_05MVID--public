@@ -87,6 +87,10 @@ public:
     int startY;
     int endX;
     int endY;
+    int outsideX;
+    int outsideY;
+    int insideX;
+    int insideY;
     bool open;
     bool discovered;
 

@@ -28,6 +28,7 @@ void Body::init(Agent* thisAgent, const Role role, const Type type, Mind* mind, 
       int random = rand() % zonas_.base.size();
       state_.position = MathLib::Vec2(zonas_.base[random]*8);
       behaviour_status_ = Behaviour::Idle;
+      hackingDoorNumber_=-1;
       break; 
   }
   //Inicialización de Guard
@@ -47,7 +48,7 @@ void Body::update(const uint32_t dt) {
     
     if (role_ == Role::Soldier) {
         
-
+        
         switch (behaviour_status_) {
         case Behaviour::Search: {
 
@@ -72,6 +73,28 @@ void Body::update(const uint32_t dt) {
                 {
                     setBehaviour(Body::Behaviour::Idle);
                 }
+
+                //Comprobación de distancia a Puerta
+                for (int i = 0; i < 4; i++)
+                {
+                    if ((MathLib::Vec2(doors_[i].outsideX * 8, doors_[i].outsideY * 8) - state_.position).length() <= 200.0f) {
+                        //Comprobamos si estamos pasando por delante
+                        if ((doors_[i].startX * 8 < state_.position.x() && doors_[i].endX * 8 > state_.position.x())
+                            || (doors_[i].startY * 8 < state_.position.y() && doors_[i].endY * 8 > state_.position.y())) {
+                            //Si la puerta está cerrada
+                            if (doors_[i].open == false) {
+                                //Generamos pathfinding hacia la puerta
+                                mind_->setStartPoints(state_.position.x(), state_.position.y());
+                                mind_->setDoors(doors_);
+                                mind_->setEndPoints(doors_[i].outsideX * 8, doors_[i].outsideY * 8);
+                                hackingDoorNumber_ = i;
+                                setBehaviour(Body::Behaviour::Hacking);
+                            }
+
+                        }
+                    }
+                }
+
             }
 
             break; }
@@ -86,6 +109,45 @@ void Body::update(const uint32_t dt) {
             std::cout << MathLib::Vec2(zonas_.exterior[random]).x()*8 << "   " << MathLib::Vec2(zonas_.exterior[random]).y()*8 << std::endl;
 
             setBehaviour(Body::Behaviour::Search);
+
+            break; }
+
+        case Behaviour::Hacking: {
+            std::cout << "Hacking" << std::endl;
+            thisAgent_->getKinematic()->speed = 20.0f;
+            KinematicSteering steer;
+
+            setOrientation(state_.velocity);
+            if ((nextPoint_ - state_.position).length() <= ((previousPoint_ - state_.position).length()))
+            {
+                mind_->getNextIter();
+                previousPoint_ = nextPoint_;
+            }
+            target = new KinematicStatus();
+            target->position = nextPoint_;
+            k_seek_.calculate(state_, target, &steer);
+            updateKinematic(dt, steer);
+            if (mind_->endPath)
+            {
+                mind_->changeDoor(doors_[hackingDoorNumber_]);
+                setBehaviour(Body::Behaviour::Back);
+            }
+
+            break; }
+
+        case Behaviour::Back: {
+
+            std::cout << "Hacked" << std::endl;
+            KinematicSteering steer;
+            steer.velocity = MathLib::Vec2(0.0f, 0.0f);
+            /*mind_->setStartPoints(state_.position.x(), state_.position.y());
+            mind_->setDoors(doors_);
+            int random = rand() % zonas_.exterior.size();
+            mind_->setEndPoints(MathLib::Vec2(zonas_.exterior[random]).x() * 8, MathLib::Vec2(zonas_.exterior[random]).y() * 8);
+
+            std::cout << MathLib::Vec2(zonas_.exterior[random]).x() * 8 << "   " << MathLib::Vec2(zonas_.exterior[random]).y() * 8 << std::endl;
+
+            setBehaviour(Body::Behaviour::Search);*/
 
             break; }
         }
