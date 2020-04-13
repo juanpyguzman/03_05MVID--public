@@ -51,6 +51,7 @@ void Body::update(const uint32_t dt) {
         
         
         switch (behaviour_status_) {
+        //Buscando puertas
         case Behaviour::Search: {
 
             thisAgent_->getKinematic()->speed = 20.0f;
@@ -100,22 +101,47 @@ void Body::update(const uint32_t dt) {
             }
 
             break; }
+        //Estado de reposo
         case Behaviour::Idle: {
             KinematicSteering steer;
             steer.velocity = MathLib::Vec2(0.0f, 0.0f);
             int delay = rand() % 100;
             if (delay == 99)
             {
-                mind_->setStartPoints(state_.position.x(), state_.position.y());
-                mind_->setDoors(doorsClosed_);
-                int random = rand() % zonas_.exterior.size();
-                mind_->setEndPoints(MathLib::Vec2(zonas_.exterior[random]).x() * 8, MathLib::Vec2(zonas_.exterior[random]).y() * 8);
+                int buscar = rand() % 2;
+                //Búsqueda aleatoria en el mapa
+                //Si buscar es 0, genera un aleatorio a las puertas y si dicha puerta ha sido encontrada, manda un Pathfinding a esa puerta, en caso contrario, manda buscar
+                if (buscar == 0) {
+                    int randomDoor = rand() % 4;
+                    if (doors_->at(randomDoor).discovered == true) {
+                        mind_->setStartPoints(state_.position.x(), state_.position.y());
+                        mind_->setDoors(doorsClosed_);
+                        mind_->setEndPoints(doors_->at(randomDoor).outsideX * 8, doors_->at(randomDoor).outsideY * 8);
+                        setBehaviour(Body::Behaviour::Search);
+                    }
+                    else {
+                        mind_->setStartPoints(state_.position.x(), state_.position.y());
+                        mind_->setDoors(doorsClosed_);
+                        int random = rand() % zonas_.exterior.size();
+                        mind_->setEndPoints(MathLib::Vec2(zonas_.exterior[random]).x() * 8, MathLib::Vec2(zonas_.exterior[random]).y() * 8);
 
-                setBehaviour(Body::Behaviour::Search);
+                        setBehaviour(Body::Behaviour::Search);
+                    }
+                }
+                // Si buscar es 1, manda Pathfinding aleatorio de búsqueda en el mapa
+                else {
+                    mind_->setStartPoints(state_.position.x(), state_.position.y());
+                    mind_->setDoors(doorsClosed_);
+                    int random = rand() % zonas_.exterior.size();
+                    mind_->setEndPoints(MathLib::Vec2(zonas_.exterior[random]).x() * 8, MathLib::Vec2(zonas_.exterior[random]).y() * 8);
+
+                    setBehaviour(Body::Behaviour::Search);
+                }
             }
 
             break; }
-
+        
+        //Abriendo puerta
         case Behaviour::Hacking: {
             thisAgent_->getKinematic()->speed = 20.0f;
             KinematicSteering steer;
@@ -133,7 +159,10 @@ void Body::update(const uint32_t dt) {
             if (mind_->endPath)
             {
                 doors_->at(hackingDoorNumber_).open = !doors_->at(hackingDoorNumber_).open;
-                doors_->at(hackingDoorNumber_).discovered = true;
+                if (doors_->at(hackingDoorNumber_).discovered == false)
+                {
+                    doors_->at(hackingDoorNumber_).discovered = true;
+                }
                 mind_->changeDoor(doors_->at(hackingDoorNumber_));
                 
                 //Pathfinding para volver a la base
@@ -148,6 +177,7 @@ void Body::update(const uint32_t dt) {
 
             break; }
 
+        //Volviendo a base
         case Behaviour::Back: {            
             thisAgent_->getKinematic()->speed = 20.0f;
             KinematicSteering steer;
