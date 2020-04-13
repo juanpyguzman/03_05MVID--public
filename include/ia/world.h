@@ -24,16 +24,29 @@ class World {
      // ia_.getKinematic()->position = Vec2(WINDOW_WIDTH / 2, WINDOW_HEIGHT / 2);
     };
     ~World() {
-      agent_.shutdown();
+        for (int i = 0; i < numSoldiers; i++)
+        {
+            soldiers_[i].shutdown();
+        }
+      //agent3_.shutdown();
       //ia_.shutdown();
     };
 
     void update(const float dt) { 
-        agent_.update(dt); 
+        for (int i = 0; i < numSoldiers; i++)
+        {
+            soldiers_[i].update(dt);
+        }
+        //agent3_.update(dt);
         //ia_.update(dt); 
     }
     void render() const { 
-        agent_.render(); 
+        for (int i = 0; i < numSoldiers; i++)
+        {
+            soldiers_[i].render();
+        }
+
+        //agent3_.render();
         //ia_.render(); 
     }
 
@@ -57,15 +70,26 @@ class World {
     }
     
     void init() {
-        agent_.init(this, Body::Role::Soldier, Body::Type::Autonomous);
+        for (int i = 0; i < numSoldiers; i++)
+        {
+            soldiers_.push_back(soldier_);
+        }
+        
+        for (int i = 0; i < numSoldiers; i++)
+        {
+            soldiers_[i].init(this, Body::Role::Soldier, Body::Type::Autonomous);
+        }
     }
 
-    Agent* agent() { return &agent_; }
+    Agent* agent() { return &soldiers_[0]; }
     zonas zonas_;
     std::vector<doors>* doors_;
     //Agent* ia() { return &ia_; }
   private:
-      Agent agent_;
+      int numSoldiers = 10;
+      std::vector<Agent> soldiers_;
+      Agent soldier_;
+
       std::vector<zone> zones_;
       //Agent ia_;
 };

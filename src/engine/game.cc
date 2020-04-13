@@ -98,7 +98,7 @@ void Game::handleInput(uint16_t& counter) {
         if (e.type == SDL_MOUSEBUTTONUP) {
         int x, y;
         SDL_GetMouseState(&x, &y);
-        if (counter % 2 == 0)
+        /*if (counter % 2 == 0)
         {
             std::cout << "Inicio de pathfinding -->  ";
             std::cout << "X: " << x << "          Y: " << y << std::endl;
@@ -115,7 +115,7 @@ void Game::handleInput(uint16_t& counter) {
             world_.agent()->mind_.setEndPoints(x, y);
         }
 
-        counter++;
+        counter++;*/
       }
       scenes_[curr_scene_]->handleMouseEvent(e);
     }
@@ -125,7 +125,7 @@ void Game::handleInput(uint16_t& counter) {
         case SDLK_ESCAPE: quit_ = true; break;
         case SDLK_F1:   nextScene(-1); break;
         case SDLK_F2:  nextScene(+1); break;
-        case SDLK_1:
+        /*case SDLK_1:
             doors_[0].open = !doors_[0].open;
             world_.agent()->mind_.changeDoor(doors_[0]);
             break;
@@ -140,7 +140,7 @@ void Game::handleInput(uint16_t& counter) {
         case SDLK_4:
             doors_[3].open = !doors_[3].open;
             world_.agent()->mind_.changeDoor(doors_[3]);
-            break;
+            break;*/
         default:{}
       }
       scenes_[curr_scene_]->handleKeyEvent(e.key.keysym.sym);
@@ -206,43 +206,35 @@ void Game::loadZonesMap(SDL_Surface* map_image) {
             if ((r == 239) && (g == 228) && (b == 176))
             {
                 if (i != 0 && j != 0 && i != 127 && j != 127) {
-                    zones.push_back(zone::Exterior);
                     zonas_.exterior.push_back(MathLib::Vec2(i, j));
                 }
 
             }
             //Interior del castillo
             else if ((r == 163) && (g == 73) && (b == 164)) {
-                zones.push_back(zone::Interior);
                 zonas_.interior.push_back(MathLib::Vec2(i, j));
             }
             //햞ea de descanso
             else if ((r == 181) && (g == 230) && (b == 29)) {
-                zones.push_back(zone::Rest);
                 zonas_.rest.push_back(MathLib::Vec2(i, j));
             }
             //햞ea de trabajo
             else if ((r == 255) && (g == 216) && (b == 0)) {
-                zones.push_back(zone::Work);
                 zonas_.work.push_back(MathLib::Vec2(i, j));
             }
             //햞ea de carga (izquierda)
             else if ((r == 36) && (g == 255) && (b == 0)) {
-                zones.push_back(zone::Loading);
                 zonas_.loading.push_back(MathLib::Vec2(i, j));
             }
             //햞ea de descarga (derecha)
             else if ((r == 18) && (g == 0) && (b == 255)) {
-                zones.push_back(zone::Unloading);
                 zonas_.unloading.push_back(MathLib::Vec2(i, j));
             }
             //Cuarteles (base de los soldados)
             else if ((r == 0) && (g == 198) && (b == 255)) {
-                zones.push_back(zone::Base);
                 zonas_.base.push_back(MathLib::Vec2(i, j));
             }
             else {
-                zones.push_back(zone::Impossible);
                 zonas_.impossible.push_back(MathLib::Vec2(i, j));
             }
         }

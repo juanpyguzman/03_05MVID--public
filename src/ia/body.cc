@@ -158,7 +158,9 @@ void Body::update(const uint32_t dt) {
             updateKinematic(dt, steer);
             if (mind_->endPath)
             {
-                doors_->at(hackingDoorNumber_).open = !doors_->at(hackingDoorNumber_).open;
+                if (doors_->at(hackingDoorNumber_).open == false) {
+                    doors_->at(hackingDoorNumber_).open = true;
+                }
                 if (doors_->at(hackingDoorNumber_).discovered == false)
                 {
                     doors_->at(hackingDoorNumber_).discovered = true;

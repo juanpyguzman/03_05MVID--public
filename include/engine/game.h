@@ -45,7 +45,6 @@ class Game {
     World world_;
     Map* map_;
     SDL_Surface* map_image_;
-    std::vector<zone> zones;
     zonas zonas_;
 
     int8_t slo_mo_ = 1;

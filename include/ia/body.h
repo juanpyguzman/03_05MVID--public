@@ -121,21 +121,21 @@ class Body {
     KinematicStatus state_;
 
     KinematicSeek k_seek_;
-    KinematicFlee k_flee_;
-    KinematicArrive k_arrive_;
+    //KinematicFlee k_flee_;
+    //KinematicArrive k_arrive_;
     KinematicWander k_wander_;
 
-    Seek seek_;
-    SeekPath seekPath_;
-    Flee flee_;
-    Arrive arrive_;
-    Align align_;
-    VelocityMatching vel_matching_;
+    //Seek seek_;
+    //SeekPath seekPath_;
+    //Flee flee_;
+    //Arrive arrive_;
+    //Align align_;
+    //VelocityMatching vel_matching_;
 
-    Pursue pursue_;
-    Face face_;
-    LookGoing look_going_;
-    Wander wander_;
+    //Pursue pursue_;
+   // Face face_;
+    //LookGoing look_going_;
+    //Wander wander_;
 
     int hackingDoorNumber_;
 
