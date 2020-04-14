@@ -82,16 +82,6 @@ class World {
 
     void setZones(zonas zonasMapa) {
         zonas_ = zonasMapa;
-        //zones_ = zones;
-
-        /*for (int i = 0; i < WINDOW_WIDTH/8; i++) {
-            for (int j = 0; j < WINDOW_HEIGHT / 8; j++) {
-                if (zones_[i * WINDOW_WIDTH/8 + j] == zone::Exterior) {
-                    std::cout << "Zona X: " << i << "      Y: " << j << "----> Exterior" << std::endl;
-                }
-            }
-        }*/
-
     }
 
     void setDoors(std::vector<doors>* doorsState)
@@ -138,21 +128,18 @@ class World {
     Agent* agent() { return &soldiers_[0]; }
     zonas zonas_;
     std::vector<doors>* doors_;
-    //Agent* ia() { return &ia_; }
+
   private:
       Agent agent_;
       
-      int numSoldiers = 10;
+      int numSoldiers = 0;
       std::vector<Agent> soldiers_;
 
-      int numGuards = 10;
+      int numGuards = 0;
       std::vector<Agent> guards_;
 
       int numSlaves = 10;
       std::vector<Agent> slaves_;
-
-      std::vector<zone> zones_;
-      //Agent ia_;
 };
 
 #endif

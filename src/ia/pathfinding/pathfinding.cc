@@ -14,6 +14,8 @@
     }
     
     void Pathfinding::setEnd(int x, int y) {
+        isPath = false;
+        pathPointList_.clear();
         xf_ = x;
         yf_ = y;
         NodeF.x = x / (WINDOW_WIDTH / MAP_L1_WIDTH);
@@ -22,8 +24,7 @@
         Node0.f = Node0.g + Node0.h;
         node[NodeF.x][NodeF.y].x = NodeF.x;
         node[NodeF.x][NodeF.y].y = NodeF.y;
-        pathPointList_.clear();
-        isPath = false;
+
     }
 
     void Pathfinding::changeDoor(doors door)

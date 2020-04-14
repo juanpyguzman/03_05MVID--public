@@ -51,6 +51,11 @@ void Mind::getNextIter() {
     }
 }
 
+void Mind::stopPath() {
+    endPath = true;
+    pathfinding_.clear();
+}
+
 void Mind::CalculatePathFinding() {
     pathfinding_.setStart(x0_, y0_);
     pathfinding_.setEnd(xf_, yf_);

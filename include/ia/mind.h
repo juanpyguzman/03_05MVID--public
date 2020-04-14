@@ -26,6 +26,7 @@ class Mind {
     void setStartPoints(int x0, int y0);
     void setEndPoints(int xf, int yf);
     void getNextIter();
+    void stopPath();
 
     bool endPath = true;
     Pathfinding pathfinding_;

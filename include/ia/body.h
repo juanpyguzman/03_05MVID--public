@@ -74,6 +74,12 @@ class Body {
         SoldierIdle,
         SoldierHacking,
         SoldierBack,
+        GuardStart,
+        GuardPatrol,
+        GuardClosing,
+        SlaveLoading,
+        SlaveUnloading,
+        SlaveResting,
     };
 
     Body() {};
@@ -96,6 +102,7 @@ class Body {
     void setOrientation(const MathLib::Vec2& velocity);
     void keepInSpeed();
     void keepInBounds();
+    void keepInRestArea();
 
     Sprite sprite_;
     Type type_;
@@ -133,13 +140,14 @@ class Body {
     //VelocityMatching vel_matching_;
 
     //Pursue pursue_;
-   // Face face_;
+    //Face face_;
     //LookGoing look_going_;
     //Wander wander_;
 
-    int hackingDoorNumber_;
+    int hackingDoorNumber_, closingDoorNumber_, checkingDoor_;
 
     MathLib::Vec2 nextPoint_, previousPoint_;
+    int soldierNumber_;
 };
 
 #endif
