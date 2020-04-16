@@ -77,6 +77,9 @@ class Body {
         GuardStart,
         GuardPatrol,
         GuardClosing,
+        SlaveStarting,
+        SlaveMovingToWork_Rest,
+        SlaveWorking,
         SlaveLoading,
         SlaveUnloading,
         SlaveResting,
@@ -145,6 +148,10 @@ class Body {
     //Wander wander_;
 
     int hackingDoorNumber_, closingDoorNumber_, checkingDoor_;
+    float rest_work_time_;
+    float MAX_REST_WORK_TIME = 30.0f;
+    bool wasWorking = false;
+    bool wasLoading = false;
 
     MathLib::Vec2 nextPoint_, previousPoint_;
     int soldierNumber_;

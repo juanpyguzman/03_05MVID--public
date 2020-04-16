@@ -19,10 +19,8 @@ using MathLib::Vec2;
 class World {
   public:
     World() {
-      //agent_.init(this, Body::Role::Soldier, Body::Type::Autonomous);
-      //ia_.init(this, Body::Color::Green, Body::Type::Autonomous);
-     // ia_.getKinematic()->position = Vec2(WINDOW_WIDTH / 2, WINDOW_HEIGHT / 2);
     };
+
     ~World() {
         for (int i = 0; i < numSoldiers; i++)
         {
@@ -38,8 +36,6 @@ class World {
         {
             slaves_[i].shutdown();
         }
-      //agent3_.shutdown();
-      //ia_.shutdown();
     };
 
     void update(const float dt) { 
@@ -57,9 +53,8 @@ class World {
         {
             slaves_[i].update(dt);
         }
-        //agent3_.update(dt);
-        //ia_.update(dt); 
     }
+
     void render() const { 
         for (int i = 0; i < numSoldiers; i++)
         {
@@ -75,9 +70,6 @@ class World {
         {
             slaves_[i].render();
         }
-
-        //agent3_.render();
-        //ia_.render(); 
     }
 
     void setZones(zonas zonasMapa) {
@@ -99,7 +91,7 @@ class World {
         
         for (int i = 0; i < numSoldiers; i++)
         {
-            soldiers_[i].init(this, Body::Role::Soldier, Body::Type::Autonomous);
+            soldiers_[i].init(this, Body::Role::Soldier, Body::Type::Autonomous, i);
         }
 
         //Inicialización de guardias
@@ -110,7 +102,7 @@ class World {
 
         for (int i = 0; i < numGuards; i++)
         {
-            guards_[i].init(this, Body::Role::Guard, Body::Type::Autonomous);
+            guards_[i].init(this, Body::Role::Guard, Body::Type::Autonomous, i);
         }
 
         //Inicialización de esclavos
@@ -121,7 +113,7 @@ class World {
 
         for (int i = 0; i < numSlaves; i++)
         {
-            slaves_[i].init(this, Body::Role::Slave, Body::Type::Autonomous);
+            slaves_[i].init(this, Body::Role::Slave, Body::Type::Autonomous, i);
         }
     }
 

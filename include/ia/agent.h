@@ -20,7 +20,7 @@ class Agent {
     Agent() {};
     ~Agent() {};
 
-    void init(World* world, Body::Role role, Body::Type type);
+    void init(World* world, Body::Role role, Body::Type type, int ID);
     void update(uint32_t dt);
     void render() const;
     void shutdown();
@@ -32,6 +32,7 @@ class Agent {
     
     Body body_;
     Mind mind_;
+    int ID_;
 
 private:
     World * world_ = nullptr;

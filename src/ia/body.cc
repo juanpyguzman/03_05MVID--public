@@ -10,6 +10,7 @@
 #include "engine/debug_draw.h"
 #include "ia/agent.h"
 #include "ia/defines.h"
+#include <time.h>
 
 void Body::init(Agent* thisAgent, const Role role, const Type type, Mind* mind, zonas zonasMapa, std::vector<doors>* doorsState) {
   thisAgent_ = thisAgent;
@@ -36,6 +37,8 @@ void Body::init(Agent* thisAgent, const Role role, const Type type, Mind* mind, 
   //Inicialización de Guard
   case Role::Guard: {
       sprite_.loadFromFile(AGENT_GUARD); 
+
+      //Posicionamos de manera aleatoria a los agentes en el interior en estado de patrulla
       int random = rand() % zonas_.interior.size();
       state_.position = MathLib::Vec2(zonas_.interior[random] * 8);
       behaviour_status_ = Behaviour::GuardStart;
@@ -45,11 +48,10 @@ void Body::init(Agent* thisAgent, const Role role, const Type type, Mind* mind, 
   //Inicialización de Slave
   case Role::Slave: {
       sprite_.loadFromFile(AGENT_SLAVE);
-      int random = rand() % zonas_.rest.size();
-      state_.position = MathLib::Vec2(zonas_.rest[random] * 8);
-      behaviour_status_ = Behaviour::SlaveResting;
+      behaviour_status_ = Behaviour::SlaveStarting;
       break;
   }
+
     default: sprite_.loadFromFile(AGENT_SLAVE);
   }
 
@@ -404,6 +406,26 @@ void Body::update(const uint32_t dt) {
 
         switch (behaviour_status_) {
 
+        case Behaviour::SlaveStarting: {
+
+            int random;
+            //Posicionamos a la mitad de losh esclavos en la zona de descanso
+            if (thisAgent_->ID_ % 2 == 0) {
+                random = rand() % zonas_.rest.size();
+                state_.position = MathLib::Vec2(zonas_.rest[random] * 8);
+                rest_work_time_ = float(clock());
+                behaviour_status_ = Behaviour::SlaveResting;
+            }
+            else {
+                //Posicionamos a la mitad de los esclavos en la zona de trabajo
+                random = rand() % zonas_.work.size();
+                state_.position = MathLib::Vec2(zonas_.work[random] * 8);
+                rest_work_time_ = float(clock());
+                behaviour_status_ = Behaviour::SlaveWorking;
+            }
+
+            break;  }
+
         case Behaviour::SlaveResting: {
 
             KinematicSteering steer;
@@ -411,15 +433,27 @@ void Body::update(const uint32_t dt) {
             k_wander_.calculate(state_, &new_target, &steer);
             updateKinematic(dt, steer);
 
+            if ((float(clock()) - rest_work_time_) / CLOCKS_PER_SEC >= MAX_REST_WORK_TIME) {
+                rest_work_time_ = float(clock());
+                
+                int random = rand() % zonas_.work.size();
+                mind_->setStartPoints(state_.position.x(), state_.position.y());
+                mind_->setDoors(doorsClosed_);
+                mind_->setEndPoints(MathLib::Vec2(zonas_.work[random]).x() * 8, MathLib::Vec2(zonas_.work[random]).y() * 8);
+                
+                wasWorking = false;
+                behaviour_status_ = Behaviour::SlaveMovingToWork_Rest;
+            }
+
             break;  }
 
-        //Buscando puertas
-        case Behaviour::SoldierSearch: {
+        case Behaviour::SlaveMovingToWork_Rest: {
 
             thisAgent_->getKinematic()->speed = 20.0f;
             if (!mind_->pathfinding_.isPath)
             {
-                setBehaviour(Body::Behaviour::SoldierIdle);
+                KinematicSteering steer;
+                steer.velocity = MathLib::Vec2(0.0f, 0.0f);
             }
             else {
                 KinematicSteering steer;
@@ -435,134 +469,113 @@ void Body::update(const uint32_t dt) {
                 updateKinematic(dt, steer);
                 if (mind_->endPath)
                 {
-                    setBehaviour(Body::Behaviour::SoldierIdle);
-                }
+                    if (!wasWorking)
+                    {
+                        behaviour_status_ = Behaviour::SlaveWorking;
+                    }
 
-                //Comprobación de distancia a Puerta
-                for (int i = 0; i < 4; i++)
-                {
-                    //doors_->at(i).
-                    if ((MathLib::Vec2(doors_->at(i).outsideX * 8, doors_->at(i).outsideY * 8) - state_.position).length() <= 200.0f) {
-                        //Comprobamos si estamos pasando por delante
-                        if ((doors_->at(i).startX * 8 < state_.position.x() && doors_->at(i).endX * 8 > state_.position.x())
-                            || (doors_->at(i).startY * 8 < state_.position.y() && doors_->at(i).endY * 8 > state_.position.y())) {
-                            //Si la puerta está cerrada
-                            if (doors_->at(i).open == false) {
-                                //Generamos pathfinding hacia la puerta
-                                mind_->setStartPoints(state_.position.x(), state_.position.y());
-                                mind_->setDoors(doorsClosed_);
-                                mind_->setEndPoints(doors_->at(i).outsideX * 8, doors_->at(i).outsideY * 8);
-                                hackingDoorNumber_ = i;
-                                setBehaviour(Body::Behaviour::SoldierHacking);
-                            }
-
-                        }
+                    if (wasWorking)
+                    {
+                        behaviour_status_ = Behaviour::SlaveResting;
                     }
                 }
 
             }
 
-            break; }
+            break;  }
 
-        //Estado de reposo
-        case Behaviour::SoldierIdle: {
+        case Behaviour::SlaveWorking: {
+
             KinematicSteering steer;
             steer.velocity = MathLib::Vec2(0.0f, 0.0f);
-            int delay = rand() % 100;
-            if (delay == 99)
-            {
-                int buscar = rand() % 2;
-                //Búsqueda aleatoria en el mapa
-                //Si buscar es 0, genera un aleatorio a las puertas y si dicha puerta ha sido encontrada, manda un Pathfinding a esa puerta, en caso contrario, manda buscar
-                if (buscar == 0) {
-                    int randomDoor = rand() % 4;
-                    if (doors_->at(randomDoor).discovered == true) {
-                        mind_->setStartPoints(state_.position.x(), state_.position.y());
-                        mind_->setDoors(doorsClosed_);
-                        mind_->setEndPoints(doors_->at(randomDoor).outsideX * 8, doors_->at(randomDoor).outsideY * 8);
-                        setBehaviour(Body::Behaviour::SoldierSearch);
-                    }
-                    else {
-                        mind_->setStartPoints(state_.position.x(), state_.position.y());
-                        mind_->setDoors(doorsClosed_);
-                        int random = rand() % zonas_.exterior.size();
-                        mind_->setEndPoints(MathLib::Vec2(zonas_.exterior[random]).x() * 8, MathLib::Vec2(zonas_.exterior[random]).y() * 8);
 
-                        setBehaviour(Body::Behaviour::SoldierSearch);
-                    }
-                }
-                // Si buscar es 1, manda Pathfinding aleatorio de búsqueda en el mapa
-                else {
-                    mind_->setStartPoints(state_.position.x(), state_.position.y());
-                    mind_->setDoors(doorsClosed_);
-                    int random = rand() % zonas_.exterior.size();
-                    mind_->setEndPoints(MathLib::Vec2(zonas_.exterior[random]).x() * 8, MathLib::Vec2(zonas_.exterior[random]).y() * 8);
-
-                    setBehaviour(Body::Behaviour::SoldierSearch);
-                }
-            }
-
-            break; }
-
-        //Abriendo puerta
-        case Behaviour::SoldierHacking: {
-            thisAgent_->getKinematic()->speed = 20.0f;
-            KinematicSteering steer;
-
-            setOrientation(state_.velocity);
-            if ((nextPoint_ - state_.position).length() <= ((previousPoint_ - state_.position).length()))
-            {
-                mind_->getNextIter();
-                previousPoint_ = nextPoint_;
-            }
-            target = new KinematicStatus();
-            target->position = nextPoint_;
-            k_seek_.calculate(state_, target, &steer);
-            updateKinematic(dt, steer);
-            if (mind_->endPath)
-            {
-                if (doors_->at(hackingDoorNumber_).open == false) {
-                    doors_->at(hackingDoorNumber_).open = true;
-                }
-                if (doors_->at(hackingDoorNumber_).discovered == false)
-                {
-                    doors_->at(hackingDoorNumber_).discovered = true;
-                }
-                mind_->changeDoor(doors_->at(hackingDoorNumber_));
-
-                //Pathfinding para volver a la base
+            if (!wasLoading) {
+                int random = rand() % zonas_.loading.size();
                 mind_->setStartPoints(state_.position.x(), state_.position.y());
                 mind_->setDoors(doorsClosed_);
-
-                int random = rand() % zonas_.base.size();
-                mind_->setEndPoints(MathLib::Vec2(zonas_.base[random]).x() * 8, MathLib::Vec2(zonas_.base[random]).y() * 8);
-
-                setBehaviour(Body::Behaviour::SoldierBack);
+                mind_->setEndPoints(MathLib::Vec2(zonas_.loading[random]).x() * 8, MathLib::Vec2(zonas_.loading[random]).y() * 8);
+                behaviour_status_ = Behaviour::SlaveLoading;
             }
 
-            break; }
+            if (wasLoading) {
+                int random = rand() % zonas_.unloading.size();
+                mind_->setStartPoints(state_.position.x(), state_.position.y());
+                mind_->setDoors(doorsClosed_);
+                mind_->setEndPoints(MathLib::Vec2(zonas_.unloading[random]).x() * 8, MathLib::Vec2(zonas_.unloading[random]).y() * 8);
+                behaviour_status_ = Behaviour::SlaveUnloading;
+            }
 
-        //Volviendo a base
-        case Behaviour::SoldierBack: {
+            if ((float(clock()) - rest_work_time_) / CLOCKS_PER_SEC >= MAX_REST_WORK_TIME) {
+                rest_work_time_ = float(clock());
+
+                int random = rand() % zonas_.rest.size();
+                mind_->setStartPoints(state_.position.x(), state_.position.y());
+                mind_->setDoors(doorsClosed_);
+                mind_->setEndPoints(MathLib::Vec2(zonas_.rest[random]).x() * 8, MathLib::Vec2(zonas_.rest[random]).y() * 8);
+
+                wasWorking = true;
+                behaviour_status_ = Behaviour::SlaveMovingToWork_Rest;
+            }
+
+            break;  }
+
+
+        case Behaviour::SlaveLoading: {
+
             thisAgent_->getKinematic()->speed = 20.0f;
-            KinematicSteering steer;
-
-            setOrientation(state_.velocity);
-            if ((nextPoint_ - state_.position).length() <= ((previousPoint_ - state_.position).length()))
+            if (!mind_->pathfinding_.isPath)
             {
-                mind_->getNextIter();
-                previousPoint_ = nextPoint_;
+                KinematicSteering steer;
+                steer.velocity = MathLib::Vec2(0.0f, 0.0f);
             }
-            target = new KinematicStatus();
-            target->position = nextPoint_;
-            k_seek_.calculate(state_, target, &steer);
-            updateKinematic(dt, steer);
-            if (mind_->endPath)
-            {
-                setBehaviour(Body::Behaviour::SoldierIdle);
+            else {
+                KinematicSteering steer;
+                setOrientation(state_.velocity);
+                if ((nextPoint_ - state_.position).length() <= ((previousPoint_ - state_.position).length()))
+                {
+                    mind_->getNextIter();
+                    previousPoint_ = nextPoint_;
+                }
+                target = new KinematicStatus();
+                target->position = nextPoint_;
+                k_seek_.calculate(state_, target, &steer);
+                updateKinematic(dt, steer);
+                if (mind_->endPath)
+                {
+                    wasLoading = true;
+                    behaviour_status_ = Behaviour::SlaveWorking;
+                }
             }
+                break; }
 
+        case Behaviour::SlaveUnloading: {
+
+            float speed_factor = 0.5f;
+            if (!mind_->pathfinding_.isPath)
+            {
+                KinematicSteering steer;
+                steer.velocity = MathLib::Vec2(0.0f, 0.0f);
+            }
+            else {
+                KinematicSteering steer;
+                setOrientation(state_.velocity);
+                if ((nextPoint_ - state_.position).length() <= ((previousPoint_ - state_.position).length()))
+                {
+                    mind_->getNextIter();
+                    previousPoint_ = nextPoint_;
+                }
+                target = new KinematicStatus();
+                target->position = nextPoint_;
+                k_seek_.calculate(state_, target, &steer);
+                updateKinematic(dt*speed_factor, steer);
+                if (mind_->endPath)
+                {
+                    wasLoading = false;
+                    behaviour_status_ = Behaviour::SlaveWorking;
+                }
+            }
             break; }
+        
         }
     }
     
@@ -655,7 +668,7 @@ void Body::keepInRestArea() {
     if (state_.position.x() > 230) state_.orientation = -M_PI;
     if (state_.position.x() < 44) state_.orientation = 0.0f;
     if (state_.position.y() > 896) state_.orientation = -M_PI/2.0f;
-    if (state_.position.y() < 469) state_.orientation = M_PI/2.0f;
+    if (state_.position.y() < 469) state_.orientation =     M_PI/2.0f;
 }
 
 void Body::keepInSpeed() {
