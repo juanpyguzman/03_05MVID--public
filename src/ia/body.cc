@@ -12,12 +12,13 @@
 #include "ia/defines.h"
 #include <time.h>
 
-void Body::init(Agent* thisAgent, const Role role, const Type type, Mind* mind, zonas zonasMapa, std::vector<doors>* doorsState) {
+void Body::init(Agent* thisAgent, const Role role, const Type type, Mind* mind, zonas zonasMapa, std::vector<zone> enumZones, std::vector<doors>* doorsState) {
   thisAgent_ = thisAgent;
   type_ = type;
   role_ = role;
   mind_ = mind;
   zonas_ = zonasMapa;
+  enumZones_ = enumZones;
   doors_ = doorsState;
   doorsClosed_ = *doorsState;
   alertCounter_ = 0;
@@ -785,7 +786,15 @@ void Body::update(const uint32_t dt) {
                     alertCounter_=0;
                 }
             }
-            
+
+            //std::cout << "x: " << state_.position.x()/8 << "     y: " << state_.position.y() / 8 << "  " << enum_to_string(enumZones_->[static_cast<int>(state_.position.x() / 8) * 128 + static_cast<int>(state_.position.y() / 8))] << std::endl;
+           
+
+            if (enumZones_[static_cast<int>(state_.position.x()/8) * 128 + static_cast<int>(state_.position.y()/8)] == zone::Exterior)
+            {
+                isSaved = true;
+                std::cout << "¡Esclavo fuera del castillo!" << "    X: " << state_.position.x() / 8  << "     Y: " << state_.position.y() / 8 << std::endl;
+            }
 
 
             //Si ha pasado el tiempo de alarma se vuelve al estado habitual
@@ -894,4 +903,28 @@ void Body::keepInSpeed() {
   if (state_.velocity.length() > max_speed_) {
     state_.velocity = state_.velocity.normalized() * max_speed_;
   }
+}
+
+
+char* Body::enum_to_string(zone t) {
+    switch (t) {
+    case zone::Exterior:
+        return "Exterior";
+    case zone::Interior:
+        return "Interior";
+    case zone::Rest:
+        return "Rest";
+    case zone::Work:
+        return "Work";
+    case zone::Loading:
+        return "Loading";
+    case zone::Unloading:
+        return "Unloading";
+    case zone::Base:
+        return "Base";
+    case zone::Impossible:
+        return "Impossible";
+    default:
+        return "INVALID ENUM";
+    }
 }

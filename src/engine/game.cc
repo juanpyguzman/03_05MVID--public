@@ -26,7 +26,7 @@ void Game::init() {
   loadZonesMap(SDL_LoadBMP("../assets/images/zonas.bmp"));
 
 
-  world_.setZones(zonas_);
+  world_.setZones(zonas_, enumZones_);
   world_.setDoors(&doors_);
   alert_ = false;
   alert_time_ = float(clock());
@@ -212,34 +212,42 @@ void Game::loadZonesMap(SDL_Surface* map_image) {
                 if (i != 0 && j != 0 && i != 127 && j != 127) {
                     zonas_.exterior.push_back(MathLib::Vec2(i, j));
                 }
+                enumZones_.push_back(zone::Exterior);
 
             }
             //Interior del castillo
             else if ((r == 163) && (g == 73) && (b == 164)) {
                 zonas_.interior.push_back(MathLib::Vec2(i, j));
+                enumZones_.push_back(zone::Interior);
             }
             //햞ea de descanso
             else if ((r == 181) && (g == 230) && (b == 29)) {
                 zonas_.rest.push_back(MathLib::Vec2(i, j));
+                enumZones_.push_back(zone::Rest);
             }
             //햞ea de trabajo
             else if ((r == 255) && (g == 216) && (b == 0)) {
                 zonas_.work.push_back(MathLib::Vec2(i, j));
+                enumZones_.push_back(zone::Work);
             }
             //햞ea de carga (izquierda)
             else if ((r == 36) && (g == 255) && (b == 0)) {
                 zonas_.loading.push_back(MathLib::Vec2(i, j));
+                enumZones_.push_back(zone::Loading);
             }
             //햞ea de descarga (derecha)
             else if ((r == 18) && (g == 0) && (b == 255)) {
                 zonas_.unloading.push_back(MathLib::Vec2(i, j));
+                enumZones_.push_back(zone::Unloading);
             }
             //Cuarteles (base de los soldados)
             else if ((r == 0) && (g == 198) && (b == 255)) {
                 zonas_.base.push_back(MathLib::Vec2(i, j));
+                enumZones_.push_back(zone::Base);
             }
             else {
                 zonas_.impossible.push_back(MathLib::Vec2(i, j));
+                enumZones_.push_back(zone::Impossible);
             }
         }
     }

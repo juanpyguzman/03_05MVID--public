@@ -72,8 +72,16 @@ class World {
         }
     }
 
-    void setZones(zonas zonasMapa) {
+    void setZones(zonas zonasMapa, std::vector<zone> enumZones) {
         zonas_ = zonasMapa;
+        enumZones_ = enumZones;
+
+        /*for (uint32_t i = 0; i < 128; i++) {
+            for (uint32_t j = 0; j < 128; j++) {
+                std::cout << "x: " << i << "     y: " << j << "  " << enum_to_string(enumZones_->at(i * 128 + j)) << std::endl;
+            }
+        }*/
+
     }
 
     void setDoors(std::vector<doors>* doorsState)
@@ -125,6 +133,7 @@ class World {
 
     Agent* agent() { return &soldiers_[0]; }
     zonas zonas_;
+    std::vector<zone> enumZones_;
     std::vector<doors>* doors_;
     bool* alert_;
     float* alert_time_;
@@ -140,6 +149,30 @@ class World {
 
       int numSlaves = 10;
       std::vector<Agent> slaves_;
+
+
+      char* enum_to_string(zone t) {
+          switch (t) {
+          case zone::Exterior:
+              return "Exterior";
+          case zone::Interior:
+              return "Interior";
+          case zone::Rest:
+              return "Rest";
+          case zone::Work:
+              return "Work";
+          case zone::Loading:
+              return "Loading";
+          case zone::Unloading:
+              return "Unloading";
+          case zone::Base:
+              return "Base";
+          case zone::Impossible:
+              return "Impossible";
+          default:
+              return "INVALID ENUM";
+          }
+      }
 };
 
 #endif

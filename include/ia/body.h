@@ -88,7 +88,7 @@ class Body {
     Body() {};
     ~Body() {};
 
-    void init(Agent* thisAgent, Role role, Type type, Mind* mind, zonas zonasMapa, std::vector<doors>* doorsState);
+    void init(Agent* thisAgent, Role role, Type type, Mind* mind, zonas zonasMapa, std::vector<zone> enumZones, std::vector<doors>* doorsState);
     void update(uint32_t dt);
     void render() const;
 
@@ -107,6 +107,8 @@ class Body {
     void keepInBounds();
     void keepInRestArea();
 
+    char* enum_to_string(zone t);
+
     Sprite sprite_;
     Type type_;
     Role role_;
@@ -116,6 +118,7 @@ class Body {
     Agent* thisAgent_;
     Mind* mind_ = nullptr;
     zonas zonas_;
+    std::vector<zone> enumZones_;
     std::vector<doors>* doors_;
     std::vector<doors> doorsClosed_;
 

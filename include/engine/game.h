@@ -46,6 +46,7 @@ class Game {
     Map* map_;
     SDL_Surface* map_image_;
     zonas zonas_;
+    std::vector<zone> enumZones_;
 
     bool alert_;
     float alert_time_;
