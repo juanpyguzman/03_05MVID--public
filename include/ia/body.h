@@ -83,6 +83,8 @@ class Body {
         SlaveLoading,
         SlaveUnloading,
         SlaveResting,
+        SlaveScaping,
+        SlaveSaved,
     };
 
     Body() {};

@@ -67,8 +67,7 @@ void Body::update(const uint32_t dt) {
     
     //Comportamiento del Soldado
     if (role_ == Role::Soldier) {
-        
-        
+    
         switch (behaviour_status_) {
         //Buscando puertas
         case Behaviour::SoldierSearch: {
@@ -553,168 +552,222 @@ void Body::update(const uint32_t dt) {
 
     //Comportamiento del Slave
     if (role_ == Role::Slave) {
+        //Si aún no ha sido rescatado
+        if (!isSaved) {
+            if (!*mind_->alert_) {
 
-        if (!*mind_->alert_) {
-
-            if (alertCounter_ == 1)
-            {
-                alertCounter_ = 0;
-                std::cout << alertCounter_;
-                setBehaviour(Body::Behaviour::SlaveStarting);
-            }
-
-            switch (behaviour_status_) {
-            case Behaviour::SlaveStarting: {
-
-                int random;
-                //Posicionamos a la mitad de losh esclavos en la zona de descanso
-                if (thisAgent_->ID_ % 2 == 0) {
-                    random = rand() % zonas_.rest.size();
-                    state_.position = MathLib::Vec2(zonas_.rest[random] * 8);
-                    rest_work_time_ = float(clock());
-                    behaviour_status_ = Behaviour::SlaveResting;
-                }
-                else {
-                    //Posicionamos a la mitad de los esclavos en la zona de trabajo
-                    random = rand() % zonas_.work.size();
-                    state_.position = MathLib::Vec2(zonas_.work[random] * 8);
-                    rest_work_time_ = float(clock());
-                    behaviour_status_ = Behaviour::SlaveWorking;
-                }
-
-                break;  }
-
-            case Behaviour::SlaveResting: {
-
-                KinematicSteering steer;
-                KinematicStatus new_target;
-                k_wander_.calculate(state_, &new_target, &steer);
-                updateKinematic(dt, steer);
-
-                if ((float(clock()) - rest_work_time_) / CLOCKS_PER_SEC >= MAX_REST_WORK_TIME) {
-                    rest_work_time_ = float(clock());
-
-                    int random = rand() % zonas_.work.size();
-                    mind_->setStartPoints(state_.position.x(), state_.position.y());
-                    mind_->setDoors(doorsClosed_);
-                    mind_->setEndPoints(MathLib::Vec2(zonas_.work[random]).x() * 8, MathLib::Vec2(zonas_.work[random]).y() * 8);
-
-                    wasWorking = false;
-                    behaviour_status_ = Behaviour::SlaveMovingToWork_Rest;
-                }
-
-                break;  }
-
-            case Behaviour::SlaveMovingToWork_Rest: {
-
-                thisAgent_->getKinematic()->speed = 20.0f;
-                if (!mind_->pathfinding_.isPath)
+                if (alertCounter_ == 1)
                 {
-                    KinematicSteering steer;
-                    steer.velocity = MathLib::Vec2(0.0f, 0.0f);
+                    alertCounter_ = 0;
+                    std::cout << alertCounter_;
+                    setBehaviour(Body::Behaviour::SlaveStarting);
                 }
-                else {
-                    KinematicSteering steer;
-                    setOrientation(state_.velocity);
-                    if ((nextPoint_ - state_.position).length() <= ((previousPoint_ - state_.position).length()))
-                    {
-                        mind_->getNextIter();
-                        previousPoint_ = nextPoint_;
+
+                switch (behaviour_status_) {
+                case Behaviour::SlaveStarting: {
+
+                    int random;
+                    //Posicionamos a la mitad de losh esclavos en la zona de descanso
+                    if (thisAgent_->ID_ % 2 == 0) {
+                        random = rand() % zonas_.rest.size();
+                        state_.position = MathLib::Vec2(zonas_.rest[random] * 8);
+                        rest_work_time_ = float(clock());
+                        behaviour_status_ = Behaviour::SlaveResting;
                     }
-                    target = new KinematicStatus();
-                    target->position = nextPoint_;
-                    k_seek_.calculate(state_, target, &steer);
-                    updateKinematic(dt, steer);
-                    if (mind_->endPath)
-                    {
-                        if (!wasWorking)
-                        {
-                            behaviour_status_ = Behaviour::SlaveWorking;
-                        }
-
-                        if (wasWorking)
-                        {
-                            behaviour_status_ = Behaviour::SlaveResting;
-                        }
-                    }
-
-                }
-
-                break;  }
-
-            case Behaviour::SlaveWorking: {
-
-                KinematicSteering steer;
-                steer.velocity = MathLib::Vec2(0.0f, 0.0f);
-
-                if (!wasLoading) {
-                    int random = rand() % zonas_.loading.size();
-                    mind_->setStartPoints(state_.position.x(), state_.position.y());
-                    mind_->setDoors(doorsClosed_);
-                    mind_->setEndPoints(MathLib::Vec2(zonas_.loading[random]).x() * 8, MathLib::Vec2(zonas_.loading[random]).y() * 8);
-                    behaviour_status_ = Behaviour::SlaveLoading;
-                }
-
-                if (wasLoading) {
-                    int random = rand() % zonas_.unloading.size();
-                    mind_->setStartPoints(state_.position.x(), state_.position.y());
-                    mind_->setDoors(doorsClosed_);
-                    mind_->setEndPoints(MathLib::Vec2(zonas_.unloading[random]).x() * 8, MathLib::Vec2(zonas_.unloading[random]).y() * 8);
-                    behaviour_status_ = Behaviour::SlaveUnloading;
-                }
-
-                if ((float(clock()) - rest_work_time_) / CLOCKS_PER_SEC >= MAX_REST_WORK_TIME) {
-                    rest_work_time_ = float(clock());
-
-                    int random = rand() % zonas_.rest.size();
-                    mind_->setStartPoints(state_.position.x(), state_.position.y());
-                    mind_->setDoors(doorsClosed_);
-                    mind_->setEndPoints(MathLib::Vec2(zonas_.rest[random]).x() * 8, MathLib::Vec2(zonas_.rest[random]).y() * 8);
-
-                    wasWorking = true;
-                    behaviour_status_ = Behaviour::SlaveMovingToWork_Rest;
-                }
-
-                break;  }
-
-
-            case Behaviour::SlaveLoading: {
-
-                thisAgent_->getKinematic()->speed = 20.0f;
-                if (!mind_->pathfinding_.isPath)
-                {
-                    KinematicSteering steer;
-                    steer.velocity = MathLib::Vec2(0.0f, 0.0f);
-                }
-                else {
-                    KinematicSteering steer;
-                    setOrientation(state_.velocity);
-                    if ((nextPoint_ - state_.position).length() <= ((previousPoint_ - state_.position).length()))
-                    {
-                        mind_->getNextIter();
-                        previousPoint_ = nextPoint_;
-                    }
-                    target = new KinematicStatus();
-                    target->position = nextPoint_;
-                    k_seek_.calculate(state_, target, &steer);
-                    updateKinematic(dt, steer);
-                    if (mind_->endPath)
-                    {
-                        wasLoading = true;
+                    else {
+                        //Posicionamos a la mitad de los esclavos en la zona de trabajo
+                        random = rand() % zonas_.work.size();
+                        state_.position = MathLib::Vec2(zonas_.work[random] * 8);
+                        rest_work_time_ = float(clock());
                         behaviour_status_ = Behaviour::SlaveWorking;
                     }
-                }
-                break; }
 
-            case Behaviour::SlaveUnloading: {
+                    break;  }
 
-                float speed_factor = 0.5f;
-                if (!mind_->pathfinding_.isPath)
-                {
+                case Behaviour::SlaveResting: {
+
+                    KinematicSteering steer;
+                    KinematicStatus new_target;
+                    k_wander_.calculate(state_, &new_target, &steer);
+                    updateKinematic(dt, steer);
+
+                    if ((float(clock()) - rest_work_time_) / CLOCKS_PER_SEC >= MAX_REST_WORK_TIME) {
+                        rest_work_time_ = float(clock());
+
+                        int random = rand() % zonas_.work.size();
+                        mind_->setStartPoints(state_.position.x(), state_.position.y());
+                        mind_->setDoors(doorsClosed_);
+                        mind_->setEndPoints(MathLib::Vec2(zonas_.work[random]).x() * 8, MathLib::Vec2(zonas_.work[random]).y() * 8);
+
+                        wasWorking = false;
+                        behaviour_status_ = Behaviour::SlaveMovingToWork_Rest;
+                    }
+
+                    break;  }
+
+                case Behaviour::SlaveMovingToWork_Rest: {
+
+                    thisAgent_->getKinematic()->speed = 20.0f;
+                    if (!mind_->pathfinding_.isPath)
+                    {
+                        KinematicSteering steer;
+                        steer.velocity = MathLib::Vec2(0.0f, 0.0f);
+                    }
+                    else {
+                        KinematicSteering steer;
+                        setOrientation(state_.velocity);
+                        if ((nextPoint_ - state_.position).length() <= ((previousPoint_ - state_.position).length()))
+                        {
+                            mind_->getNextIter();
+                            previousPoint_ = nextPoint_;
+                        }
+                        target = new KinematicStatus();
+                        target->position = nextPoint_;
+                        k_seek_.calculate(state_, target, &steer);
+                        updateKinematic(dt, steer);
+                        if (mind_->endPath)
+                        {
+                            if (!wasWorking)
+                            {
+                                behaviour_status_ = Behaviour::SlaveWorking;
+                            }
+
+                            if (wasWorking)
+                            {
+                                behaviour_status_ = Behaviour::SlaveResting;
+                            }
+                        }
+
+                    }
+
+                    break;  }
+
+                case Behaviour::SlaveWorking: {
+
                     KinematicSteering steer;
                     steer.velocity = MathLib::Vec2(0.0f, 0.0f);
+
+                    if (!wasLoading) {
+                        int random = rand() % zonas_.loading.size();
+                        mind_->setStartPoints(state_.position.x(), state_.position.y());
+                        mind_->setDoors(doorsClosed_);
+                        mind_->setEndPoints(MathLib::Vec2(zonas_.loading[random]).x() * 8, MathLib::Vec2(zonas_.loading[random]).y() * 8);
+                        behaviour_status_ = Behaviour::SlaveLoading;
+                    }
+
+                    if (wasLoading) {
+                        int random = rand() % zonas_.unloading.size();
+                        mind_->setStartPoints(state_.position.x(), state_.position.y());
+                        mind_->setDoors(doorsClosed_);
+                        mind_->setEndPoints(MathLib::Vec2(zonas_.unloading[random]).x() * 8, MathLib::Vec2(zonas_.unloading[random]).y() * 8);
+                        behaviour_status_ = Behaviour::SlaveUnloading;
+                    }
+
+                    if ((float(clock()) - rest_work_time_) / CLOCKS_PER_SEC >= MAX_REST_WORK_TIME) {
+                        rest_work_time_ = float(clock());
+
+                        int random = rand() % zonas_.rest.size();
+                        mind_->setStartPoints(state_.position.x(), state_.position.y());
+                        mind_->setDoors(doorsClosed_);
+                        mind_->setEndPoints(MathLib::Vec2(zonas_.rest[random]).x() * 8, MathLib::Vec2(zonas_.rest[random]).y() * 8);
+
+                        wasWorking = true;
+                        behaviour_status_ = Behaviour::SlaveMovingToWork_Rest;
+                    }
+
+                    break;  }
+
+
+                case Behaviour::SlaveLoading: {
+
+                    thisAgent_->getKinematic()->speed = 20.0f;
+                    if (!mind_->pathfinding_.isPath)
+                    {
+                        KinematicSteering steer;
+                        steer.velocity = MathLib::Vec2(0.0f, 0.0f);
+                    }
+                    else {
+                        KinematicSteering steer;
+                        setOrientation(state_.velocity);
+                        if ((nextPoint_ - state_.position).length() <= ((previousPoint_ - state_.position).length()))
+                        {
+                            mind_->getNextIter();
+                            previousPoint_ = nextPoint_;
+                        }
+                        target = new KinematicStatus();
+                        target->position = nextPoint_;
+                        k_seek_.calculate(state_, target, &steer);
+                        updateKinematic(dt, steer);
+                        if (mind_->endPath)
+                        {
+                            wasLoading = true;
+                            behaviour_status_ = Behaviour::SlaveWorking;
+                        }
+                    }
+                    break; }
+
+                case Behaviour::SlaveUnloading: {
+
+                    float speed_factor = 0.5f;
+                    if (!mind_->pathfinding_.isPath)
+                    {
+                        KinematicSteering steer;
+                        steer.velocity = MathLib::Vec2(0.0f, 0.0f);
+                    }
+                    else {
+                        KinematicSteering steer;
+                        setOrientation(state_.velocity);
+                        if ((nextPoint_ - state_.position).length() <= ((previousPoint_ - state_.position).length()))
+                        {
+                            mind_->getNextIter();
+                            previousPoint_ = nextPoint_;
+                        }
+                        target = new KinematicStatus();
+                        target->position = nextPoint_;
+                        k_seek_.calculate(state_, target, &steer);
+                        updateKinematic(dt * speed_factor, steer);
+                        if (mind_->endPath)
+                        {
+                            wasLoading = false;
+                            behaviour_status_ = Behaviour::SlaveWorking;
+                        }
+                    }
+                    break; }
+
                 }
-                else {
+            }
+
+            // Si se hace sonar la alarma
+            else if (*mind_->alert_) {
+
+                float speed_factor = 1.0f;
+                if (alertCounter_ == 0)
+                {
+                    if (doors_->at(0).open || doors_->at(1).open || doors_->at(2).open || doors_->at(3).open) {
+                        int random = rand() % zonas_.base.size();
+                        mind_->setStartPoints(state_.position.x(), state_.position.y());
+                        mind_->setDoors(*doors_);
+                        mind_->setEndPoints(MathLib::Vec2(zonas_.base[random]).x() * 8, MathLib::Vec2(zonas_.base[random]).y() * 8);
+                        std::cout << "Pathfinding de salida Esclavo " << soldierNumber_ << std::endl;
+                        if (mind_->pathfinding_.isPath) {
+                            alertCounter_++;
+                        }
+                    }
+
+                    else if (!doors_->at(0).open && !doors_->at(1).open && !doors_->at(2).open && !doors_->at(3).open && (float(clock()) - *mind_->alert_time_)) {
+                        int random = rand() % zonas_.interior.size();
+                        mind_->setStartPoints(state_.position.x(), state_.position.y());
+                        mind_->setDoors(*doors_);
+                        mind_->setEndPoints(MathLib::Vec2(zonas_.interior[random]).x() * 8, MathLib::Vec2(zonas_.interior[random]).y() * 8);
+                        std::cout << "Buscando salidas " << soldierNumber_ << std::endl;
+                        if (mind_->pathfinding_.isPath) {
+                            alertCounter_++;
+                        }
+                    }
+
+                }
+
+                if (mind_->pathfinding_.isPath) {
                     KinematicSteering steer;
                     setOrientation(state_.velocity);
                     if ((nextPoint_ - state_.position).length() <= ((previousPoint_ - state_.position).length()))
@@ -728,82 +781,65 @@ void Body::update(const uint32_t dt) {
                     updateKinematic(dt * speed_factor, steer);
                     if (mind_->endPath)
                     {
-                        wasLoading = false;
-                        behaviour_status_ = Behaviour::SlaveWorking;
+                        steer.velocity = MathLib::Vec2(0.0f, 0.0f);
+                        alertCounter_ = 0;
                     }
                 }
-                break; }
+
+                if (enumZones_[static_cast<int>(state_.position.x() / 8) * 128 + static_cast<int>(state_.position.y() / 8)] == zone::Exterior)
+                {
+                    isSaved = true;
+                    behaviour_status_ = Behaviour::SlaveScaping;
+                }
+
+
+                //Si ha pasado el tiempo de alarma se vuelve al estado habitual
+                if ((float(clock()) - *mind_->alert_time_) / CLOCKS_PER_SEC >= MAX_ALERT_TIME) {
+                    *mind_->alert_ = false;
+                }
 
             }
         }
+        //Si el Slave ha escpado
+        else if (isSaved)
+        {
+            switch (behaviour_status_) {
+            case Behaviour::SlaveScaping: {
 
-        // Si se hace sonar la alarma
-        else if (*mind_->alert_) {
-            
-            float speed_factor = 1.0f;
-            if (alertCounter_==0)
-            {
-                if (doors_->at(0).open || doors_->at(1).open || doors_->at(2).open || doors_->at(3).open) {
-                    int random = rand() % zonas_.base.size();
-                    mind_->setStartPoints(state_.position.x(), state_.position.y());
-                    mind_->setDoors(*doors_);
-                    mind_->setEndPoints(MathLib::Vec2(zonas_.base[random]).x() * 8, MathLib::Vec2(zonas_.base[random]).y() * 8);
-                    std::cout << "Pathfinding de salida Esclavo " << soldierNumber_ << std::endl;
-                    if (mind_->pathfinding_.isPath) {
-                        alertCounter_++;
+                if (mind_->pathfinding_.isPath) {
+                    KinematicSteering steer;
+                    setOrientation(state_.velocity);
+                    if ((nextPoint_ - state_.position).length() <= ((previousPoint_ - state_.position).length()))
+                    {
+                        mind_->getNextIter();
+                        previousPoint_ = nextPoint_;
                     }
-                }
-
-                else if (!doors_->at(0).open && !doors_->at(1).open && !doors_->at(2).open && !doors_->at(3).open && (float(clock()) - *mind_->alert_time_)) {
-                    int random = rand() % zonas_.interior.size();
-                    mind_->setStartPoints(state_.position.x(), state_.position.y());
-                    mind_->setDoors(*doors_);
-                    mind_->setEndPoints(MathLib::Vec2(zonas_.interior[random]).x() * 8, MathLib::Vec2(zonas_.interior[random]).y() * 8);
-                    std::cout << "Buscando salidas " << soldierNumber_ << std::endl;
-                    if (mind_->pathfinding_.isPath) {
-                        alertCounter_++;
+                    target = new KinematicStatus();
+                    target->position = nextPoint_;
+                    k_seek_.calculate(state_, target, &steer);
+                    updateKinematic(dt, steer);
+                    if (mind_->endPath)
+                    {
+                        steer.velocity = MathLib::Vec2(0.0f, 0.0f);
+                        behaviour_status_ = Behaviour::SlaveSaved;
                     }
                 }
 
             }
 
-            if (mind_->pathfinding_.isPath) {
-                KinematicSteering steer;
-                setOrientation(state_.velocity);
-                if ((nextPoint_ - state_.position).length() <= ((previousPoint_ - state_.position).length()))
-                {
-                    mind_->getNextIter();
-                    previousPoint_ = nextPoint_;
-                }
-                target = new KinematicStatus();
-                target->position = nextPoint_;
-                k_seek_.calculate(state_, target, &steer);
-                updateKinematic(dt * speed_factor, steer);
-                if (mind_->endPath)
-                {
-                    //std::cout << "Fin, salvado" << std::endl;
+            case Behaviour::SlaveSaved: {
+
+                if (mind_->pathfinding_.isPath) {
+                    KinematicSteering steer;
                     steer.velocity = MathLib::Vec2(0.0f, 0.0f);
-                    alertCounter_=0;
+
                 }
+
             }
 
-            //std::cout << "x: " << state_.position.x()/8 << "     y: " << state_.position.y() / 8 << "  " << enum_to_string(enumZones_->[static_cast<int>(state_.position.x() / 8) * 128 + static_cast<int>(state_.position.y() / 8))] << std::endl;
-           
-
-            if (enumZones_[static_cast<int>(state_.position.x()/8) * 128 + static_cast<int>(state_.position.y()/8)] == zone::Exterior)
-            {
-                isSaved = true;
-                std::cout << "¡Esclavo fuera del castillo!" << "    X: " << state_.position.x() / 8  << "     Y: " << state_.position.y() / 8 << std::endl;
-            }
-
-
-            //Si ha pasado el tiempo de alarma se vuelve al estado habitual
-            if ((float(clock()) - *mind_->alert_time_) / CLOCKS_PER_SEC >= MAX_ALERT_TIME) {
-                *mind_->alert_ = false;
             }
 
         }
-        
         
     }
     
