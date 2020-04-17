@@ -554,8 +554,15 @@ void Body::update(const uint32_t dt) {
     if (role_ == Role::Slave) {
 
         if (!*mind_->alert_) {
-            switch (behaviour_status_) {
 
+            if (alertCounter_ == 1)
+            {
+                alertCounter_ = 0;
+                std::cout << alertCounter_;
+                setBehaviour(Body::Behaviour::SlaveStarting);
+            }
+
+            switch (behaviour_status_) {
             case Behaviour::SlaveStarting: {
 
                 int random;
@@ -733,39 +740,50 @@ void Body::update(const uint32_t dt) {
         else if (*mind_->alert_) {
             
             float speed_factor = 1.0f;
-            if(alertCounter_==0)
+            if (alertCounter_==0)
             {
-                KinematicSteering steer;
-                steer.velocity = MathLib::Vec2(0.0f, 0.0f);
+                if (doors_->at(0).open || doors_->at(1).open || doors_->at(2).open || doors_->at(3).open) {
+                    int random = rand() % zonas_.base.size();
+                    mind_->setStartPoints(state_.position.x(), state_.position.y());
+                    mind_->setDoors(*doors_);
+                    mind_->setEndPoints(MathLib::Vec2(zonas_.base[random]).x() * 8, MathLib::Vec2(zonas_.base[random]).y() * 8);
+                    std::cout << "Pathfinding de salida Esclavo " << soldierNumber_ << std::endl;
+                    if (mind_->pathfinding_.isPath) {
+                        alertCounter_++;
+                    }
+                }
 
-                int random = rand() % zonas_.base.size();
-                mind_->setStartPoints(state_.position.x(), state_.position.y());
-                mind_->setDoors(*doors_);
-                mind_->setEndPoints(MathLib::Vec2(zonas_.base[random]).x() * 8, MathLib::Vec2(zonas_.base[random]).y() * 8);
-                std::cout << "Pathfinding de salida Esclavo " << soldierNumber_ << std::endl;
-                if (mind_->pathfinding_.isPath) {
-                    alertCounter_++;
+                else if (!doors_->at(0).open && !doors_->at(1).open && !doors_->at(2).open && !doors_->at(3).open && (float(clock()) - *mind_->alert_time_)) {
+                    int random = rand() % zonas_.interior.size();
+                    mind_->setStartPoints(state_.position.x(), state_.position.y());
+                    mind_->setDoors(*doors_);
+                    mind_->setEndPoints(MathLib::Vec2(zonas_.interior[random]).x() * 8, MathLib::Vec2(zonas_.interior[random]).y() * 8);
+                    std::cout << "Buscando salidas " << soldierNumber_ << std::endl;
+                    if (mind_->pathfinding_.isPath) {
+                        alertCounter_++;
+                    }
                 }
 
             }
 
-
-            KinematicSteering steer;
-            setOrientation(state_.velocity);
-            if ((nextPoint_ - state_.position).length() <= ((previousPoint_ - state_.position).length()))
-            {
-                mind_->getNextIter();
-                previousPoint_ = nextPoint_;
-            }
-            target = new KinematicStatus();
-            target->position = nextPoint_;
-            k_seek_.calculate(state_, target, &steer);
-            updateKinematic(dt * speed_factor, steer);
-            if (mind_->endPath)
-            {
-                std::cout << "Fin, salvado" << std::endl;
-                steer.velocity = MathLib::Vec2(0.0f, 0.0f);
-                alertCounter_ = 0;
+            if (mind_->pathfinding_.isPath) {
+                KinematicSteering steer;
+                setOrientation(state_.velocity);
+                if ((nextPoint_ - state_.position).length() <= ((previousPoint_ - state_.position).length()))
+                {
+                    mind_->getNextIter();
+                    previousPoint_ = nextPoint_;
+                }
+                target = new KinematicStatus();
+                target->position = nextPoint_;
+                k_seek_.calculate(state_, target, &steer);
+                updateKinematic(dt * speed_factor, steer);
+                if (mind_->endPath)
+                {
+                    //std::cout << "Fin, salvado" << std::endl;
+                    steer.velocity = MathLib::Vec2(0.0f, 0.0f);
+                    alertCounter_=0;
+                }
             }
             
 

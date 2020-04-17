@@ -138,7 +138,7 @@ class World {
       int numGuards = 10;
       std::vector<Agent> guards_;
 
-      int numSlaves = 0;
+      int numSlaves = 10;
       std::vector<Agent> slaves_;
 };
 

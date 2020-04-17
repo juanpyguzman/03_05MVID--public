@@ -154,6 +154,7 @@ class Body {
     int alertCounter_;
     bool wasWorking = false;
     bool wasLoading = false;
+    bool isSaved = false;
 
     MathLib::Vec2 nextPoint_, previousPoint_;
     int soldierNumber_;
