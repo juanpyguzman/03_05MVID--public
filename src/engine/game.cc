@@ -25,8 +25,12 @@ void Game::init() {
 
   loadZonesMap(SDL_LoadBMP("../assets/images/zonas.bmp"));
 
+
   world_.setZones(zonas_);
   world_.setDoors(&doors_);
+  alert_ = false;
+  alert_time_ = float(clock());
+  world_.setAlert(&alert_, &alert_time_);
   world_.init();
 
   createScenes();

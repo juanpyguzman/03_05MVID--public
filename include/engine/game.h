@@ -47,6 +47,9 @@ class Game {
     SDL_Surface* map_image_;
     zonas zonas_;
 
+    bool alert_;
+    float alert_time_;
+
     int8_t slo_mo_ = 1;
 
     std::vector<doors> doors_{

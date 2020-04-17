@@ -80,6 +80,12 @@ class World {
     {
         doors_ = doorsState;
     }
+
+    void setAlert(bool* alert, float* alert_time)
+    {
+        alert_ = alert;
+        alert_time_ = alert_time;
+    }
     
     void init() {
         
@@ -120,17 +126,19 @@ class World {
     Agent* agent() { return &soldiers_[0]; }
     zonas zonas_;
     std::vector<doors>* doors_;
+    bool* alert_;
+    float* alert_time_;
 
   private:
       Agent agent_;
       
-      int numSoldiers = 0;
+      int numSoldiers = 10;
       std::vector<Agent> soldiers_;
 
-      int numGuards = 0;
+      int numGuards = 10;
       std::vector<Agent> guards_;
 
-      int numSlaves = 10;
+      int numSlaves = 0;
       std::vector<Agent> slaves_;
 };
 

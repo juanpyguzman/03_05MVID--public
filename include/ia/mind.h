@@ -30,6 +30,8 @@ class Mind {
 
     bool endPath = true;
     Pathfinding pathfinding_;
+    bool* alert_;
+    float* alert_time_;
 
   private:
     World* world_ = nullptr;

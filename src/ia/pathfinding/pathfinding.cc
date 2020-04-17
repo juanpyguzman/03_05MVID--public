@@ -117,7 +117,7 @@
                     openList_.pop();
                 }
             } else if (openList_.empty()) {
-                std::cout << "Camino imposible" << std::endl;
+                //std::cout << "Camino imposible" << std::endl;
                 isPath = false;
                 break;
             }

@@ -12,6 +12,8 @@
 void Mind::init(World* world, Body* body) {
   world_ = world;
   body_ = body;
+  alert_ = world_->alert_;
+  alert_time_ = world_->alert_time_;
 }
 
 void Mind::update(const uint32_t) const {
