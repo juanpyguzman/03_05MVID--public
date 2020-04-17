@@ -556,7 +556,7 @@ void Body::update(const uint32_t dt) {
         if (!isSaved) {
             if (!*mind_->alert_) {
 
-                if (alertCounter_ == 1)
+                if (alertCounter_ > 0)
                 {
                     alertCounter_ = 0;
                     std::cout << alertCounter_;
@@ -743,48 +743,96 @@ void Body::update(const uint32_t dt) {
                 float speed_factor = 1.0f;
                 if (alertCounter_ == 0)
                 {
+                    behaviour_status_ = Behaviour::SlaveAlertSearching;
+
+                }
+
+                switch (behaviour_status_)
+                {
+
+                case Behaviour::SlaveAlertSearching: {
+                    KinematicSteering steer;
+
+
                     if (doors_->at(0).open || doors_->at(1).open || doors_->at(2).open || doors_->at(3).open) {
                         int random = rand() % zonas_.base.size();
                         mind_->setStartPoints(state_.position.x(), state_.position.y());
                         mind_->setDoors(*doors_);
                         mind_->setEndPoints(MathLib::Vec2(zonas_.base[random]).x() * 8, MathLib::Vec2(zonas_.base[random]).y() * 8);
-                        std::cout << "Pathfinding de salida Esclavo " << soldierNumber_ << std::endl;
+                        //std::cout << "Pathfinding de salida Esclavo " << soldierNumber_ << std::endl;
                         if (mind_->pathfinding_.isPath) {
                             alertCounter_++;
+                            behaviour_status_ = Behaviour::SlaveAlertMoving;
                         }
                     }
 
-                    else if (!doors_->at(0).open && !doors_->at(1).open && !doors_->at(2).open && !doors_->at(3).open && (float(clock()) - *mind_->alert_time_)) {
+                    else if (!doors_->at(0).open && !doors_->at(1).open && !doors_->at(2).open && !doors_->at(3).open) {
                         int random = rand() % zonas_.interior.size();
-                        mind_->setStartPoints(state_.position.x(), state_.position.y());
-                        mind_->setDoors(*doors_);
-                        mind_->setEndPoints(MathLib::Vec2(zonas_.interior[random]).x() * 8, MathLib::Vec2(zonas_.interior[random]).y() * 8);
+                        
+                        if (abs((state_.position.x() - zonas_.interior[random].x() * 8)) > 10 && abs((state_.position.y() - zonas_.interior[random].y() * 8)) > 10) {
+                            mind_->setStartPoints(state_.position.x(), state_.position.y());
+                            mind_->setDoors(*doors_);
+                            mind_->setEndPoints(MathLib::Vec2(zonas_.interior[random]).x() * 8, MathLib::Vec2(zonas_.interior[random]).y() * 8);
+                        }
                         std::cout << "Buscando salidas " << soldierNumber_ << std::endl;
                         if (mind_->pathfinding_.isPath) {
                             alertCounter_++;
+                            behaviour_status_ = Behaviour::SlaveAlertMoving;
                         }
                     }
+                    break;
+                }
+
+                case Behaviour::SlaveAlertMoving: {
+
+                    if (mind_->pathfinding_.isPath) {
+                        KinematicSteering steer;
+                        setOrientation(state_.velocity);
+                        if ((nextPoint_ - state_.position).length() <= ((previousPoint_ - state_.position).length()))
+                        {
+                            mind_->getNextIter();
+                            previousPoint_ = nextPoint_;
+                        }
+                        target = new KinematicStatus();
+                        target->position = nextPoint_;
+                        k_seek_.calculate(state_, target, &steer);
+                        updateKinematic(dt * speed_factor, steer);
+                        if (mind_->endPath)
+                        {
+                            //steer.velocity = MathLib::Vec2(0.0f, 0.0f);
+                            behaviour_status_ = Behaviour::SlaveAlertSearching;
+                            checkingDoor_ = 0;
+                        }
+
+                        //Comprobación si alguna puerta a la que no estamos acercando ha sido cerrada
+                        for (int i = 0; i < 4; i++)
+                        {
+                            if ((MathLib::Vec2(doors_->at(i).insideX * 8, doors_->at(i).insideY * 8) - state_.position).length() <= 50.0f) {
+                                //Si la puerta está cerrada
+                                if (doors_->at(i).open == false && checkingDoor_==0) {
+                                    //Volvemos a buscar otros caminos
+                                    mind_->stopPath();
+                                    std::cout << "puerta cerrada" << std::endl;
+                                    int random = rand() % zonas_.interior.size();
+                                    if (abs((state_.position.x() - zonas_.interior[random].x() * 8)) > 10 && abs((state_.position.y() - zonas_.interior[random].y() * 8)) > 10) {
+                                        mind_->setStartPoints(state_.position.x(), state_.position.y());
+                                        mind_->setDoors(*doors_);
+                                        mind_->setEndPoints(MathLib::Vec2(zonas_.interior[random]).x() * 8, MathLib::Vec2(zonas_.interior[random]).y() * 8);
+                                        checkingDoor_++;
+                                    }
+                                    
+
+                                    //behaviour_status_ = Behaviour::SlaveAlertSearching;
+                                }
+
+                            }
+                        }
+                    }
+                    break;
+                }
 
                 }
 
-                if (mind_->pathfinding_.isPath) {
-                    KinematicSteering steer;
-                    setOrientation(state_.velocity);
-                    if ((nextPoint_ - state_.position).length() <= ((previousPoint_ - state_.position).length()))
-                    {
-                        mind_->getNextIter();
-                        previousPoint_ = nextPoint_;
-                    }
-                    target = new KinematicStatus();
-                    target->position = nextPoint_;
-                    k_seek_.calculate(state_, target, &steer);
-                    updateKinematic(dt * speed_factor, steer);
-                    if (mind_->endPath)
-                    {
-                        steer.velocity = MathLib::Vec2(0.0f, 0.0f);
-                        alertCounter_ = 0;
-                    }
-                }
 
                 if (enumZones_[static_cast<int>(state_.position.x() / 8) * 128 + static_cast<int>(state_.position.y() / 8)] == zone::Exterior)
                 {
@@ -796,6 +844,7 @@ void Body::update(const uint32_t dt) {
                 //Si ha pasado el tiempo de alarma se vuelve al estado habitual
                 if ((float(clock()) - *mind_->alert_time_) / CLOCKS_PER_SEC >= MAX_ALERT_TIME) {
                     *mind_->alert_ = false;
+                    alertCounter_++;
                 }
 
             }
@@ -824,6 +873,7 @@ void Body::update(const uint32_t dt) {
                         behaviour_status_ = Behaviour::SlaveSaved;
                     }
                 }
+                break;
 
             }
 
@@ -834,7 +884,7 @@ void Body::update(const uint32_t dt) {
                     steer.velocity = MathLib::Vec2(0.0f, 0.0f);
 
                 }
-
+                break;
             }
 
             }

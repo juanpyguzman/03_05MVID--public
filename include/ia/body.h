@@ -83,6 +83,8 @@ class Body {
         SlaveLoading,
         SlaveUnloading,
         SlaveResting,
+        SlaveAlertSearching,
+        SlaveAlertMoving,
         SlaveScaping,
         SlaveSaved,
     };
@@ -154,8 +156,8 @@ class Body {
 
     int hackingDoorNumber_, closingDoorNumber_, checkingDoor_;
     float rest_work_time_;
-    float MAX_REST_WORK_TIME = 30.0f;
-    float MAX_ALERT_TIME = 5.0f;
+    float MAX_REST_WORK_TIME = 20.0f;
+    float MAX_ALERT_TIME = 10.0f;
     int alertCounter_;
     bool wasWorking = false;
     bool wasLoading = false;
