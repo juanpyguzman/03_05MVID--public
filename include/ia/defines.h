@@ -21,6 +21,7 @@
 #define MAX_FRAME_SKIP 10
 
 #define FOREGROUND_COLOR { 0, 0, 0, 255 }
+#define ALARM_COLOR { 0, 0, 0, 100 }
 #define SHADOW_COLOR {160, 160, 160, 255}
 
 #define FONT_FILE "../assets/fonts/8bit.ttf"
@@ -34,7 +35,8 @@
 #define BACKGROUND_MAP "../assets/images/mapa.bmp"
 #define COSTES_MAP "../assets/images/costes.bmp"
 
-#define FPS_FONT_SIZE 12
+#define FPS_FONT_SIZE 15
+#define ALARM_FONT_SIZE 60
 
 #define SCENE_NUMBER 1
 

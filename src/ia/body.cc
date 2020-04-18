@@ -763,6 +763,7 @@ void Body::update(const uint32_t dt) {
                         if (mind_->pathfinding_.isPath) {
                             alertCounter_++;
                             behaviour_status_ = Behaviour::SlaveAlertMoving;
+                            checkingDoor_ = 0;
                         }
                     }
 
@@ -777,6 +778,7 @@ void Body::update(const uint32_t dt) {
                         std::cout << "Buscando salidas " << soldierNumber_ << std::endl;
                         if (mind_->pathfinding_.isPath) {
                             alertCounter_++;
+                            checkingDoor_ = 0;
                             behaviour_status_ = Behaviour::SlaveAlertMoving;
                         }
                     }

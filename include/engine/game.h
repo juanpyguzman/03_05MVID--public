@@ -37,7 +37,9 @@ class Game {
     bool quit_ = false;
     Sprite background_sprite_;
     Sprite fps_sprite_;
+    Sprite alert_sprite_;
     TTF_Font* font_ = nullptr;
+    TTF_Font* font_alarm_ = nullptr;
 
     int8_t curr_scene_ = 0;
     Scene* scenes_[SCENE_NUMBER];

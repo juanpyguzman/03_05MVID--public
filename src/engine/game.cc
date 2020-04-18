@@ -17,11 +17,13 @@
 
 void Game::init() {
   font_ = TTF_OpenFont(FONT_FILE, FPS_FONT_SIZE);
+  font_alarm_ = TTF_OpenFont(FONT_FILE, ALARM_FONT_SIZE);
   if (!font_) {
     printf("Failed to load font! SDL_ttf Error: %s\n", TTF_GetError());
   }
 
   fps_sprite_.setVisible(false);
+  alert_sprite_.setVisible(false);
 
   loadZonesMap(SDL_LoadBMP("../assets/images/zonas.bmp"));
 
@@ -81,6 +83,11 @@ void Game::start() {
       update_loops = 0;
       fps_time_acc = 0;
     }
+
+    char text_alarm[255];
+    sprintf_s(text_alarm, "ALARMA");
+    alert_sprite_.loadFromRenderedText(text_alarm, SDL_Color ALARM_COLOR, font_alarm_, true);
+    
   }
 }
 
@@ -129,22 +136,22 @@ void Game::handleInput(uint16_t& counter) {
         case SDLK_ESCAPE: quit_ = true; break;
         case SDLK_F1:   nextScene(-1); break;
         case SDLK_F2:  nextScene(+1); break;
-        /*case SDLK_1:
+        case SDLK_1:
             doors_[0].open = !doors_[0].open;
-            world_.agent()->mind_.changeDoor(doors_[0]);
+            //world_.agent()->mind_.changeDoor(doors_[0]);
             break;
         case SDLK_2:
             doors_[1].open = !doors_[1].open;
-            world_.agent()->mind_.changeDoor(doors_[1]);
+            //world_.agent()->mind_.changeDoor(doors_[1]);
             break;
         case SDLK_3:
             doors_[2].open = !doors_[2].open;
-            world_.agent()->mind_.changeDoor(doors_[2]);
+            //world_.agent()->mind_.changeDoor(doors_[2]);
             break;
         case SDLK_4:
             doors_[3].open = !doors_[3].open;
-            world_.agent()->mind_.changeDoor(doors_[3]);
-            break;*/
+            //world_.agent()->mind_.changeDoor(doors_[3]);
+            break;
         default:{}
       }
       scenes_[curr_scene_]->handleKeyEvent(e.key.keysym.sym);
@@ -164,6 +171,17 @@ void Game::render() {
 
   background_sprite_.setVisible(true);
   background_sprite_.render();
+
+  if (!alert_)
+  {
+      alert_sprite_.setVisible(false);
+  }
+  else {
+      alert_sprite_.setVisible(true);
+  }
+
+  alert_sprite_.setPosition(WINDOW_WIDTH/2,WINDOW_HEIGHT/2);
+  alert_sprite_.render();
 
   fps_sprite_.render();
   scenes_[curr_scene_]->render();
