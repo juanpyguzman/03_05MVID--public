@@ -85,6 +85,7 @@ class Body {
         SlaveResting,
         SlaveAlertSearching,
         SlaveAlertMoving,
+        SlaveGoingBackFromAlert,
         SlaveScaping,
         SlaveSaved,
     };

@@ -560,7 +560,7 @@ void Body::update(const uint32_t dt) {
                 {
                     alertCounter_ = 0;
                     std::cout << alertCounter_;
-                    setBehaviour(Body::Behaviour::SlaveStarting);
+                    setBehaviour(Body::Behaviour::SlaveGoingBackFromAlert);
                 }
 
                 switch (behaviour_status_) {
@@ -584,7 +584,33 @@ void Body::update(const uint32_t dt) {
 
                     break;  }
 
+                case Behaviour::SlaveGoingBackFromAlert: {
+
+                    int random;
+                    //Dirigimos a la mitad de los esclavos en la zona de descanso
+                    if (wasWorking) {
+                        int random = rand() % zonas_.rest.size();
+                        mind_->setStartPoints(state_.position.x(), state_.position.y());
+                        mind_->setDoors(doorsClosed_);
+                        mind_->setEndPoints(MathLib::Vec2(zonas_.rest[random]).x() * 8, MathLib::Vec2(zonas_.rest[random]).y() * 8);
+                        rest_work_time_ = float(clock());
+                        behaviour_status_ = Behaviour::SlaveMovingToWork_Rest;
+                    }
+                    else {
+                        //Dirigimos a la mitad de los esclavos en la zona de trabajo
+                        int random = rand() % zonas_.work.size();
+                        mind_->setStartPoints(state_.position.x(), state_.position.y());
+                        mind_->setDoors(doorsClosed_);
+                        mind_->setEndPoints(MathLib::Vec2(zonas_.work[random]).x() * 8, MathLib::Vec2(zonas_.work[random]).y() * 8);
+                        rest_work_time_ = float(clock());
+                        behaviour_status_ = Behaviour::SlaveMovingToWork_Rest;
+                    }
+
+                    break;  }
+
                 case Behaviour::SlaveResting: {
+
+                    wasWorking = false;
 
                     KinematicSteering steer;
                     KinematicStatus new_target;
@@ -599,7 +625,6 @@ void Body::update(const uint32_t dt) {
                         mind_->setDoors(doorsClosed_);
                         mind_->setEndPoints(MathLib::Vec2(zonas_.work[random]).x() * 8, MathLib::Vec2(zonas_.work[random]).y() * 8);
 
-                        wasWorking = false;
                         behaviour_status_ = Behaviour::SlaveMovingToWork_Rest;
                     }
 
@@ -646,6 +671,7 @@ void Body::update(const uint32_t dt) {
 
                     KinematicSteering steer;
                     steer.velocity = MathLib::Vec2(0.0f, 0.0f);
+                    wasWorking = true;
 
                     if (!wasLoading) {
                         int random = rand() % zonas_.loading.size();
@@ -671,7 +697,6 @@ void Body::update(const uint32_t dt) {
                         mind_->setDoors(doorsClosed_);
                         mind_->setEndPoints(MathLib::Vec2(zonas_.rest[random]).x() * 8, MathLib::Vec2(zonas_.rest[random]).y() * 8);
 
-                        wasWorking = true;
                         behaviour_status_ = Behaviour::SlaveMovingToWork_Rest;
                     }
 
