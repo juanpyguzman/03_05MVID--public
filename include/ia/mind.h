@@ -32,6 +32,7 @@ class Mind {
     Pathfinding pathfinding_;
     bool* alert_;
     float* alert_time_;
+    bool clearView(MathLib::Vec2 p0, MathLib::Vec2 pf);
 
   private:
     World* world_ = nullptr;

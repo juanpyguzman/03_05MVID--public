@@ -69,3 +69,29 @@ void Mind::CalculatePathFinding() {
     pathfinding_.clear();
 
 }
+
+bool Mind::clearView(MathLib::Vec2 p0, MathLib::Vec2 pf)
+{
+    bool clearView=true;
+    int x = p0.x() / 8;
+    int y = p0.y() / 8;
+    int pfx = pf.x() / 8;
+    int pfy = pf.y() / 8;
+
+    while (x != pfx || y != pfy)
+    {
+        if (x < pfx) x++;
+        else if (x>pfx) x--;
+  
+        if (y < pfy) y++;
+        else if (y>pfy) y--;
+
+        //si encontramos que se trata de un muro
+        if (pathfinding_.map_.getMap(x,y)==1) {
+            clearView = false;
+        }
+    }
+
+
+    return clearView;
+}

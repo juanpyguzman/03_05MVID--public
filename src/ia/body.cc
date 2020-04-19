@@ -12,11 +12,12 @@
 #include "ia/defines.h"
 #include <time.h>
 
-void Body::init(Agent* thisAgent, const Role role, const Type type, Mind* mind, zonas zonasMapa, std::vector<zone> enumZones, std::vector<doors>* doorsState) {
+void Body::init(Agent* thisAgent, const Role role, const Type type, Mind* mind, zonas zonasMapa, std::vector<zone> enumZones, std::vector<doors>* doorsState, std::vector<Agent>* slaves) {
   thisAgent_ = thisAgent;
   type_ = type;
   role_ = role;
   mind_ = mind;
+  slaves_ = slaves;
   zonas_ = zonasMapa;
   enumZones_ = enumZones;
   doors_ = doorsState;
@@ -303,7 +304,7 @@ void Body::update(const uint32_t dt) {
                 int random = rand() % zonas_.interior.size();
 
                 //Compruebo que el Pathfinding no manda al agente al mismo punto
-                if (abs((state_.position.x() - zonas_.interior[random].x() * 8)) > 10 && abs((state_.position.y() - zonas_.interior[random].y() * 8)) > 10) {
+                if (abs((state_.position.x() - zonas_.interior[random].x() * 8)) > MINIMUM_DISTANCE_PATHFINDING && abs((state_.position.y() - zonas_.interior[random].y() * 8)) > MINIMUM_DISTANCE_PATHFINDING) {
                     //Búsqueda aleatoria en el interior
                     mind_->setStartPoints(state_.position.x(), state_.position.y());
                     mind_->setDoors(doorsClosed_);
@@ -311,9 +312,6 @@ void Body::update(const uint32_t dt) {
                     mind_->setEndPoints(MathLib::Vec2(zonas_.interior[random]).x() * 8, MathLib::Vec2(zonas_.interior[random]).y() * 8);
                     //std::cout << "Nuevo pathfinding de Guardia " << soldierNumber_ << "X: " << zonas_.interior[random].x() * 8 << "    Y: " << zonas_.interior[random].y() * 8 << std::endl;
                     setBehaviour(Body::Behaviour::GuardPatrol);
-                }
-                else {
-                    break;
                 }
 
                 break; }
@@ -346,8 +344,8 @@ void Body::update(const uint32_t dt) {
                     //Comprobación de distancia a Puerta
                     for (int i = 0; i < 4; i++)
                     {
-                        if ((MathLib::Vec2(doors_->at(i).insideX * 8, doors_->at(i).insideY * 8) - state_.position).length() <= 200.0f) {
-                            if ((abs(state_.position.x() - doors_->at(i).insideX * 8) > 20) && (abs(state_.position.y() - doors_->at(i).insideY * 8) > 20)) {
+                        if ((MathLib::Vec2(doors_->at(i).insideX * 8, doors_->at(i).insideY * 8) - state_.position).length() <= MINIMUM_DISTANCE_TO_DOOR) {
+                            if ((abs(state_.position.x() - doors_->at(i).insideX * 8) > MAXIMUM_DISTANCE_TO_DOOR) && (abs(state_.position.y() - doors_->at(i).insideY * 8) > MAXIMUM_DISTANCE_TO_DOOR)) {
                                 if ((doors_->at(i).startX * 8 < state_.position.x() && doors_->at(i).endX * 8 > state_.position.x())
                                     || (doors_->at(i).startY * 8 < state_.position.y() && doors_->at(i).endY * 8 > state_.position.y())) {
                                     //Si la puerta está abierta
@@ -405,7 +403,6 @@ void Body::update(const uint32_t dt) {
                     mind_->changeDoor(doors_->at(closingDoorNumber_));
                     closingDoorNumber_ = -1;
 
-                    //setBehaviour(Body::Behaviour::GuardStart);
                 }
 
                 break; }
@@ -433,7 +430,7 @@ void Body::update(const uint32_t dt) {
             int random = rand() % zonas_.interior.size();
 
             //Compruebo que el Pathfinding no manda al agente al mismo punto
-            if (abs((state_.position.x() - zonas_.interior[random].x() * 8)) > 10 && abs((state_.position.y() - zonas_.interior[random].y() * 8)) > 10) {
+            if (abs((state_.position.x() - zonas_.interior[random].x() * 8)) > MINIMUM_DISTANCE_PATHFINDING && abs((state_.position.y() - zonas_.interior[random].y() * 8)) > MINIMUM_DISTANCE_PATHFINDING) {
                 //Búsqueda aleatoria en el interior
                 mind_->setStartPoints(state_.position.x(), state_.position.y());
                 mind_->setDoors(doorsClosed_);
@@ -476,8 +473,8 @@ void Body::update(const uint32_t dt) {
                 //Comprobación de distancia a Puerta
                 for (int i = 0; i < 4; i++)
                 {
-                    if ((MathLib::Vec2(doors_->at(i).insideX * 8, doors_->at(i).insideY * 8) - state_.position).length() <= 200.0f) {
-                        if ((abs(state_.position.x() - doors_->at(i).insideX * 8) > 20) && (abs(state_.position.y() - doors_->at(i).insideY * 8) > 20)) {
+                    if ((MathLib::Vec2(doors_->at(i).insideX * 8, doors_->at(i).insideY * 8) - state_.position).length() <= MINIMUM_DISTANCE_TO_DOOR) {
+                        if ((abs(state_.position.x() - doors_->at(i).insideX * 8) > MAXIMUM_DISTANCE_TO_DOOR) && (abs(state_.position.y() - doors_->at(i).insideY * 8) > MAXIMUM_DISTANCE_TO_DOOR)) {
                             if ((doors_->at(i).startX * 8 < state_.position.x() && doors_->at(i).endX * 8 > state_.position.x())
                                 || (doors_->at(i).startY * 8 < state_.position.y() && doors_->at(i).endY * 8 > state_.position.y())) {
                                 //Si la puerta está abierta
@@ -495,6 +492,17 @@ void Body::update(const uint32_t dt) {
                             }
 
                         }
+                    }
+                }
+
+                //Comprobación de distancia a Esclavo huyendo
+                for (int i = 0; i < slaves_->size(); i++)
+                {
+                    clearView_ = mind_->clearView(slaves_->at(i).getKinematic()->position, state_.position);
+                    if ((slaves_->at(i).getKinematic()->position - state_.position).length() <= MINIMUM_DISTANCE_TO_SLAVE && clearView_ && !slaves_->at(i).body_.isSaved && !slaves_->at(i).body_.isCatched) {
+                        target_ = &slaves_->at(i);
+                        setBehaviour(Body::Behaviour::GuardCatching);
+                        std::cout << "Guardia " << thisAgent_->ID_ << " cerca de esclavo " << slaves_->at(i).ID_ << std::endl;
                     }
                 }
 
@@ -527,7 +535,6 @@ void Body::update(const uint32_t dt) {
             {
                 if (doors_->at(closingDoorNumber_).open == true) {
                     doors_->at(closingDoorNumber_).open = false;
-                    //*mind_->alert_ = true;
                     *mind_->alert_time_ = float(clock());
                     std::cout << "Alerta prorrogada" << std::endl;
                 }
@@ -539,7 +546,40 @@ void Body::update(const uint32_t dt) {
             }
 
             break; }
+
+        //Persiguiendo al esclavo
+        case Behaviour::GuardCatching: {
+            thisAgent_->getKinematic()->speed = 20.0f;
+            
+            KinematicSteering steer;
+            k_seek_.calculate(state_, target_->getKinematic(), &steer);
+            updateKinematic(dt, steer);
+            setOrientation(state_.velocity);
+
+            //Si el guardia está lo suficientemente cerca para coger al esclavo, lo manda a la zona de descanso
+            if ((target_->getKinematic()->position - state_.position).length() <= MINIMUM_DISTANCE_TO_CATCH && !target_->body_.isSaved && !target_->body_.isCatched) {
+                target_->body_.isCatched = true;
+                target_->body_.setBehaviour(Body::Behaviour::SlaveAlertCatched);
+                std::cout << "Guardia " << thisAgent_->ID_ << " ha cazado esclavo " << target_->ID_ << std::endl;
+                //setBehaviour(Body::Behaviour::GuardCatching);
+                //std::cout << "Guardia " << thisAgent_->ID_ << " cerca de esclavo " << slaves_->at(i).ID_ << std::endl;
+            }
+
+            //Si el esclavo ya ha sido capturado o escapa de la fortaleza
+            if (target_->body_.isSaved) {
+                setBehaviour(Body::Behaviour::GuardStart);
+            }
+
+            //Si el esclavo alcanza la zona de descanso, el guardia vuelve al estado de inicio
+            if (enumZones_[static_cast<int>(target_->getKinematic()->position.x() / 8) * 128 + static_cast<int>(target_->getKinematic()->position.y() / 8)] == zone::Rest){
+                setBehaviour(Body::Behaviour::GuardStart);
+            }
+
+            break; }
+
         }
+
+
 
         if ((float(clock()) - *mind_->alert_time_) / CLOCKS_PER_SEC >= MAX_ALERT_TIME) {
             *mind_->alert_ = false;
@@ -559,6 +599,8 @@ void Body::update(const uint32_t dt) {
                 if (alertCounter_ > 0)
                 {
                     alertCounter_ = 0;
+                    isCatched = false;
+                    isStopped = false;
                     std::cout << alertCounter_;
                     setBehaviour(Body::Behaviour::SlaveGoingBackFromAlert);
                 }
@@ -706,6 +748,7 @@ void Body::update(const uint32_t dt) {
                 case Behaviour::SlaveLoading: {
 
                     thisAgent_->getKinematic()->speed = 20.0f;
+
                     if (!mind_->pathfinding_.isPath)
                     {
                         KinematicSteering steer;
@@ -729,11 +772,25 @@ void Body::update(const uint32_t dt) {
                             behaviour_status_ = Behaviour::SlaveWorking;
                         }
                     }
+
+
+                    if ((float(clock()) - rest_work_time_) / CLOCKS_PER_SEC >= MAX_REST_WORK_TIME) {
+                        rest_work_time_ = float(clock());
+
+                        int random = rand() % zonas_.rest.size();
+                        mind_->setStartPoints(state_.position.x(), state_.position.y());
+                        mind_->setDoors(doorsClosed_);
+                        mind_->setEndPoints(MathLib::Vec2(zonas_.rest[random]).x() * 8, MathLib::Vec2(zonas_.rest[random]).y() * 8);
+
+                        behaviour_status_ = Behaviour::SlaveMovingToWork_Rest;
+                    }
+
                     break; }
 
                 case Behaviour::SlaveUnloading: {
 
                     float speed_factor = 0.5f;
+
                     if (!mind_->pathfinding_.isPath)
                     {
                         KinematicSteering steer;
@@ -757,6 +814,18 @@ void Body::update(const uint32_t dt) {
                             behaviour_status_ = Behaviour::SlaveWorking;
                         }
                     }
+
+                    if ((float(clock()) - rest_work_time_) / CLOCKS_PER_SEC >= MAX_REST_WORK_TIME) {
+                        rest_work_time_ = float(clock());
+
+                        int random = rand() % zonas_.rest.size();
+                        mind_->setStartPoints(state_.position.x(), state_.position.y());
+                        mind_->setDoors(doorsClosed_);
+                        mind_->setEndPoints(MathLib::Vec2(zonas_.rest[random]).x() * 8, MathLib::Vec2(zonas_.rest[random]).y() * 8);
+
+                        behaviour_status_ = Behaviour::SlaveMovingToWork_Rest;
+                    }
+
                     break; }
 
                 }
@@ -764,56 +833,28 @@ void Body::update(const uint32_t dt) {
 
             // Si se hace sonar la alarma
             else if (*mind_->alert_) {
-
-                float speed_factor = 1.0f;
-                if (alertCounter_ == 0)
+                
+               //Si el esclavo ha sido capturado, se desplaza a la zona de descanso
+                if (isCatched)
                 {
-                    behaviour_status_ = Behaviour::SlaveAlertSearching;
-
-                }
-
-                switch (behaviour_status_)
-                {
-
-                case Behaviour::SlaveAlertSearching: {
+                    float speed_factor = 1.0f;
                     KinematicSteering steer;
+                    switch (behaviour_status_)
+                    {
+                    case Behaviour::SlaveAlertCatched: {
 
-
-                    if (doors_->at(0).open || doors_->at(1).open || doors_->at(2).open || doors_->at(3).open) {
-                        int random = rand() % zonas_.base.size();
+                        int random = rand() % zonas_.rest.size();
                         mind_->setStartPoints(state_.position.x(), state_.position.y());
-                        mind_->setDoors(*doors_);
-                        mind_->setEndPoints(MathLib::Vec2(zonas_.base[random]).x() * 8, MathLib::Vec2(zonas_.base[random]).y() * 8);
-                        //std::cout << "Pathfinding de salida Esclavo " << soldierNumber_ << std::endl;
-                        if (mind_->pathfinding_.isPath) {
-                            alertCounter_++;
-                            behaviour_status_ = Behaviour::SlaveAlertMoving;
-                            checkingDoor_ = 0;
-                        }
-                    }
+                        mind_->setDoors(doorsClosed_);
+                        mind_->setEndPoints(MathLib::Vec2(zonas_.rest[random]).x() * 8, MathLib::Vec2(zonas_.rest[random]).y() * 8);
+                        setBehaviour(Body::Behaviour::SlaveAlertGoignToRestArea);
+                        break; }
 
-                    else if (!doors_->at(0).open && !doors_->at(1).open && !doors_->at(2).open && !doors_->at(3).open) {
-                        int random = rand() % zonas_.interior.size();
+                    case Behaviour::SlaveAlertGoignToRestArea: {
                         
-                        if (abs((state_.position.x() - zonas_.interior[random].x() * 8)) > 10 && abs((state_.position.y() - zonas_.interior[random].y() * 8)) > 10) {
-                            mind_->setStartPoints(state_.position.x(), state_.position.y());
-                            mind_->setDoors(*doors_);
-                            mind_->setEndPoints(MathLib::Vec2(zonas_.interior[random]).x() * 8, MathLib::Vec2(zonas_.interior[random]).y() * 8);
-                        }
-                        std::cout << "Buscando salidas " << soldierNumber_ << std::endl;
-                        if (mind_->pathfinding_.isPath) {
-                            alertCounter_++;
-                            checkingDoor_ = 0;
-                            behaviour_status_ = Behaviour::SlaveAlertMoving;
-                        }
-                    }
-                    break;
-                }
-
-                case Behaviour::SlaveAlertMoving: {
-
-                    if (mind_->pathfinding_.isPath) {
+                        float speed_factor = 1.0f;
                         KinematicSteering steer;
+
                         setOrientation(state_.velocity);
                         if ((nextPoint_ - state_.position).length() <= ((previousPoint_ - state_.position).length()))
                         {
@@ -824,43 +865,122 @@ void Body::update(const uint32_t dt) {
                         target->position = nextPoint_;
                         k_seek_.calculate(state_, target, &steer);
                         updateKinematic(dt * speed_factor, steer);
+
                         if (mind_->endPath)
                         {
-                            //steer.velocity = MathLib::Vec2(0.0f, 0.0f);
-                            behaviour_status_ = Behaviour::SlaveAlertSearching;
-                            checkingDoor_ = 0;
+                            steer.velocity = MathLib::Vec2(0.0f, 0.0f);
+                            setBehaviour(Body::Behaviour::SlaveAlertWaiting);
                         }
 
-                        //Comprobación si alguna puerta a la que no estamos acercando ha sido cerrada
-                        for (int i = 0; i < 4; i++)
-                        {
-                            if ((MathLib::Vec2(doors_->at(i).insideX * 8, doors_->at(i).insideY * 8) - state_.position).length() <= 50.0f) {
-                                //Si la puerta está cerrada
-                                if (doors_->at(i).open == false && checkingDoor_==0) {
-                                    //Volvemos a buscar otros caminos
-                                    mind_->stopPath();
-                                    std::cout << "puerta cerrada" << std::endl;
-                                    int random = rand() % zonas_.interior.size();
-                                    if (abs((state_.position.x() - zonas_.interior[random].x() * 8)) > 10 && abs((state_.position.y() - zonas_.interior[random].y() * 8)) > 10) {
-                                        mind_->setStartPoints(state_.position.x(), state_.position.y());
-                                        mind_->setDoors(*doors_);
-                                        mind_->setEndPoints(MathLib::Vec2(zonas_.interior[random]).x() * 8, MathLib::Vec2(zonas_.interior[random]).y() * 8);
-                                        checkingDoor_++;
-                                    }
-                                    
+                        break; }
+                    
+                    case Behaviour::SlaveAlertWaiting: {
 
-                                    //behaviour_status_ = Behaviour::SlaveAlertSearching;
-                                }
+                        KinematicSteering steer;
+                        steer.velocity = MathLib::Vec2(0.0f, 0.0f);
 
+                        break; }
+
+                    }
+                        
+                }
+
+                //Si el Esclavo no ha sido capturado
+                else if (!isCatched) {
+                    float speed_factor = 1.0f;
+                    if (alertCounter_ == 0)
+                    {
+                        behaviour_status_ = Behaviour::SlaveAlertSearching;
+
+                    }
+
+                    switch (behaviour_status_)
+                    {
+
+                    case Behaviour::SlaveAlertSearching: {
+                        KinematicSteering steer;
+
+
+                        if (doors_->at(0).open || doors_->at(1).open || doors_->at(2).open || doors_->at(3).open) {
+                            int random = rand() % zonas_.base.size();
+                            mind_->setStartPoints(state_.position.x(), state_.position.y());
+                            mind_->setDoors(*doors_);
+                            mind_->setEndPoints(MathLib::Vec2(zonas_.base[random]).x() * 8, MathLib::Vec2(zonas_.base[random]).y() * 8);
+                            //std::cout << "Pathfinding de salida Esclavo " << soldierNumber_ << std::endl;
+                            if (mind_->pathfinding_.isPath) {
+                                alertCounter_++;
+                                behaviour_status_ = Behaviour::SlaveAlertMoving;
+                                checkingDoor_ = 0;
                             }
                         }
+
+                        else if (!doors_->at(0).open && !doors_->at(1).open && !doors_->at(2).open && !doors_->at(3).open) {
+                            int random = rand() % zonas_.interior.size();
+
+                            if (abs((state_.position.x() - zonas_.interior[random].x() * 8)) > MINIMUM_DISTANCE_PATHFINDING && abs((state_.position.y() - zonas_.interior[random].y() * 8)) > MINIMUM_DISTANCE_PATHFINDING) {
+                                mind_->setStartPoints(state_.position.x(), state_.position.y());
+                                mind_->setDoors(*doors_);
+                                mind_->setEndPoints(MathLib::Vec2(zonas_.interior[random]).x() * 8, MathLib::Vec2(zonas_.interior[random]).y() * 8);
+                            }
+                            //std::cout << "Buscando salidas " << soldierNumber_ << std::endl;
+                            if (mind_->pathfinding_.isPath) {
+                                alertCounter_++;
+                                checkingDoor_ = 0;
+                                behaviour_status_ = Behaviour::SlaveAlertMoving;
+                            }
+                        }
+                        break;
                     }
-                    break;
+
+                    case Behaviour::SlaveAlertMoving: {
+
+                        if (mind_->pathfinding_.isPath) {
+                            KinematicSteering steer;
+                            setOrientation(state_.velocity);
+                            if ((nextPoint_ - state_.position).length() <= ((previousPoint_ - state_.position).length()))
+                            {
+                                mind_->getNextIter();
+                                previousPoint_ = nextPoint_;
+                            }
+                            target = new KinematicStatus();
+                            target->position = nextPoint_;
+                            k_seek_.calculate(state_, target, &steer);
+                            updateKinematic(dt * speed_factor, steer);
+                            if (mind_->endPath)
+                            {
+                                //steer.velocity = MathLib::Vec2(0.0f, 0.0f);
+                                behaviour_status_ = Behaviour::SlaveAlertSearching;
+                                checkingDoor_ = 0;
+                            }
+
+                            //Comprobación si alguna puerta a la que no estamos acercando ha sido cerrada
+                            for (int i = 0; i < 4; i++)
+                            {
+                                if ((MathLib::Vec2(doors_->at(i).insideX * 8, doors_->at(i).insideY * 8) - state_.position).length() <= 50.0f) {
+                                    //Si la puerta está cerrada
+                                    if (doors_->at(i).open == false && checkingDoor_ == 0) {
+                                        //Volvemos a buscar otros caminos
+                                        mind_->stopPath();
+                                        std::cout << "puerta cerrada" << std::endl;
+                                        int random = rand() % zonas_.interior.size();
+                                        if (abs((state_.position.x() - zonas_.interior[random].x() * 8)) > MINIMUM_DISTANCE_PATHFINDING && abs((state_.position.y() - zonas_.interior[random].y() * 8)) > MINIMUM_DISTANCE_PATHFINDING) {
+                                            mind_->setStartPoints(state_.position.x(), state_.position.y());
+                                            mind_->setDoors(*doors_);
+                                            mind_->setEndPoints(MathLib::Vec2(zonas_.interior[random]).x() * 8, MathLib::Vec2(zonas_.interior[random]).y() * 8);
+                                            checkingDoor_++;
+                                        }
+                                    }
+
+                                }
+                            }
+                        }
+                        break;
+                    }
+
+                    }
                 }
 
-                }
-
-
+                //si el esclavo escapa del castillo
                 if (enumZones_[static_cast<int>(state_.position.x() / 8) * 128 + static_cast<int>(state_.position.y() / 8)] == zone::Exterior)
                 {
                     isSaved = true;
@@ -909,6 +1029,7 @@ void Body::update(const uint32_t dt) {
                 if (mind_->pathfinding_.isPath) {
                     KinematicSteering steer;
                     steer.velocity = MathLib::Vec2(0.0f, 0.0f);
+                    //std::cout << "Esclavo número " << thisAgent_->ID_ << " salvado" << std::endl;
 
                 }
                 break;

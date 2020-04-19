@@ -33,6 +33,7 @@ public:
     void render();
     void clear();
     bool isPath = false;
+    Map map_;
 
 private:
     int x0_, y0_;
@@ -44,7 +45,6 @@ private:
     Node node[MAP_L1_WIDTH][MAP_L1_HEIGHT];
     Node nextNode_;
 
-    Map map_;
     doors doors_[4];
     uint8_t costs_[MAP_L1_WIDTH][MAP_L1_HEIGHT];
 

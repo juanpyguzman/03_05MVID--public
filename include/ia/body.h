@@ -77,6 +77,7 @@ class Body {
         GuardStart,
         GuardPatrol,
         GuardClosing,
+        GuardCatching,
         SlaveStarting,
         SlaveMovingToWork_Rest,
         SlaveWorking,
@@ -85,6 +86,9 @@ class Body {
         SlaveResting,
         SlaveAlertSearching,
         SlaveAlertMoving,
+        SlaveAlertCatched,
+        SlaveAlertGoignToRestArea,
+        SlaveAlertWaiting,
         SlaveGoingBackFromAlert,
         SlaveScaping,
         SlaveSaved,
@@ -93,7 +97,7 @@ class Body {
     Body() {};
     ~Body() {};
 
-    void init(Agent* thisAgent, Role role, Type type, Mind* mind, zonas zonasMapa, std::vector<zone> enumZones, std::vector<doors>* doorsState);
+    void init(Agent* thisAgent, Role role, Type type, Mind* mind, zonas zonasMapa, std::vector<zone> enumZones, std::vector<doors>* doorsState, std::vector<Agent>* slaves);
     void update(uint32_t dt);
     void render() const;
 
@@ -103,6 +107,9 @@ class Body {
     void setBehaviour(const Behaviour behaviour) { behaviour_status_ = behaviour; };
     const KinematicStatus* getKinematic() const { return &state_; }
     KinematicStatus* getKinematic() { return &state_; }
+
+    bool isCatched = false;
+
   private:
     void updateKinematic(uint32_t dt, const KinematicSteering& steering);
     void updateSteering(uint32_t dt, const Steering& steering);
@@ -121,11 +128,13 @@ class Body {
     Behaviour behaviour_status_;
     Agent* target_;
     Agent* thisAgent_;
+    std::vector<Agent>* slaves_;
     Mind* mind_ = nullptr;
     zonas zonas_;
     std::vector<zone> enumZones_;
     std::vector<doors>* doors_;
     std::vector<doors> doorsClosed_;
+    bool clearView_;
 
     const float max_speed_ = 100.0f;
 
@@ -157,12 +166,11 @@ class Body {
 
     int hackingDoorNumber_, closingDoorNumber_, checkingDoor_;
     float rest_work_time_;
-    float MAX_REST_WORK_TIME = 20.0f;
-    float MAX_ALERT_TIME = 10.0f;
     int alertCounter_;
     bool wasWorking = false;
     bool wasLoading = false;
     bool isSaved = false;
+    bool isStopped = false;
 
     MathLib::Vec2 nextPoint_, previousPoint_;
     int soldierNumber_;
