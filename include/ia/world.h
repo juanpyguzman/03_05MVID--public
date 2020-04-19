@@ -98,7 +98,15 @@ class World {
     std::vector<Agent>* getSlaves() {
         return  &slaves_;
     }
+
+    std::vector<Agent>* getSoldiers() {
+        return  &soldiers_;
+    }
     
+    std::vector<Agent>* getGuards() {
+        return  &guards_;
+    }
+
     void init() {
         
         //Inicialización de soldados
@@ -145,13 +153,13 @@ class World {
   private:
       Agent agent_;
       
-      int numSoldiers = 0;
+      int numSoldiers = 10;
       std::vector<Agent> soldiers_;
 
-      int numGuards = 2;
+      int numGuards = 10;
       std::vector<Agent> guards_;
 
-      int numSlaves = 2;
+      int numSlaves = 10;
       std::vector<Agent> slaves_;
 
 

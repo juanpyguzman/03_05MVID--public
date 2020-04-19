@@ -97,7 +97,7 @@ class Body {
     Body() {};
     ~Body() {};
 
-    void init(Agent* thisAgent, Role role, Type type, Mind* mind, zonas zonasMapa, std::vector<zone> enumZones, std::vector<doors>* doorsState, std::vector<Agent>* slaves);
+    void init(Agent* thisAgent, Role role, Type type, Mind* mind, zonas zonasMapa, std::vector<zone> enumZones, std::vector<doors>* doorsState, std::vector<Agent>* slaves, std::vector<Agent>* guards);
     void update(uint32_t dt);
     void render() const;
 
@@ -129,6 +129,8 @@ class Body {
     Agent* target_;
     Agent* thisAgent_;
     std::vector<Agent>* slaves_;
+    std::vector<Agent>* soldiers_;
+    std::vector<Agent>* guards_;
     Mind* mind_ = nullptr;
     zonas zonas_;
     std::vector<zone> enumZones_;

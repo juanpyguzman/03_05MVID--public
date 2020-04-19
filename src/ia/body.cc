@@ -12,12 +12,13 @@
 #include "ia/defines.h"
 #include <time.h>
 
-void Body::init(Agent* thisAgent, const Role role, const Type type, Mind* mind, zonas zonasMapa, std::vector<zone> enumZones, std::vector<doors>* doorsState, std::vector<Agent>* slaves) {
+void Body::init(Agent* thisAgent, const Role role, const Type type, Mind* mind, zonas zonasMapa, std::vector<zone> enumZones, std::vector<doors>* doorsState, std::vector<Agent>* slaves, std::vector<Agent>* guards) {
   thisAgent_ = thisAgent;
   type_ = type;
   role_ = role;
   mind_ = mind;
   slaves_ = slaves;
+  guards_ = guards;
   zonas_ = zonasMapa;
   enumZones_ = enumZones;
   doors_ = doorsState;
@@ -235,7 +236,11 @@ void Body::update(const uint32_t dt) {
             if (mind_->endPath)
             {
                 if (doors_->at(hackingDoorNumber_).open == false) {
-                    doors_->at(hackingDoorNumber_).open = true;
+                    for (int i = 0; i < guards_->size(); i++) {
+                        if ((guards_->at(i).getKinematic()->position - state_.position).length() >= MINIMUM_DISTANCE_TO_GUARD) {
+                            doors_->at(hackingDoorNumber_).open = true;
+                        }
+                    }
                 }
                 if (doors_->at(hackingDoorNumber_).discovered == false)
                 {
@@ -289,7 +294,6 @@ void Body::update(const uint32_t dt) {
             if (alertCounter_ == 1)
             {
                 alertCounter_ = 0;
-                std::cout << alertCounter_;
                 setBehaviour(Body::Behaviour::GuardStart);
             }
 
@@ -397,7 +401,7 @@ void Body::update(const uint32_t dt) {
                         doors_->at(closingDoorNumber_).open = false;
                         *mind_->alert_ = true;
                         *mind_->alert_time_= float(clock());
-                        std::cout << "Alerta dentro" << std::endl;
+                        std::cout << "Alarma encendida" << std::endl;
                     }
 
                     mind_->changeDoor(doors_->at(closingDoorNumber_));
@@ -415,7 +419,7 @@ void Body::update(const uint32_t dt) {
 
         if (alertCounter_ == 0)
         {
-            std::cout << "Comienzo de alerta" << std::endl;
+            //std::cout << "Comienzo de alerta" << std::endl;
             setBehaviour(Body::Behaviour::GuardStart);
             alertCounter_++;
         }
@@ -502,7 +506,7 @@ void Body::update(const uint32_t dt) {
                     if ((slaves_->at(i).getKinematic()->position - state_.position).length() <= MINIMUM_DISTANCE_TO_SLAVE && clearView_ && !slaves_->at(i).body_.isSaved && !slaves_->at(i).body_.isCatched) {
                         target_ = &slaves_->at(i);
                         setBehaviour(Body::Behaviour::GuardCatching);
-                        std::cout << "Guardia " << thisAgent_->ID_ << " cerca de esclavo " << slaves_->at(i).ID_ << std::endl;
+                        //std::cout << "Guardia " << thisAgent_->ID_ << " cerca de esclavo " << slaves_->at(i).ID_ << std::endl;
                     }
                 }
 
@@ -536,7 +540,7 @@ void Body::update(const uint32_t dt) {
                 if (doors_->at(closingDoorNumber_).open == true) {
                     doors_->at(closingDoorNumber_).open = false;
                     *mind_->alert_time_ = float(clock());
-                    std::cout << "Alerta prorrogada" << std::endl;
+                    std::cout << "Alarma prorrogada" << std::endl;
                 }
 
                 mind_->changeDoor(doors_->at(closingDoorNumber_));
@@ -560,8 +564,7 @@ void Body::update(const uint32_t dt) {
             if ((target_->getKinematic()->position - state_.position).length() <= MINIMUM_DISTANCE_TO_CATCH && !target_->body_.isSaved && !target_->body_.isCatched) {
                 target_->body_.isCatched = true;
                 target_->body_.setBehaviour(Body::Behaviour::SlaveAlertCatched);
-                std::cout << "Guardia " << thisAgent_->ID_ << " ha cazado esclavo " << target_->ID_ << std::endl;
-                //setBehaviour(Body::Behaviour::GuardCatching);
+                //std::cout << "Guardia " << thisAgent_->ID_ << " ha cazado esclavo " << target_->ID_ << std::endl;
                 //std::cout << "Guardia " << thisAgent_->ID_ << " cerca de esclavo " << slaves_->at(i).ID_ << std::endl;
             }
 
@@ -583,7 +586,7 @@ void Body::update(const uint32_t dt) {
 
         if ((float(clock()) - *mind_->alert_time_) / CLOCKS_PER_SEC >= MAX_ALERT_TIME) {
             *mind_->alert_ = false;
-            std::cout << "Alerta fuera" << std::endl;
+            std::cout << "Alarma apagada" << std::endl;
         }
         }
 
@@ -601,7 +604,7 @@ void Body::update(const uint32_t dt) {
                     alertCounter_ = 0;
                     isCatched = false;
                     isStopped = false;
-                    std::cout << alertCounter_;
+                    //std::cout << alertCounter_;
                     setBehaviour(Body::Behaviour::SlaveGoingBackFromAlert);
                 }
 
@@ -961,7 +964,7 @@ void Body::update(const uint32_t dt) {
                                     if (doors_->at(i).open == false && checkingDoor_ == 0) {
                                         //Volvemos a buscar otros caminos
                                         mind_->stopPath();
-                                        std::cout << "puerta cerrada" << std::endl;
+                                        //std::cout << "Puerta cerrada" << std::endl;
                                         int random = rand() % zonas_.interior.size();
                                         if (abs((state_.position.x() - zonas_.interior[random].x() * 8)) > MINIMUM_DISTANCE_PATHFINDING && abs((state_.position.y() - zonas_.interior[random].y() * 8)) > MINIMUM_DISTANCE_PATHFINDING) {
                                             mind_->setStartPoints(state_.position.x(), state_.position.y());
@@ -981,9 +984,10 @@ void Body::update(const uint32_t dt) {
                 }
 
                 //si el esclavo escapa del castillo
-                if (enumZones_[static_cast<int>(state_.position.x() / 8) * 128 + static_cast<int>(state_.position.y() / 8)] == zone::Exterior)
+                if (enumZones_[static_cast<int>(state_.position.x() / 8) * 128 + static_cast<int>(state_.position.y() / 8)] == zone::Exterior && !isSaved)
                 {
                     isSaved = true;
+                    std::cout << "Esclavo número " << thisAgent_->ID_ << " salvado" << std::endl;
                     behaviour_status_ = Behaviour::SlaveScaping;
                 }
 
@@ -1029,8 +1033,6 @@ void Body::update(const uint32_t dt) {
                 if (mind_->pathfinding_.isPath) {
                     KinematicSteering steer;
                     steer.velocity = MathLib::Vec2(0.0f, 0.0f);
-                    //std::cout << "Esclavo número " << thisAgent_->ID_ << " salvado" << std::endl;
-
                 }
                 break;
             }
